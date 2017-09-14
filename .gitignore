@@ -1,3 +1,26 @@
+/build/
+/dist/*.*
+/doc/html/
+/doc/img/
+/doc/readme/
+/sources/*.directory
+
+*.pro
+*.user
+*.user.*
+Doxyfile
+*.directory
+README
+Makefile
+*.py
+*.cmake
+/CMakeCache.txt
+/CMakeFiles/
+/data/*.tree
+/data/*.vtk
+*.cbp
+
+
 # Prerequisites
 *.d
 
