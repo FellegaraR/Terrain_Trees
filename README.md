@@ -1,20 +1,18 @@
 # Terrain Trees library #
 
-We propose a new in-core family of spatial indexes for the analysis of 
-Triangulated Irregular Networks (TINs). We call such indexes Terrain trees. 
-A Terrain tree combines a minimal encoding of the connectivity of the 
-underlying triangle mesh with a hierarchical spatial index implicitly 
-encoding the other topological relations among the mesh elements. 
-Topological relations are extracted locally within each leaf block of 
-the hierarchy at runtime, based on specific application needs. We 
-introduce a new tool for the multivariate analysis of the surface by 
-combining different scalar fields (i.e., the elevation and the curvature 
-values). By computing a combinatorial discrete vector field we are able 
-to study the mutual relationships between the different fields providing 
-new insight on the terrain morphology. Moreover, we have developed other 
-state-of-the-art estimators, such as slope estimation, curvature 
-computation, and the extraction of the terrain critical points on the 
-Terrain trees.
+Terrain trees are a new in-core family of spatial indexes for the representation 
+and analysis of Triangulated Irregular Networks (TINs).
+Terrain trees combine a minimal encoding of the connectivity of the
+underlying triangle mesh with a hierarchical spatial index, implicitly
+representing the other topological relations among vertices, edges
+and vertices. Topological relations are extracted locally within each
+leaf block of the hierarchal index at runtime, based on specific application 
+needs. We have developed a tool based on Terrain trees for
+terrain analysis, which includes state-of-the-art estimators for slope
+and curvature, and for the extraction of critical points. 
+By working on TINs generated from big LiDAR (Light, Detection and Ranging) 
+data sets, we demonstrate the effectiveness and scalability of the 
+Terrain trees against a state-of-the-art compact data structures.
 
 ### Reference Paper ###
 
