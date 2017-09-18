@@ -32,28 +32,28 @@ add_subdirectory(sources)
 
 ### MAIN OF THE LIBRARY
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin )
-add_executable(terrain_trees sources/targets/main.cpp)
+add_executable(terrain_trees sources/targets/main.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
 target_link_libraries(terrain_trees _terrain_trees_apps)
 
 
 ### TEST THE LIBRARY
 #set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/test )
-add_executable(test_index_generation EXCLUDE_FROM_ALL sources/tests/test_spatial_index_generation.cpp)
+add_executable(test_index_generation EXCLUDE_FROM_ALL sources/tests/test_spatial_index_generation.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
 target_link_libraries(test_index_generation _terrain_trees_core)
 
-add_executable(test_curvature EXCLUDE_FROM_ALL sources/tests/test_curvature.cpp)
+add_executable(test_curvature EXCLUDE_FROM_ALL sources/tests/test_curvature.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
 target_link_libraries(test_curvature _terrain_trees_apps)
 
-add_executable(test_soup EXCLUDE_FROM_ALL sources/tests/test_soup.cpp)
+add_executable(test_soup EXCLUDE_FROM_ALL sources/tests/test_soup.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
 target_link_libraries(test_soup _terrain_trees_apps)
 
-add_executable(test_batched_queries EXCLUDE_FROM_ALL sources/tests/test_batched_queries.cpp)
+add_executable(test_batched_queries EXCLUDE_FROM_ALL sources/tests/test_batched_queries.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
 target_link_libraries(test_batched_queries _terrain_trees_apps)
 
-add_executable(test_terrain_feature_extraction EXCLUDE_FROM_ALL sources/tests/test_terrain_feature_extraction.cpp)
+add_executable(test_terrain_feature_extraction EXCLUDE_FROM_ALL sources/tests/test_terrain_feature_extraction.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
 target_link_libraries(test_terrain_feature_extraction _terrain_trees_apps)
 
-add_executable(test_spatial_queries EXCLUDE_FROM_ALL sources/tests/test_spatial_queries.cpp)
+add_executable(test_spatial_queries EXCLUDE_FROM_ALL sources/tests/test_spatial_queries.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
 target_link_libraries(test_spatial_queries _terrain_trees_apps)
 
 add_custom_target(tests DEPENDS test_index_generation test_curvature test_soup test_batched_queries test_terrain_feature_extraction test_spatial_queries)
