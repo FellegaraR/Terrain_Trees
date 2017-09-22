@@ -50,14 +50,10 @@ The library requires only the [boost library](http://www.boost.org/) (for dynami
 
 Once in the root of the repository type from the command line
 ```
-#!
-
 cmake CMakeList.txt
 ```
 and once configured
 ```
-#!
-
 make
 ```
 This command generates a portable library file, located into *lib* folder, as well as an executable into the `bin` folder.
@@ -68,16 +64,12 @@ The compilation process has been test on linux and mac systems.
 
 To compile the unit-tests run from command line the following command
 ```
-#!
-
 make tests
 ```
 Once compiled, it is possible to test the main functionalities running a script located into the `bin` folder.
 
 From command line executing 
 ```
-#!
-
 sh run_tests.sh
 ```
 checks the functionalities of the main implemented features.
@@ -85,8 +77,6 @@ The output files are saved into the `data` folder (where the input datasets are 
 
 It is possible to clean the output files running, from command line (from `data` folder), the following command
 ```
-#!
-
 sh clean_up.sh
 ```
 
