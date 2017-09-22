@@ -178,10 +178,6 @@ int read_arguments(int argc, char** argv, cli_parameters &variables)
                     variables.query_type = CRITICAL_POINTS;
                 else if(tok[0]=="slopes")
                     variables.query_type = SLOPES;
-//                else if(tok[0]=="eslope")
-//                    variables.query_type = ESLOPE;
-//                else if(tok[0]=="tslope")
-//                    variables.query_type = TSLOPE;                
             }
             else if(tok.size()<2)
                 cerr<<"[ERROR] [-q argument] when reading arguments"<<endl;
@@ -297,21 +293,15 @@ void print_help()
                     "'point' stands for point location, 'box' for box query, "
                     "'wvt' for windowed VT query and 'wtt' for windowed TT query."
                     "'file' represent the path of the file that contains the inputs for the queries.", cols);
-    print_paragraph("'app' can be: batch - concurv - mccurv - gccurv - slopes - crit - morse - simpl - gsimpl - multiv - filter "
+    print_paragraph("'app' can be: batch - concurv - mccurv - gccurv - slopes - crit - filter "
                     "'batch' extracts VT and TT relations on the whole mesh, "                    
                     "'concurv' extracts the Concentrated Curvature, "
                     "'mccurv' extracts the Mean CCurvature, "
                     "'gccurv' extracts the Gaussian CCurvature, "
                     "'slopes' extracts the slope values for the triangles and edges of the terrain, "
-                    "'crit' extracts the critical points of the terrain, "
-                    "'morse' computes the Forman gradient vector, extracts 2/1 descending/ascending manifolds and the Morse indicence graph, "
-                    "'simpl' computes the Forman gradient vector and simplify it using a local Morse incidence graph,"
-                    "'gsimpl' computes the Forman gradient vector and simplify it using a global Morse incidence graph, "
-                    "'multiv' computes the Multivariate Morse analysis by generating the Multivariate gradient and extracting the Critical Clusters, "
+                    "'crit' extracts the critical points of the terrain, "                    
                     "'filter' reads a points cloud generates a PR tree, extracts the multifield of each 2D point and finally outputs both"
-                    " the multifield file and a points cloud file compatible with SpatialHadoop.", cols);
-    print_paragraph("NOTA: simpl and gsimpl can have an optional persistence parameter, with range from x to y, following the format '(g)simpl'-'persistence'.", cols);
-    print_paragraph("NOTA: to efficiently compute the Forman gradient the field value must be locally unique (i.e. unique in the neighborhood of a vertex).", cols);
+                    " the multifield file and a points cloud file compatible with SpatialHadoop.", cols);    
 
     printf(BOLD "    -g [query-ratio-quantity-type]\n" RESET);
     print_paragraph("generates a given number of input data for a specific query", cols);
@@ -349,33 +339,22 @@ void print_help()
                     "Finally, it executes the windowed VT queries, using the boxes into 'boxfile'.", cols);
 
     printf(BOLD "  EXAMPLE[3]: \n" RESET);
-    printf("          ./terrain_trees -v 20 -c pr -d quad -q morse -i mesh.soup -output\n");
+    printf("          ./terrain_trees -v 20 -c pr -d quad -q crit -i mesh.soup -output\n");
     print_paragraph("First it reads the soup [mesh.soup].  Then, it builds a PR-T tree index with kv=20 and with quadtree subdivision. "
                     "As last generation step, it exploits the spatial coherence of the mesh and index. "
                     "Then, it extracts the indexed mesh representation of the soup and it saves that in a .off file. "
-                    "Finally, it computes the Forman gradient and extracts the morphological features, "
-                    "outputting them in .vtk files for visualization purposes (-output parameter).", cols);
+                    "Finally, it computes the critical points, outputting them in .vtk files for visualization purposes (-output parameter).", cols);
 
     printf(BOLD "  IMPLEMENTATION:\n" RESET);
     printf("          Author: Riccardo Fellegara\n");
     printf("          Group: G3 Geometry and Graphics Group\n");
-    printf("          Man-page Last Update: June 2017\n\n");
+    printf("          Man-page Last Update: September 2017\n\n");
 
     printf(BOLD "  DESCRIPTION: \n" RESET);
-    print_paragraph("We propose a new in-core family of spatial indexes for the analysis "
-                    "of Triangulated Irregular Networks (TINs). We call such indexes "
-                    "Terrain trees. A Terrain tree combines a minimal encoding of the "
-                    " connectivity of the underlying triangle mesh with a hierarchical spatial "
-                    "index implicitly encoding the other topological relations among "
-                    "the mesh elements. Topological relations are extracted locally within "
-                    "each leaf block of the hierarchy at runtime, based on specific application needs. "
-                    "We introduce a new tool for the multivariate analysis of the surface by combining different scalar "
-                    "fields (i.e., the elevation and the curvature values). By computing a "
-                    "combinatorial discrete vector field we are able to study the mutual "
-                    "relationships between the different fields providing new insight on "
-                    "the terrain morphology. Moreover, we have developed other state-of-the-art estimators, "
-                    "such as slope estimation, curvature computation, "
-                    "and the extraction of the terrain critical points on the Terrain trees.", cols);
+    print_paragraph("Terrain trees are a new in-core family of spatial indexes for the representation and analysis of Triangulated Irregular Networks (TINs). "
+                    "Terrain trees combine a minimal encoding of the connectivity of the underlying triangle mesh with a hierarchical spatial index, implicitly "
+                    "representing the topological relations among vertices, edges and triangles. Topological relations are extracted locally within each leaf "
+                    "block of the hierarchal index at runtime, based on specific application needs.", cols);
 }
 
 void print_paragraph(string stringa, int cols){

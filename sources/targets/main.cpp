@@ -29,11 +29,9 @@ int main(int argc, char** argv)
 
     if (cli.isTreeFile)
     {
-        //nel caso di lettura da file recupero le info dal nome del file
         setParameters(cli);
     }
 
-    //controllo che tutto sia inizializzato correttamente
     if (!cli.is_getInput)
     {
         if (!checkParameters(cli))
@@ -86,9 +84,7 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
     Timer time;
     Soup soup;
 
-
-
-    //Legge l'input
+    //read the input
     if(get_file_extension(cli.mesh_path) == "soup")
     {
         /// triangle mesh as soup
@@ -304,8 +300,6 @@ template<class T> void compute_curvature(T& tree, cli_parameters &cli)
         cerr << "[MEMORY] peak for computing the Mean CCurvature: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
         if(cli.app_debug==OUTPUT)
             Writer::write_mesh_curvature_VTK(out.str(),tree.get_mesh(),"mean_cCurvature_sumAll",tree.get_mesh().get_vertex(1).get_fields_num()-1);
-//        if(cli.app_debug==TIME_VERBOSE)
-//            ccurvature.print_debug_times();
     }
 
     if(cli.query_type == GAUSS_CCURVATURE)
@@ -320,8 +314,6 @@ template<class T> void compute_curvature(T& tree, cli_parameters &cli)
         cerr << "[MEMORY] peak for computing the Gauss CCurvature: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
         if(cli.app_debug==OUTPUT)
             Writer::write_mesh_curvature_VTK(out.str(),tree.get_mesh(),"gauss_cCurvature",tree.get_mesh().get_vertex(1).get_fields_num()-1);
-//        if(cli.app_debug==TIME_VERBOSE)
-//            ccurvature.print_debug_times();
     }
 }
 
@@ -386,7 +378,7 @@ void compute_curvature(PMRT_Tree& tree, cli_parameters &cli)
 void generate_query_inputs(cli_parameters &cli)
 {
     Mesh mesh;
-    //Legge l'input
+
     if (!Reader::read_mesh(mesh, cli.mesh_path))
     {
         cout << "Error Loading mesh file. Execution Stopped." << endl;

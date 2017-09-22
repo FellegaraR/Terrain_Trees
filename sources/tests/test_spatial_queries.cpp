@@ -48,7 +48,6 @@ int main(int , char** )
     cout<<"[TEST] Executing Box Queries"<<endl;
     sq.exec_box_queries(ptree,boxes,stats);
 
-
     return (EXIT_SUCCESS);
 }
 
