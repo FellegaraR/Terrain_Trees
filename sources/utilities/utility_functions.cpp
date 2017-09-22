@@ -347,7 +347,7 @@ void print_help()
 
     printf(BOLD "  IMPLEMENTATION:\n" RESET);
     printf("          Author: Riccardo Fellegara\n");
-    printf("          Group: G3 Geometry and Graphics Group\n");
+    printf("          Group: UMD GeoVisualization Group\n");
     printf("          Man-page Last Update: September 2017\n\n");
 
     printf(BOLD "  DESCRIPTION: \n" RESET);
