@@ -82,4 +82,4 @@ sh clean_up.sh
 
 ### Use the main library ###
 
-In the `bin` folder there is the main executable file named `terrain_trees` that contains the whole library. For a complete list of the command line options refer the [wiki](https://github.com/FellegaraR/Terrain_Trees_dev/wiki/Command-line-parameters) page.
+In the `bin` folder there is the main executable file named `terrain_trees` that contains the whole library. For a complete list of the command line options refer the [wiki](https://github.com/FellegaraR/Terrain_Trees/wiki/Command-line-parameters) page.
