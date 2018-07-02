@@ -19,7 +19,7 @@ Terrain trees against a state-of-the-art compact data structures.
 Riccardo Fellegara, Federico Iuricich, and Leila De Floriani. 
 *Efficient representation and analysis of triangulated terrains*.
 In Proceedings of SIGSPATIAL’17, Los Angeles Area, CA, USA, November 7–10, 2017, 4 pages.
-[doi](https://doi.org/10.1145/3139958.3140050)
+[doi](https://dl.acm.org/citation.cfm?id=3139958.3140050)
 
 ### Features ###
 
