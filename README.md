@@ -89,5 +89,6 @@ In the `bin` folder there is the main executable file named `terrain_trees` that
 The Terrain trees framework supports two input formats for the triangulated irregular network:
 + off
 + tri
++ soup
 
 For a detailed description of the input formats refer the [wiki](https://github.com/FellegaraR/Terrain_Trees/wiki/Supported-Input-Formats) page.
