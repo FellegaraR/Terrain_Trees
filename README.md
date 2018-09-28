@@ -86,7 +86,7 @@ In the `bin` folder there is the main executable file named `terrain_trees` that
 
 ### Supported Input Files ###
 
-The Terrain trees framework supports two input formats for the triangulated irregular network:
+The Terrain trees framework supports three input formats for the triangulated irregular network:
 + off
 + tri
 + soup
