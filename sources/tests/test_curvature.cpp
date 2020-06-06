@@ -9,7 +9,7 @@ void compute_curvature(PMRT_Tree& tree, cli_parameters &cli);
 int main(int , char** )
 {
 	cli_parameters cli;
-    cli.mesh_path = "../data/devil_0.tri";
+    cli.mesh_path = "../data/790_garda.off";
 	
     cerr<<"[OBJECTIVE] this unit-test generates a quadtrees based on the PR-T tree criterion. "
 	    <<"then, it saves the index and the mesh in VTK format for visualization purposes and finally "

@@ -40,6 +40,24 @@ void Slope_Extractor::compute_triangles_slopes(Node_T &n, Box &dom, int level, M
     }
 }
 
+void Slope_Extractor::compute_triangles_slopes_new(Node_T &n, Box &dom, int level, Mesh &mesh, Spatial_Subdivision &division)
+{
+    if (n.is_leaf())
+    {
+        this->triangle_slopes_leaf_new(n,dom,mesh);
+    }
+    else
+    {
+        for (int i = 0; i < division.son_number(); i++)
+        {
+            Box son_dom = division.compute_domain(dom,level,i);
+            int son_level = level +1;
+            this->compute_triangles_slopes_new(*n.get_son(i), son_dom, son_level, mesh, division);
+        }
+    }
+}
+
+
 void Slope_Extractor::triangle_slopes_leaf(Node_T &n, Box &dom, Mesh &mesh)
 {
     itype v_start;
@@ -71,6 +89,37 @@ void Slope_Extractor::triangle_slopes_leaf(Node_T &n, Box &dom, Mesh &mesh)
     }
 }
 
+void Slope_Extractor::triangle_slopes_leaf_new(Node_T &n, Box &dom, Mesh &mesh)
+{
+    itype v_start;
+    itype v_end;
+
+    n.get_v_range(v_start,v_end,dom,mesh); // we need to gather the vertices range..
+
+    if(v_start == v_end) //no internal vertices..
+        return;
+
+    map<itype,coord_type> slopes;
+
+    for(RunIteratorPair itPair = n.make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+    {
+        RunIterator const& t_id = itPair.first;
+        Triangle& t = mesh.get_triangle(*t_id);
+
+        if(n.indexes_vertex(v_start,v_end,t.minindex()))
+        {
+            coord_type s = Geometry_Slope::compute_triangle_slope_song(t,mesh);
+            slopes[*t_id] = s;
+
+            if(s < this->min)
+                this->min = s;
+            if(s > this->max)
+                this->max = s;
+            this->avg += s;
+        }
+    }
+}
+
 void Slope_Extractor::compute_triangles_slopes(Node_V &n, Mesh &mesh, Spatial_Subdivision &division)
 {
     if (n.is_leaf())
@@ -84,6 +133,24 @@ void Slope_Extractor::compute_triangles_slopes(Node_V &n, Mesh &mesh, Spatial_Su
             if(n.get_son(i)!=NULL)
             {
                 this->compute_triangles_slopes(*n.get_son(i),mesh,division);
+            }
+        }
+    }
+}
+
+void Slope_Extractor::compute_triangles_slopes_new(Node_V &n, Mesh &mesh, Spatial_Subdivision &division)
+{
+    if (n.is_leaf())
+    {
+        this->triangle_slopes_leaf_new(n,mesh);
+    }
+    else
+    {
+        for (int i = 0; i < division.son_number(); i++)
+        {
+            if(n.get_son(i)!=NULL)
+            {
+                this->compute_triangles_slopes_new(*n.get_son(i),mesh,division);
             }
         }
     }
@@ -105,6 +172,33 @@ void Slope_Extractor::triangle_slopes_leaf(Node_V &n, Mesh &mesh)
         if(n.indexes_vertex(t.minindex()))
         {
             coord_type s = Geometry_Slope::compute_triangle_slope(t,mesh);
+            slopes[*t_id] = s;
+
+            if(s < this->min)
+                this->min = s;
+            if(s > this->max)
+                this->max = s;
+            this->avg += s;
+        }
+    }
+}
+
+void Slope_Extractor::triangle_slopes_leaf_new(Node_V &n, Mesh &mesh)
+{
+    /// if there are no vertices in the leaf we have nothing to do..
+    if(!n.indexes_vertices())
+        return;
+
+    map<itype,coord_type> slopes;
+
+    for(RunIteratorPair itPair = n.make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+    {
+        RunIterator const& t_id = itPair.first;
+        Triangle& t = mesh.get_triangle(*t_id);
+
+        if(n.indexes_vertex(t.minindex()))
+        {
+            coord_type s = Geometry_Slope::compute_triangle_slope_song(t,mesh);
             slopes[*t_id] = s;
 
             if(s < this->min)

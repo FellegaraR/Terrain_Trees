@@ -145,6 +145,66 @@ void Node_T::get_VV(leaf_VV &all_vv, itype v_start, itype v_end, Mesh& mesh)
     }
 }
 
+void Node_T::get_VV_vector(leaf_VV_vec &all_vv, Box &dom, Mesh& mesh)
+{
+    itype v_start;
+    itype v_end;
+
+    get_v_range(v_start,v_end,dom,mesh); // we need to gather the vertices range..
+
+    if(v_start == v_end) //no internal vertices..
+        return;
+
+    all_vv.assign(v_end-v_start,ivect());
+
+    for(RunIteratorPair itPair = make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+    {
+        RunIterator const& t_id = itPair.first;
+        Triangle& t = mesh.get_triangle(*t_id);
+        for(int v=0; v<t.vertices_num(); v++)
+        {
+            itype v_id = t.TV(v);
+            if (indexes_vertex(v_start,v_end,v_id))
+            {
+                //init delle VV
+                itype v_pos = v_id - v_start;
+                for(int j=1; j<t.vertices_num(); j++){
+                    if(t.is_border_edge((v+j)%t.vertices_num()))
+                {
+                    all_vv[v_pos].push_back(t.TV((v+t.vertices_num()-j)%t.vertices_num()));   
+                }
+                    all_vv[v_pos].push_back(t.TV((v+j)%t.vertices_num()));}
+            }
+        }
+    }
+}
+
+void Node_T::get_VV_vector(leaf_VV_vec &all_vv, itype v_start, itype v_end, Mesh& mesh)
+{
+    all_vv.assign(v_end-v_start,ivect());
+
+    for(RunIteratorPair itPair = make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+    {
+        RunIterator const& t_id = itPair.first;
+        Triangle& t = mesh.get_triangle(*t_id);
+        for(int v=0; v<t.vertices_num(); v++)
+        {
+            itype v_id = t.TV(v);
+            if (indexes_vertex(v_start,v_end,v_id))
+            {
+                //init delle VV
+                itype v_pos = v_id - v_start;
+                for(int j=1; j<t.vertices_num(); j++)
+                {   if(t.is_border_edge((v+j)%t.vertices_num()))
+                {
+                    all_vv[v_pos].push_back(t.TV((v+t.vertices_num()-j)%t.vertices_num()));   
+                }
+                    all_vv[v_pos].push_back(t.TV((v+j)%t.vertices_num()));}
+            }
+        }
+    }
+}
+
 void Node_T::get_VV_VT(leaf_VV &all_vv, leaf_VT &all_vt, itype v_start, itype v_end, Mesh &mesh)
 {
     all_vv.assign(v_end-v_start,iset());
