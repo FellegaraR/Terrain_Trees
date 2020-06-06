@@ -7,6 +7,8 @@ set(INCLUDE_DIRS
 		statistics
 		terrain_trees
 		utilities
+                roughness
+                gradient
 	)
 	
 INCLUDE_DIRECTORIES( ${INCLUDE_DIRS} )
@@ -20,7 +22,16 @@ file(GLOB CURVATURE_SRC
 		curvature/*.h
         curvature/*.cpp
 	)
-		
+
+file(GLOB ROUGHNESS_SRC
+		roughness/*.h
+        roughness/*.cpp
+	)
+file(GLOB GRADIENT_SRC
+		gradient/*.h
+        gradient/*.cpp
+	)
+
 file(GLOB GEOMETRY_SRC
 		geometry/*.h
 		geometry/*.cpp
@@ -69,6 +80,8 @@ set(TERRAIN_TREES_CORE_SRC
 
 set(TERRAIN_TREES_APPS_SRC
                 ${CURVATURE_SRC}
+                ${ROUGHNESS_SRC}
+		${GRADIENT_SRC}
                 ${QUERIES_SRC}
                 ${TERRAIN_FEATURES_SRC}
         )

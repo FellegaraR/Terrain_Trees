@@ -50,6 +50,40 @@ void Node_V::get_VV(leaf_VV &all_vv,  Mesh& mesh)
     }
 }
 
+
+void Node_V::get_VV_vector(leaf_VV_vec &all_vv,  Mesh& mesh)
+{
+    if(!this->indexes_vertices())
+        return;
+    all_vv.assign(this->get_v_end()-this->get_v_start(),ivect());
+
+    for(RunIteratorPair itPair = make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+    {
+        RunIterator const& t_id = itPair.first;
+        Triangle& t = mesh.get_triangle(*t_id);
+       
+        for(int v=0; v<t.vertices_num(); v++)
+        {
+                                 
+            itype v_id = t.TV(v);
+            if(this->indexes_vertex(v_id))
+            {
+            itype v_pos = v_id - this->get_v_start();
+            for(int v2=1;v2<t.vertices_num();v2++){// check if one of its adjacent vertex is on the border only when it is on the border. 
+                 if(t.is_border_edge((v+v2)%t.vertices_num())) //so if one vertex index is negative, the other two are on the boundary
+                 {
+                     all_vv[v_pos].push_back(t.TV((v+t.vertices_num()-v2)%t.vertices_num()));    //only work for triangle
+                 }
+                    all_vv[v_pos].push_back(t.TV((v+v2)%t.vertices_num()));
+             }      
+                //init VV
+                
+              
+            }
+        }
+    }
+}
+
 void Node_V::get_VV_VT(leaf_VV &all_vv, leaf_VT &all_vt, Mesh &mesh)
 {
     if(!this->indexes_vertices())

@@ -1,5 +1,4 @@
 #include "utilities/utility_functions.h"
-
 using namespace utility_functions;
 
 template<class T> void load_tree(T& tree, cli_parameters &cli);
@@ -74,6 +73,16 @@ template<class T> void compute_terrain_features(T& tree)
     }
 
     {
+        cout<<"[TEST] New way to extract triangle slopes."<<endl;
+        Slope_Extractor se;
+        time.start();
+        se.compute_triangles_slopes_new(tree.get_root(),tree.get_mesh(),tree.get_subdivision());
+        time.stop();
+        time.print_elapsed_time("[TIME] triangle-slopes computation: ");
+        se.print_slopes_stats(tree.get_mesh().get_triangles_num());
+        se.reset_stats();
+    }
+    {
         cout<<"[TEST] Extract edge slopes."<<endl;
         Slope_Extractor se;
         time.start();
@@ -83,7 +92,17 @@ template<class T> void compute_terrain_features(T& tree)
         se.print_slopes_stats();
         se.reset_stats();
     }
-
+    
+    {
+        cout<<"[TEST] Extract triangle aspects."<<endl;
+        Aspect aspect;
+        time.start();
+        aspect.compute_triangles_aspects(tree.get_root(),tree.get_mesh(),tree.get_subdivision());
+        time.stop();
+        time.print_elapsed_time("[TIME] triangle-aspects computation: ");
+        aspect.print_aspects_stats(tree.get_mesh().get_triangles_num());
+        aspect.reset_stats();
+    }
     {
         cout<<"[TEST] Extract critical points."<<endl;
         Critical_Points_Extractor cpe = Critical_Points_Extractor();
@@ -111,6 +130,18 @@ void compute_terrain_features(PMRT_Tree& tree)
     }
 
     {
+        cout<<"[TEST] New way to Extract triangle slopes."<<endl;
+        Slope_Extractor se;
+        time.start();
+        se.compute_triangles_slopes_new(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
+        time.stop();
+        time.print_elapsed_time("[TIME] triangle-slopes computation: ");
+        se.print_slopes_stats(tree.get_mesh().get_triangles_num());
+        se.reset_stats();
+    }
+    
+    
+    {
         cout<<"[TEST] Extract edge slopes."<<endl;
         Slope_Extractor se;
         time.start();
@@ -120,7 +151,17 @@ void compute_terrain_features(PMRT_Tree& tree)
         se.print_slopes_stats();
         se.reset_stats();
     }
-
+    
+    {
+        cout<<"[TEST] Extract triangle aspects."<<endl;
+        Aspect aspect;
+        time.start();
+        aspect.compute_triangles_aspects(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
+        time.stop();
+        time.print_elapsed_time("[TIME] triangle-aspects computation: ");
+        aspect.print_aspects_stats(tree.get_mesh().get_triangles_num());
+        aspect.reset_stats();
+    }
     {
         cout<<"[TEST] Extract critical points."<<endl;
         Critical_Points_Extractor cpe = Critical_Points_Extractor();

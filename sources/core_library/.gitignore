@@ -15,7 +15,6 @@ Makefile
 *.py
 cmake_install.cmake
 /CMakeCache.txt
-/CMakeFiles/
 /data/*.tree
 /data/*.vtk
 *.cbp
@@ -53,3 +52,7 @@ cmake_install.cmake
 *.exe
 *.out
 *.app
+!/sources/Makefile
+!/sources/cmake_install.cmake
+!/cmake_install.cmake
+!/Makefile
