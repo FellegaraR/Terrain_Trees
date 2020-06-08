@@ -46,7 +46,7 @@ In Proceedings of SIGSPATIAL’17, Los Angeles Area, CA, USA, November 7–10, 2
 
 ### How to compile ###
 
-The library requires only the [boost library](http://www.boost.org/) (for dynamic_bitset class) and [cmake](https://cmake.org/) installed in your system.
+The library requires the [boost library](http://www.boost.org/) (for dynamic_bitset class), [Eigen3 library](http://eigen.tuxfamily.org/index.php?title=Main_Page) (for computing  eigenvalues) and [cmake](https://cmake.org/) installed in your system.
 
 Once in the root of the repository type from the command line
 ```
