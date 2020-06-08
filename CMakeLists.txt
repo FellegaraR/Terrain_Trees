@@ -16,6 +16,7 @@ set(CMAKE_BUILD_TYPE debug)
 
 #new:
 find_package (Eigen3 3.3 REQUIRED)
+include_directories(/usr/include/eigen3/)
 #end
 
 #~ find_package(Boost REQUIRED)
