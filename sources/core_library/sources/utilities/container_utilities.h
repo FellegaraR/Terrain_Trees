@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <iostream>
 #include <set>
+#include <boost/dynamic_bitset.hpp>
 using namespace std;
 
 /**
@@ -365,5 +366,49 @@ template<typename T, class C> bool is_into_container(C& c, T value)
 {
     return (find(c.begin(),c.end(),value) != c.end());
 }
+
+
+/**
+  * @brief A procedure that efficiently check if a container 'a' contains container 'b'
+  * This implements the 'classical' set-containment operation, that seems to be missing in C++ STL
+  * NOTA: the containers must be sorted!
+  *
+  * @param a
+  * @param b
+  * @return true, if value a contains b, false otherwise
+  */
+template<class C> bool contains_container(C &a, C&b)
+{
+    boost::dynamic_bitset<> db(b.size());
+    size_t a_id_pos = 0;
+//    int stop;
+//    print_container_content("a: ",a);
+//    print_container_content("b: ",b);
+    for (size_t i=0; i<b.size(); i++)
+    {
+        for (size_t j = a_id_pos; j<a.size(); j++)
+        {
+            if(b[i] == a[j])
+            {
+                db.set(i);
+                a_id_pos = j + 1;
+                break;
+            }
+            /// as the two containers are sorted..
+            /// when I encounter the first entry in a greater than the key in b
+            /// I can say that a does not contains b
+            if(b[i] < a[j])
+            {
+//                cerr<<"[false] a does not contain b"<<endl;
+//                cin>>stop;
+                return false;
+            }
+        }
+    }
+//    cerr<<"a contains b: "<<(db.count() == db.size())<<endl;
+//    cin>>stop;
+    return db.count() == db.size();
+}
+
 
 #endif // CONTAINER_UTILITIES_H

@@ -71,6 +71,7 @@ struct cli_parameters
     OpType app_debug;
     int cache_size;
     coord_type persistence;
+    string weights_file;
 
     cli_parameters()
     {
@@ -87,6 +88,8 @@ struct cli_parameters
         num_input_entries = 0;
         input_gen_type = DEFAULT;
 
+        weights_file = DEFAULT;
+
         app_debug = NOTHING;
         cache_size = CACHESIZE;
         rever_to_original = false;
@@ -94,6 +97,8 @@ struct cli_parameters
 
         is_multified = false;
     }
+
+     inline bool exec_weighted_simplification() { return weights_file != DEFAULT; }
 };
 ///
 

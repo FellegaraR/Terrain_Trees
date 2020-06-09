@@ -1,5 +1,5 @@
 /*
-    This file is part of the trianglesl Trees library.
+    This file is part of the triangle Trees library.
 
     Author(s): Riccardo Fellegara (riccardo.fellegara@gmail.com)
 
@@ -233,6 +233,12 @@ public:
      * @param t_id2, the position index of the second triangle
      */
     inline void triangles_swap(int t_id1, int t_id2) { swap(this->triangles[t_id1-1],this->triangles[t_id2-1]); }
+    /**
+     * @brief A public method that resizes the top d-cells array.
+     * If new_size is smaller than the current size of the array, the position encoded after size are effectively deleted from the array.
+     * @param new_size an integer representing the new size of the array
+     */
+    inline void resize_triangle_array(int new_size) {this->triangles.resize(new_size);}
 
 private:
     ///A private varible representing the mesh domain

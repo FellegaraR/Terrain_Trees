@@ -41,6 +41,7 @@ typedef double coord_type;
 
 typedef std::queue<itype> iqueue;
 
+
 typedef std::vector<itype> ivect;
 typedef ivect::iterator ivect_iter;
 typedef ivect::const_iterator ivect_citer;
@@ -71,9 +72,11 @@ typedef std::map<itype,dset> vertex_multifield;
 
 typedef ivect VT;
 typedef iset VV;
+typedef ivect VV_vec;
 
 typedef std::vector<VT> leaf_VT;
 typedef std::vector<VV> leaf_VV;
+typedef std::vector<VV_vec> leaf_VV_vec;
 
 typedef ivect leaf_VTstar;
 
@@ -83,6 +86,10 @@ typedef std::map<ivect,itype> leaf_ETstar;
 
 typedef std::map<itype,ivect> wTT;
 typedef std::map<itype,VT> wVT;
+
+typedef dvect FG;//store the gradient of one function.
+typedef std::vector<dvect>vect_FG;
+
 
 
 #endif // BASIC_STRUCTURE

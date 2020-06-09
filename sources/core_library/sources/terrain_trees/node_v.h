@@ -46,6 +46,7 @@ public:
     inline void add_vertex(itype ind) { this->vertices.push_back(ind); }
     ///A public method that free space used by the two lists
     inline void clear_v_array() { this->vertices.clear(); }
+    inline void set_v_array(ivect new_v_list){this->vertices=new_v_list;}
     /**
      * @brief A public method that set the vertices range after exploiting the vertices spatial coherence
      *
@@ -201,6 +202,9 @@ public:
      * @param mesh a Mesh& variable representing the triangle mesh
      */
     void get_VV(leaf_VV &all_vv, Mesh& mesh);
+    
+    void get_VV_vector(leaf_VV_vec &all_vv, Mesh& mesh);
+    
     /**
      * @brief A public method that extracts the Vertex-Triangle (VT) and Vertex-Vertex (VV) relations for the vertices indexed in the current block
      * @param all_vv a leaf_VV variable, that encodes the VV relations
@@ -217,7 +221,60 @@ public:
      * @param mesh a Mesh& variable representing the triangle mesh
      */
     void get_ET(leaf_ET &ets,  Mesh &mesh);
+    /**
+     * @brief A public method that removes the vertices that have been deleted during a simplification process
+     * The procedure saves in an auxiliary vector the position indexes of those not deleted
+     *
+     * @param mesh is the mesh indexed by the tree
+     * @param surviving_vertices, a vector of integer containing the position indexes of the vertices not deleted
+     */
+    void compact_vertices_array(Mesh &mesh, ivect &surviving_vertices);
+     /**
+     * @brief A public method that updates the position indexes of the vertices
+     *
+     * @param new_v_indices, a vector of integers containing the updated position indexes
+     *
+     * NOTA: the SRE encoding is not valid any more. A reindexing operation is needed after calling this procedure on all the leaf blocks
+     */
+  
+    void update_vertex_indices(ivect &new_v_indices);
+    /**
+     * @brief A public method that updates the top cells list of the leaf block after a simplification process.
 
+     * @param mesh a Mesh& argument representing the mesh indexed by the Stellar tree
+     */
+    inline void compact_triangle_array(Mesh &mesh);// Change compact_triangle_arrays into compact_triangle_array
+
+
+
+ /**
+     * @brief A public method that updates the top cells encoded in the leaf block by updating the position indexes
+     *
+     * @param new_top_positions, a vector of vectors of integers that contains the new position indexes of the top cells
+     * @param all_deleted, a bit-vector stating if a specific top d-cell type has been completely erased by a simplification procedure
+     *
+     * NOTA: this update removes the run compression!
+     */
+    void update_and_compress_triangles_arrays(ivect  &new_t_positions, boost::dynamic_bitset<> &all_deleted);
+    /**
+     * @brief A public method that updates the top d-cells encoded in the leaf block by updating the position indexes
+     *
+     * @param d an integer representing the list to update
+     * @param new_indices, a vector of integers that contains the new position indexes of the top d-cells
+     *
+     * NOTA: this update removes the run compression!
+     */
+    void update_and_compress_triangles_array(ivect &new_indices);
+    /**
+     * @brief A public procedure that compress a top d-cells array of the leaf block
+     *
+     * The procedure compresses the top d-cells array using the Sequential-Range Encoding (SRE).
+     *
+     * @param pos an integer identifying the position index of the array to update/compress
+     * @param new_t_list an integer vector containing the updated array
+     */
+    void compress_triangle_array(ivect &new_t_list);
+    
 protected:    
    ivect vertices;
 };

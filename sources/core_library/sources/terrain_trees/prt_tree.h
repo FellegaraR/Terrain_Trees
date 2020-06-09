@@ -151,6 +151,11 @@ private:
      * \param multifield a map representing the multifield assiciated to a vertex
     */
     void add_vertex_from_cloud(Node_V& n, Box& domain, int level, Vertex& v, itype vertex_index, vertex_multifield &multifield);
+
+    void compact_vertices_lists(Node_V &n, Mesh &mesh, ivect &surviving_vertices);
+
+    void update_tree(Node_V &n, ivect &new_v_positions, vector<ivect > &new_top_positions, boost::dynamic_bitset<> &all_deleted);
+    void get_leaf_indexing_vertex(Node_V &n, int v_id, Node_V *&res);
 };
 
 #endif	/* P_TREE_H */

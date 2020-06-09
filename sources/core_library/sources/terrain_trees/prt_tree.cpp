@@ -209,3 +209,56 @@ void PRT_Tree::add_vertex_from_cloud(Node_V &n, Box &domain, int level, Vertex &
         }
     }
 }
+
+void PRT_Tree::compact_vertices_lists(Node_V &n, Mesh &mesh, ivect &surviving_vertices){
+     if (n.is_leaf())
+    {
+        n.compact_vertices_array(mesh,surviving_vertices);
+    }
+    else
+    {
+        for(Node_V::child_iterator it=n.begin(); it!=n.end(); ++it)
+        {
+            if(*it != NULL)
+                this->compact_vertices_lists(**it,mesh,surviving_vertices);
+        }
+    }
+}
+
+
+void PRT_Tree::update_tree(Node_V &n, ivect &new_v_positions, vector<ivect > &new_top_positions, boost::dynamic_bitset<> &all_deleted)
+{
+    if (n.is_leaf())
+    {
+        n.update_vertex_indices(new_v_positions);
+        if(new_top_positions.size()!=0) // if not all the top simplices have been removed
+            n.update_and_compress_triangles_arrays(new_top_positions,all_deleted);
+    }
+    else
+    {
+        for(Node_V::child_iterator it=n.begin(); it!=n.end(); ++it)
+        {
+            if(*it != NULL)
+                this->update_tree(**it,new_v_positions,new_top_positions,all_deleted);
+        }
+    }
+}
+
+
+
+
+void PRT_Tree::get_leaf_indexing_vertex(Node_V &n, int v_id, Node_V *&res)
+{
+    if (n.is_leaf())
+    {
+        res = &n;
+    }
+    else
+    {
+        for(Node_V::child_iterator it=n.begin(); it!=n.end(); ++it)
+        {
+            if(*it != NULL && (*it)->indexes_vertex(v_id)) // NOTA
+                this->get_leaf_indexing_vertex(**it,v_id,res);
+        }
+    }
+}

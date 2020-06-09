@@ -25,6 +25,7 @@
 #define	_VERTEX_H
 
 #include "point.h"
+
 using namespace std;
 
 ///An inner-class, extending Point, representing a vertex in a triangle mesh
@@ -156,11 +157,23 @@ public:
      * @return the number of field value
      */
     inline int get_fields_num() { return fields.size(); }
-
+    
+    void set_gradientMatrix(FG gradient){this->gradientMatrix.push_back(gradient);}
+    void print_gradientMatrix(){
+        for(int i=0;i<this->gradientMatrix.size();i++)
+            cout<<"stored gradient of field "<<i<<":"<<gradientMatrix[i][0]<<", "<<gradientMatrix[i][1]<<endl;
+    
+    };
+    
+    vect_FG& get_gradientMatrix(){ return this->gradientMatrix;
+    
+    
+    };
 private:
     ///A private variable that represents the field values
     /// NOTA: the first field value is always the z-value (or elevation)
     dvect fields;
+    vect_FG gradientMatrix;
 };
 
 #endif	/* _VERTEX_H */
