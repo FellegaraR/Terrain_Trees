@@ -31,12 +31,9 @@ template<class T> void Contraction_Simplifier::simplify(T &tree, Mesh &mesh, cli
 
     cerr<<"[NOTICED] Cache size: "<<cli.cache_size<<endl;
     LRU_Cache<int,leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VTop relations
-    contraction_parameters params(&tree,mesh.get_top_cells_types());
+    contraction_parameters params();
 
-    if(cli.debug_prints_mode)
-        params.enable_debug_prints();
-    if(cli.debug_mode)
-        params.enable_debug_mode();
+
 
     Timer time;
     int simplification_round;
@@ -45,7 +42,7 @@ template<class T> void Contraction_Simplifier::simplify(T &tree, Mesh &mesh, cli
     time.start();
     while(1)
     {
-        simplification_round = params.get_contracted_edges_num();
+        simplification_round = params.get_contracted_edges_num();  //checked edges
         /// HERE YOU NEED TO DEFINE A PROCEDURE FOR SIMPLIFY THE TIN BY USING THE SPATIAL INDEX
 
         // PARTIAL SIMPLIFICATION STATS
@@ -69,9 +66,9 @@ template<class T> void Contraction_Simplifier::simplify(T &tree, Mesh &mesh, cli
     time.stop();
     if(!cli.debug_mode)
         time.print_elapsed_time("[TIME] Edge contraction simplification: ");
-    else
-        params.print_simplification_partial_timings();
-    params.print_simplification_counters();
+    //else
+        //params.print_simplification_partial_timings();
+    //params.print_simplification_counters();
 
     cerr << "[RAM peak] for contracting a simplicial complex: " << to_string(MemoryUsage().getValue_in_MB(false)) << " Mbs" << std::endl;
 
@@ -104,43 +101,31 @@ void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, l
     //et.clear();
 }
 
-void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *&outer_v_block,
-                                                Node_V &n, Mesh &mesh, leaf_VT &vt, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params)
+template<class T> void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *&outer_v_block,
+                                                Node_V &n, Mesh &mesh, leaf_VT &vt, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,T &tree)
 {
-    Timer time;
 
-    if(params.is_enable_debug_mode())
-        time.start();
 
     outer_v_block = NULL;
     /// inverted order as I only need the block indexing v1
-    vt1 = Contraction_Simplifier::get_VT(e[1],n,mesh,vt,cache,params.get_tree(),outer_v_block,params);
-    vt0 = Contraction_Simplifier::get_VT(e[0],n,mesh,vt,cache,params.get_tree(),outer_v_block,params);
+    vt1 = Contraction_Simplifier::get_VT(e[1],n,mesh,vt,cache,tree,outer_v_block,params);
+    vt0 = Contraction_Simplifier::get_VT(e[0],n,mesh,vt,cache,tree,outer_v_block,params);
 
-    if(params.is_enable_debug_mode())
-    {
-        time.stop();
-        params.get_vts += time.get_elapsed_time();
-        time.start();
-    }
+
 
     Contraction_Simplifier::get_ET(e,et,n,mesh,vt);
 
-    if(params.is_enable_debug_mode())
-    {
-        time.stop();
-        params.get_et += time.get_elapsed_time();
-    }
+
 }
 
 template<class T>  VT* Contraction_Simplifier::get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int,leaf_VT> &cache,
                         T &tree, Node_V *& v_block, contraction_parameters &params)
 {
     int local_index;
-
+    bool debug=false;
     if(n.indexes_vertex(v_id))
     {
-        if(params.is_enable_debug_prints())
+        if(debug)
             cout<<"[get_VT] "<<v_id<<" -> LOCAL VERTEX "<<n<<endl;
 
         local_index = v_id - n.get_v_start();
@@ -151,7 +136,7 @@ template<class T>  VT* Contraction_Simplifier::get_VT(int v_id, Node_V &n, Mesh 
     }
     else
     {
-        if(params.is_enable_debug_prints())  // if v is external
+        if(debug)  // if v is external
             cout<<"[get_VTop] "<<v_id<<" -> EXTERNAL VERTEX "<<n<<endl;
 
         tree.get_leaf_indexing_vertex(tree.get_root(),v_id,v_block);
@@ -160,7 +145,7 @@ template<class T>  VT* Contraction_Simplifier::get_VT(int v_id, Node_V &n, Mesh 
         LRU_Cache<int,leaf_VT>::mapIt it_c = cache.find(v_block->get_v_start()); //First check in the cache
         if(it_c == cache.end())   //if not in the cache
         {
-            if(params.is_enable_debug_prints())
+            if(debug)
                 cout<<"    -> LEAF BLOCK OUTSIDE CACHE - REGEN "<<*v_block<<endl;
 
             leaf_VT lVT;
@@ -169,18 +154,18 @@ template<class T>  VT* Contraction_Simplifier::get_VT(int v_id, Node_V &n, Mesh 
         }
         else
         {
-            if(params.is_enable_debug_prints())
+            if(debug)
             {
                 cout<<"    -> LEAF BLOCK IN CACHE - CLEAN "<<*v_block<<endl;
             }
 
-            if(params.is_enable_debug_prints()/* || v_id ==2355*/)
+            if(debug/* || v_id ==2355*/)
                 cout<<"num_elem_in_vt: "<<get_num_elements_in_container_of_containers((it_c->second)[local_index])<<endl;
 //                print_container_of_containers_content("VTop(2355) ",(it_c->second)[local_index]);
 
             Contraction_Simplifier::clean_coboundary((it_c->second)[local_index],mesh);
 
-            if(params.is_enable_debug_prints()/* || v_id ==2355*/)
+            if(debug/* || v_id ==2355*/)
                 cout<<"num_elem_in_vt: "<<get_num_elements_in_container_of_containers((it_c->second)[local_index])<<endl;
 //                print_container_of_containers_content("CleanedVTop(2355) ",(it_c->second)[local_index]);
         }
@@ -249,7 +234,7 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
             /// NOTA2: we have just to check that n and v_block are different (as if they are equal the edge is internal in n)
             if(n.get_v_start() != v_block.get_v_start() && !v_block.indexes_triangle_vertices(t))
             {
-//                if(params.is_enable_debug_prints())
+//                if(debug)
 //                    cout<<"[add top to leaf] "<<t<<" -> "<<*v_block<<endl;
                 v_block.add_triangle(*it);
             }
@@ -276,7 +261,14 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
     /// we push the new "unique" edges in the queue
     for(auto it=e_set.begin(); it!=e_set.end(); ++it)
     {
-        edges.push(*it);
+        double length;
+        Vertex &v1=mesh.get_vertex((*it)[0]);
+        Vertex &v2=mesh.get_vertex((*it)[1]);
+        dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
+        length = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
+        Edge e((*it)[0],(*it)[1]);
+        Geom_Edge new_edge(&e,length);
+        edges.push(&new_edge);
     }
 
     /// finally we update the VT relation of e[0]
@@ -286,24 +278,11 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
 
 void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &mesh, contraction_parameters &params)
 {
-        mesh.remove_triangle(et.first);
-        mesh.remove_triangle(et.second);
-        // for(ivect_iter it=et.begin(); it!=et.end(); ++it)
-        // {
-        //     mesh.remove_top_cell(d,*it);
-        //     params.increment_counter(d);
-        // }
+    mesh.remove_triangle(et.first);
+    mesh.remove_triangle(et.second);
 
-    ////Part below not needed?////
-    // if the current edge is a top-edge, then, we have to delete it from the mesh
-    // if(e_top_id != -1)
-    // {
-    //     mesh.remove_top_cell(0,e_top_id);
-    //     params.increment_counter(0);
-    // }
-    /////////////////////////////////
     mesh.remove_vertex(to_delete_v);
-  //  params.increment_contracted_edges_counter();
+    params.increment_contracted_edges_counter();
 }
 
 template<class T> void Contraction_Simplifier::update_mesh_and_tree(T &tree, Mesh &mesh, contraction_parameters &params)

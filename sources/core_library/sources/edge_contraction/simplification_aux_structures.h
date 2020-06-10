@@ -1,3 +1,6 @@
+#ifndef SIMPLIFICATION_AUX_STRUCTURES_H
+#define SIMPLIFICATION_AUX_STRUCTURES_H
+
 #include "basic_types/edge.h"
 #include "basic_types/basic_wrappers.h"
 struct Geom_Edge{
@@ -10,7 +13,24 @@ struct CompareEdge{
 
     bool operator()(Geom_Edge e1,Geom_Edge e2){
 
-      return e1.val<e2.val;
+      return e1.val>e2.val;
     }
 };
 typedef std::priority_queue<Geom_Edge*, std::vector<Geom_Edge*>, CompareEdge> edge_queue;
+
+class contraction_parameters
+{
+public: 
+  contraction_parameters(){checked_edges = 0;}
+    inline void increment_contracted_edges_counter() { checked_edges++; }
+    inline int get_contracted_edges_num() { return checked_edges; }
+    inline void print_simplification_counters()
+    {
+        if(checked_edges >0)
+            cerr<<"[STATS] contracted edges "<<checked_edges<<endl;
+    }
+protected:
+  int checked_edges;
+};
+
+#endif // SIMPLIFICATION_AUX_STRUCTURES_H

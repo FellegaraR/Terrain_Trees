@@ -43,8 +43,8 @@ protected:
                               Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params);
     /// initializes the VTop and ETop of the edge and its two vertices
     /// plus saves the second leaf block if we are processing a cross-edge
-    static void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *& outer_v_block,
-                                   Node_V &n, Mesh &mesh, leaf_VT &vtops, LRU_Cache<int,leaf_VT> &cache, contraction_parameters &params);
+    template<class T> static void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *& outer_v_block,
+                                   Node_V &n, Mesh &mesh, leaf_VT &vtops, LRU_Cache<int,leaf_VT> &cache, contraction_parameters &params, T &tree);
     /// the VTop is always without removed top-simplices
     template<class T> static VT* get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int,leaf_VT> &cache,
                         T &tree, Node_V *& v_block, contraction_parameters &params);

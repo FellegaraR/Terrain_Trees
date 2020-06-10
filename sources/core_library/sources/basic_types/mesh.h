@@ -64,6 +64,8 @@ public:
      * \return a Vertex&, the vertex at the id-th position in the list
      */
     inline Vertex& get_vertex(itype id) { return this->vertices[id-1]; }
+
+    inline vector<Vertex> get_vertices_array(){return this->vertices;}
     ///A public method that returns the triangle at the i-th position in the mesh list
     /*!
      * \param id an itype argument, representing the position in the list
