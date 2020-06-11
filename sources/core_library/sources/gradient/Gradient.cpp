@@ -326,46 +326,45 @@ Gradient::~Gradient() {
     
     void Gradient::VT_relation_leaf(Node_V& n, Mesh& mesh){
     
-       if(!n.indexes_vertices())
-        return;
+    //    if(!n.indexes_vertices())
+    //     return;
 
-    itype v_start = n.get_v_start();
-    itype v_end = n.get_v_end();
-    itype v_range = v_end - v_start;
+    // itype v_start = n.get_v_start();
+    // itype v_end = n.get_v_end();
+    // itype v_range = v_end - v_start;
     
-    leaf_VT vts(v_range,VT());
+    leaf_VT vts;//(v_range,VT());
 
     n.get_VT(vts,mesh);
    
-        for(unsigned i=0;i<v_range;i++)
-    {
-       itype real_v_id=v_start+i;
-        VT &vt=vts[i];
+    //     for(unsigned i=0;i<v_range;i++)
+    // {
+    //    itype real_v_id=v_start+i;
+    //     VT &vt=vts[i];
       
-     }
-    
+    //  }  
     
     }
     
     void Gradient::VT_relation_leaf(Node_T& n, Box &dom, Mesh& mesh){
     
-    itype v_start;
-    itype v_end;
+    // itype v_start;
+    // itype v_end;
 
-    n.get_v_range(v_start,v_end,dom,mesh); // we need to gather the vertices range..
+    // n.get_v_range(v_start,v_end,dom,mesh); // we need to gather the vertices range..
 
-    if(v_start == v_end) //no internal vertices..
-        return;
-    itype v_range=v_end-v_start;
+    // if(v_start == v_end) //no internal vertices..
+    //     return;
+    // itype v_range=v_end-v_start;
      
-      leaf_VT vts(v_end-v_start,VT());
+      leaf_VT vts;//(v_end-v_start,VT());
 
-    n.get_VT(vts,v_start,v_end,mesh);
-      for(unsigned i=0;i<v_range;i++)
-    {
-       itype real_v_id=v_start+i;
+    n.get_VT(vts,dom,mesh);
+    //   for(unsigned i=0;i<v_range;i++)
+    // {
+    //    itype real_v_id=v_start+i;
 
-        VT &vt=vts[i];}
+    //     VT &vt=vts[i];}
     
     }
     
@@ -413,47 +412,47 @@ Gradient::~Gradient() {
     
     void Gradient::VV_relation_leaf(Node_V& n, Mesh& mesh){
     
-   if(!n.indexes_vertices())
-        return;
+//    if(!n.indexes_vertices())
+//         return;
 
-    itype v_start = n.get_v_start();
-    itype v_end = n.get_v_end();
-    itype v_range = v_end - v_start;
+//     itype v_start = n.get_v_start();
+//     itype v_end = n.get_v_end();
+//     itype v_range = v_end - v_start;
 
-    leaf_VV vvs(v_range,VV());
+    leaf_VV vvs;//(v_range,VV());
     //dvect v_aux(v_range,0.0);
     n.get_VV(vvs,mesh);
-    for(unsigned i=0;i<v_range;i++)
-    {
+    // for(unsigned i=0;i<v_range;i++)
+    // {
       
-        itype real_v_id=v_start+i;
-        Vertex &v = mesh.get_vertex(real_v_id);
-        VV &vv = vvs[i];   
-    }
+    //     itype real_v_id=v_start+i;
+    //     Vertex &v = mesh.get_vertex(real_v_id);
+    //     VV &vv = vvs[i];   
+    // }
     }
     
     void Gradient::VV_relation_leaf(Node_T& n, Box &dom, Mesh& mesh){
     
-     itype v_start;
-    itype v_end;
+    //  itype v_start;
+    // itype v_end;
 
-    n.get_v_range(v_start,v_end,dom,mesh); // we need to gather the vertices range..
+    // n.get_v_range(v_start,v_end,dom,mesh); // we need to gather the vertices range..
     
-    if(v_start == v_end) //no internal vertices..
-        return;
+    // if(v_start == v_end) //no internal vertices..
+    //     return;
    
  //   leaf_VT vts(v_end-v_start,VT());
     
-    leaf_VV vvs(v_end-v_start,VV());
+    leaf_VV vvs;//(v_end-v_start,VV());
     //dvect v_aux(v_range,0.0);
-    n.get_VV(vvs,v_start,v_end,mesh);
+    n.get_VV(vvs,dom,mesh);
     
      
-    for(unsigned i=0;i<vvs.size();i++)
-    {
-        itype real_v_id=v_start+i;
-        Vertex &v = mesh.get_vertex(real_v_id);
-        VV &vv = vvs[i];
+    // for(unsigned i=0;i<vvs.size();i++)
+    // {
+    //     itype real_v_id=v_start+i;
+    //     Vertex &v = mesh.get_vertex(real_v_id);
+    //     VV &vv = vvs[i];
     
     }
     
