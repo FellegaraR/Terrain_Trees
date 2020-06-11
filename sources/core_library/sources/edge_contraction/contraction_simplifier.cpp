@@ -26,14 +26,14 @@
 #include "utilities/container_utilities.h"
 
 template<class T> void Contraction_Simplifier::simplify(T &tree, Mesh &mesh, cli_parameters &cli)
-{
+{   
+
     cerr<<"==Homology preserving simplification - weak-link condition=="<<endl;
 
     cerr<<"[NOTICED] Cache size: "<<cli.cache_size<<endl;
     LRU_Cache<int,leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VTop relations
-    contraction_parameters params();
-
-
+    contraction_parameters params;
+    params.set_maximum_length(cli.maximum_length);
 
     Timer time;
     int simplification_round;
@@ -44,7 +44,7 @@ template<class T> void Contraction_Simplifier::simplify(T &tree, Mesh &mesh, cli
     {
         simplification_round = params.get_contracted_edges_num();  //checked edges
         /// HERE YOU NEED TO DEFINE A PROCEDURE FOR SIMPLIFY THE TIN BY USING THE SPATIAL INDEX
-
+        this->simplify_compute(tree.get_root(),mesh,cache,tree.get_subdivision(),params);
         // PARTIAL SIMPLIFICATION STATS
         cerr<<"=== end-of-round "<<round<<") --> contracted edges: ";
         cerr<<params.get_contracted_edges_num()-simplification_round<<endl;
@@ -74,6 +74,49 @@ template<class T> void Contraction_Simplifier::simplify(T &tree, Mesh &mesh, cli
 
     /// finally we have to update/compress the mesh and the tree
     Contraction_Simplifier::update_mesh_and_tree(tree,mesh,params);
+}
+
+ void simplify_compute(Node_V &n,  Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, Spatial_Subdivision &division, contraction_parameters &params)
+{
+      if (n.is_leaf())
+    {
+        simplify_leaf(n,mesh,cache,params);
+    }
+    else
+    {
+        for (int i = 0; i < division.son_number(); i++)
+        {
+            if(n.get_son(i)!=NULL)
+            {
+                simplify_compute(*n.get_son(i),mesh,cache,division,params);
+            }
+        }
+    }
+
+}
+
+
+
+static void simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params){
+
+if(!n.indexes_vertices())
+     return;
+
+    itype v_start = n.get_v_start();
+    itype v_end = n.get_v_end();
+    itype v_range = v_end - v_start;
+
+leaf_VT local_vts(v_range,VT());
+n.get_VT(local_vts,mesh);
+// Create a priority quue of candidate edges
+
+    
+}
+
+
+static void find_candidate_edges(Node_V &n, Mesh &mesh, edge_queue& edges, contraction_parameters &params){
+
+    
 }
 
 

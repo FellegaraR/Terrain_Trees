@@ -30,6 +30,7 @@ public:
     template<class T> static void update_mesh_and_tree(T &tree, Mesh &mesh,contraction_parameters &params);
 
 protected:
+    static void simplify_compute(Node_V &n,  Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,Spatial_Subdivision &division,  contraction_parameters &params);
     static void simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params);
 
     /// skips an edge that has one of the two extreme deleted
@@ -55,7 +56,7 @@ protected:
     /// the procedure removes from the VT relation the deleted top d-simplices
     static void clean_coboundary(VT &cob, Mesh &mesh);
 
-
+    static void find_candidate_edges(Node_V &n, Mesh &mesh, edge_queue& edges, contraction_parameters &params);
     /// the procedure updates
     /// (1) the VTop relation of the surviving vertex
     /// (2) the top simplices for which we change the v2 with v1

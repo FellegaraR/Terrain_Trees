@@ -57,6 +57,7 @@ struct cli_parameters
     bool is_index, is_getInput, isTreeFile, reindex, is_multified;
     int v_per_leaf;
     int t_per_leaf;
+    double maximum_length; //for simplification
 
     int num_input_entries;
     coord_type ratio;
