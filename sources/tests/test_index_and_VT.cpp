@@ -160,5 +160,14 @@ void relation_extraction(PMRT_Tree& tree, cli_parameters &cli)
     time.stop();
     time.print_elapsed_time("[TIME] VT relation extraction time:");
 
- 
+     time.start();
+    gradient.VT_relation(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
+    time.stop();
+    time.print_elapsed_time("[TIME] VT relation extraction time:");
+    
+    time.start();
+    gradient.VT_relation(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
+    time.stop();
+    time.print_elapsed_time("[TIME] VT relation extraction time:");
+    
     }
