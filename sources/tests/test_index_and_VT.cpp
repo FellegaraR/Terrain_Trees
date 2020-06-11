@@ -8,7 +8,8 @@
 using namespace utility_functions;
 
 template<class T> void load_tree(T& tree, cli_parameters &cli);
-template<class T> void exec_queries(T& tree);
+template<class T> void relation_extraction(T& tree, cli_parameters &cli);
+void relation_extraction(PMRT_Tree& tree, cli_parameters &cli);
 
 int main(int argc, char** argv )
 {
@@ -26,7 +27,7 @@ int main(int argc, char** argv )
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cerr<<"[GENERATION] PR-T tree"<<endl;
     load_tree(ptree,cli);
-    exec_queries(ptree);
+    relation_extraction(ptree,cli);
     
  
     }
@@ -37,7 +38,7 @@ int main(int argc, char** argv )
     PMRT_Tree rtree = PMRT_Tree(cli.t_per_leaf,cli.division_type);
     cerr<<"[GENERATION] PMR-T tree"<<endl;
     load_tree(rtree,cli);
-   exec_queries(rtree);  
+   relation_extraction(rtree,cli);  
 
     }
     else if(tree_type=="PM"){
@@ -45,7 +46,7 @@ int main(int argc, char** argv )
     PMT_Tree pttree = PMT_Tree(cli.v_per_leaf,cli.t_per_leaf,cli.division_type);
     cerr<<"[GENERATION] PM-T tree"<<endl;
     load_tree(pttree,cli);
-    exec_queries(pttree);  
+    relation_extraction(pttree,cli);  
 
     }
     
@@ -118,10 +119,46 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
        Statistics stats;
     stats.get_index_statistics(tree,cli.reindex);
 }  
-template<class T> void exec_queries(T& tree)
+
+
+
+
+template<class T> void relation_extraction(T& tree, cli_parameters &cli)
 {
-    Topological_Queries tq;
-    tq.batched_VT(tree.get_root(),tree.get_mesh().get_domain(),tree.get_mesh(),tree.get_subdivision(),true);
-    tq.batched_VT(tree.get_root(),tree.get_mesh().get_domain(),tree.get_mesh(),tree.get_subdivision(),true);
-    tq.batched_VT(tree.get_root(),tree.get_mesh().get_domain(),tree.get_mesh(),tree.get_subdivision(),true);
-}
+    stringstream out;
+    out << get_path_without_file_extension(cli.mesh_path);
+    Timer time;
+    Gradient gradient;
+    cout<<"[NOTA] extract VT relation"<<endl;
+    time.start();
+    gradient.VT_relation(tree.get_root(),tree.get_mesh(),tree.get_subdivision());
+    time.stop();
+    time.print_elapsed_time("[TIME] VT relation extraction time:");
+
+    time.start();
+    gradient.VT_relation(tree.get_root(),tree.get_mesh(),tree.get_subdivision());
+    time.stop();
+    time.print_elapsed_time("[TIME] VT relation extraction time:");
+    
+    time.start();
+    gradient.VT_relation(tree.get_root(),tree.get_mesh(),tree.get_subdivision());
+    time.stop();
+    time.print_elapsed_time("[TIME] VT relation extraction time:");
+
+   }
+
+void relation_extraction(PMRT_Tree& tree, cli_parameters &cli)
+{
+    stringstream out;
+    out << get_path_without_file_extension(cli.mesh_path);
+
+    Timer time;
+    Gradient gradient;
+    cout<<"[NOTA] extract VT relation"<<endl;
+    time.start();
+    gradient.VT_relation(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
+    time.stop();
+    time.print_elapsed_time("[TIME] VT relation extraction time:");
+
+ 
+    }
