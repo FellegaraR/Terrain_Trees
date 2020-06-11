@@ -454,6 +454,6 @@ Gradient::~Gradient() {
     //     Vertex &v = mesh.get_vertex(real_v_id);
     //     VV &vv = vvs[i];
     
-    }
+
     
     }
