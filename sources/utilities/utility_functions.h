@@ -54,6 +54,7 @@
 #include "terrain_features/slope_extractor.h"
 #include "terrain_features/critical_points_extractor.h"
 #include "terrain_features/Aspect.h"
+#include "gradient/Gradient.h"
 
 #include "utilities/cli_parameters.h"
 #include "utilities/usage.h"
