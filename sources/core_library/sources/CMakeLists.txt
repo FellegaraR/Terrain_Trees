@@ -1,6 +1,7 @@
 set(INCLUDE_DIRS
 		basic_types
 		curvature
+		edge_contraction
 		geometry
 		io		
 		queries
@@ -19,6 +20,11 @@ file(GLOB BASIC_TYPES_SRC
 file(GLOB CURVATURE_SRC
 		curvature/*.h
         curvature/*.cpp
+	)
+
+file(GLOB SIMPLIFICATION_SRC
+		edge_contraction/*.h
+        edge_contraction/*.cpp
 	)
 		
 file(GLOB GEOMETRY_SRC
@@ -69,6 +75,7 @@ set(TERRAIN_TREES_CORE_SRC
 
 set(TERRAIN_TREES_APPS_SRC
                 ${CURVATURE_SRC}
+				${SIMPLIFICATION_SRC}
                 ${QUERIES_SRC}
                 ${TERRAIN_FEATURES_SRC}
         )

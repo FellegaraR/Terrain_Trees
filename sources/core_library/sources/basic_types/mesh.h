@@ -242,6 +242,8 @@ public:
      */
     inline void resize_triangle_array(int new_size) {this->triangles.resize(new_size);}
 
+  
+
 private:
     ///A private varible representing the mesh domain
     Box domain;

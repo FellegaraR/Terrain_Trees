@@ -67,6 +67,12 @@ public:
     ///A public method that builds the tree from a points cloud
     void build_tree_from_cloud(vertex_multifield &multifield);
 
+
+    void compact_vertices_lists(Node_V &n, Mesh &mesh, ivect &surviving_vertices);
+
+    void update_tree(Node_V &n, ivect &new_v_positions,ivect &new_t_positions, boost::dynamic_bitset<> &all_deleted);
+    void get_leaf_indexing_vertex(Node_V &n, int v_id, Node_V *&res);
+
 private:
     ///A private variable representing the maximum number of vertices admitted for a node
     int vertices_threshold;
@@ -152,10 +158,7 @@ private:
     */
     void add_vertex_from_cloud(Node_V& n, Box& domain, int level, Vertex& v, itype vertex_index, vertex_multifield &multifield);
 
-    void compact_vertices_lists(Node_V &n, Mesh &mesh, ivect &surviving_vertices);
 
-    void update_tree(Node_V &n, ivect &new_v_positions, vector<ivect > &new_top_positions, boost::dynamic_bitset<> &all_deleted);
-    void get_leaf_indexing_vertex(Node_V &n, int v_id, Node_V *&res);
 };
 
 #endif	/* P_TREE_H */

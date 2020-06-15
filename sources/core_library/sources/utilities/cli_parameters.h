@@ -57,6 +57,8 @@ struct cli_parameters
     bool is_index, is_getInput, isTreeFile, reindex, is_multified;
     int v_per_leaf;
     int t_per_leaf;
+    bool debug_mode;
+    bool debug_prints_mode;
     double maximum_length; //for simplification
 
     int num_input_entries;
@@ -97,6 +99,9 @@ struct cli_parameters
         persistence = 0.65;
 
         is_multified = false;
+
+        debug_mode = false;
+        debug_prints_mode = false;
     }
 
      inline bool exec_weighted_simplification() { return weights_file != DEFAULT; }

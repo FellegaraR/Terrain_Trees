@@ -226,20 +226,20 @@ void PRT_Tree::compact_vertices_lists(Node_V &n, Mesh &mesh, ivect &surviving_ve
 }
 
 
-void PRT_Tree::update_tree(Node_V &n, ivect &new_v_positions, vector<ivect > &new_top_positions, boost::dynamic_bitset<> &all_deleted)
+void PRT_Tree::update_tree(Node_V &n, ivect &new_v_positions, ivect &new_t_positions, boost::dynamic_bitset<> &all_deleted)
 {
     if (n.is_leaf())
     {
         n.update_vertex_indices(new_v_positions);
-        if(new_top_positions.size()!=0) // if not all the top simplices have been removed
-            n.update_and_compress_triangles_arrays(new_top_positions,all_deleted);
+        if(new_t_positions.size()!=0) // if not all the top simplices have been removed
+            n.update_and_compress_triangles_arrays(new_t_positions,all_deleted);
     }
     else
     {
         for(Node_V::child_iterator it=n.begin(); it!=n.end(); ++it)
         {
             if(*it != NULL)
-                this->update_tree(**it,new_v_positions,new_top_positions,all_deleted);
+                this->update_tree(**it,new_v_positions,new_t_positions,all_deleted);
         }
     }
 }

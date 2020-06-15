@@ -267,6 +267,17 @@ template<class C> void unify_containers(C &v1, C &v2)
     v1.clear();
     v1 = res;
 }
+
+template<class C> void unify_vectors(C &v1, C &v2)
+{
+    sort_container(v1);
+    sort_container(v2);
+
+    C res;
+    set_union(v1.begin(),v1.end(),v2.begin(),v2.end(),std::back_inserter(res));
+    v1.clear();
+    v1 = res;
+}
 /**
  * @brief A procedure that unifies two containers-of-containers and places the resulting set in the first container-of-containers
  *
@@ -296,6 +307,17 @@ template<class C> void difference_of_containers(C &v1, C &v2)
     v1.clear();
     v1 = res;
 }
+
+template<class C> void difference_of_vectors(C &v1, C &v2)
+{
+    C res;
+    sort_container(v1);
+    sort_container(v2);
+    set_difference(v1.begin(),v1.end(),v2.begin(),v2.end(),std::back_inserter(res));
+    v1.clear();
+    v1 = res;
+}
+
 /**
  * @brief A procedure that makes the difference of two containers-of-containers and places the resulting set in the first container-of-containers
  *

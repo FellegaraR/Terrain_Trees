@@ -161,11 +161,6 @@ void Node_V::get_ET(leaf_ET &ets,  Mesh &mesh)
     }
 }
 
-void Node_V::compact_vertices_array(Mesh &mesh, ivect &surviving_vertices){
-
-
-
-}
 
 
 void Node_V::update_vertex_indices(ivect &new_v_indices){

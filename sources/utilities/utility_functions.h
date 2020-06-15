@@ -51,6 +51,7 @@
 #include "curvature/c_curvature.h"
 #include "terrain_features/slope_extractor.h"
 #include "terrain_features/critical_points_extractor.h"
+#include "edge_contraction/contraction_simplifier.h"
 
 #include "utilities/cli_parameters.h"
 #include "utilities/usage.h"
