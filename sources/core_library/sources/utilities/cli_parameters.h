@@ -100,7 +100,7 @@ struct cli_parameters
 
         is_multified = false;
 
-        debug_mode = false;
+        debug_mode = true;
         debug_prints_mode = false;
     }
 

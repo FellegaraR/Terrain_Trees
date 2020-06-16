@@ -66,8 +66,8 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
     else if (cli.crit_type == "pmr")
        out2 << "_" << SpatialDecType2string(cli.division_type) << "_" << cli.crit_type << "_t_" << cli.t_per_leaf << "_tree.vtk";
 
-    Writer::write_tree_VTK(out2.str(),tree.get_root(),tree.get_subdivision(),tree.get_mesh());
-    Writer::write_mesh_VTK(base.str(),tree.get_mesh());        
+    // Writer::write_tree_VTK(out2.str(),tree.get_root(),tree.get_subdivision(),tree.get_mesh());
+    // Writer::write_mesh_VTK(base.str(),tree.get_mesh());        
 
     time.start();
     Reindexer reindexer = Reindexer();
