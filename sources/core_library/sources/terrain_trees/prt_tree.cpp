@@ -226,7 +226,7 @@ void PRT_Tree::compact_vertices_lists(Node_V &n, Mesh &mesh, ivect &surviving_ve
 }
 
 
-void PRT_Tree::update_tree(Node_V &n, ivect &new_v_positions, ivect &new_t_positions, boost::dynamic_bitset<> &all_deleted)
+void PRT_Tree::update_tree(Node_V &n, ivect &new_v_positions, ivect &new_t_positions, bool all_deleted)
 {
     if (n.is_leaf())
     {

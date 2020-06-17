@@ -189,7 +189,6 @@ public:
     /**
      * @brief A public method that checks if the top cell of dimension dim at position t is flagged as deleted
      *
-     * @param dim position of the top cell in the array of arrays
      * @param t the top cell position index in that array
      * @return bool, true if the top cell is deleted, false otherwise
      */
@@ -242,8 +241,8 @@ public:
      */
     inline void resize_triangle_array(int new_size) {this->triangles.resize(new_size);}
 
-  
-
+    inline std::vector<Triangle>::iterator get_t_array_begin(){return this->triangles.begin();}
+    inline std::vector<Triangle>::iterator get_t_array_end(){return this->triangles.end();}
 private:
     ///A private varible representing the mesh domain
     Box domain;

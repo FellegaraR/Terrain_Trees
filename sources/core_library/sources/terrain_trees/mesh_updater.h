@@ -41,7 +41,7 @@ public:
      *
      * NOTA2: during the procedure are also updated the boundary relations of the triangles
      */
-     boost::dynamic_bitset<> update_and_clean_triangles_arrays(Mesh &mesh, ivect &new_v_positions,
+     bool update_and_clean_triangles_arrays(Mesh &mesh, ivect &new_v_positions,
                                                                                          ivect &new_triangle_positions, itype simplification_counters);
 
     /**

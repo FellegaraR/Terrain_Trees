@@ -20,13 +20,13 @@ void Mesh_Updater::clean_vertices_array(Mesh &mesh, ivect &new_v_positions, ivec
     old_list.clear();
 }
 
- boost::dynamic_bitset<> Mesh_Updater::update_and_clean_triangles_arrays(Mesh &mesh, ivect &new_v_positions, ivect &new_top_positions,
+ bool Mesh_Updater::update_and_clean_triangles_arrays(Mesh &mesh, ivect &new_v_positions, ivect &new_top_positions,
                                                                                                    itype simplification_counters)
 {
-    boost::dynamic_bitset<> all_deleted = boost::dynamic_bitset<>(0);
+    bool all_deleted = false;
  
         //ivect triangle_pos;
-        all_deleted[0] = update_and_clean_triangles_array(mesh,new_v_positions,new_top_positions,simplification_counters);
+        all_deleted = update_and_clean_triangles_array(mesh,new_v_positions,new_top_positions,simplification_counters);
       //  new_top_positions=triangle_pos;
     
     return all_deleted;
@@ -37,11 +37,13 @@ bool Mesh_Updater::update_and_clean_triangles_array(Mesh &mesh, ivect &new_v_pos
     // step 0: if we have removed all the top d-cells, then, simply clear the corresponding array
     if(counter==mesh.get_triangles_num())
     {
+        cout<<"Reset"<<endl;
         mesh.reset_triangles();
         return true;
     }
     else
     {
+        cout<<"Clean"<<endl;
         clean_triangles_array(mesh,new_top_positions);
         update_triangles_boundary(mesh,new_v_positions);
     }
@@ -55,19 +57,27 @@ bool Mesh_Updater::update_and_clean_triangles_array(Mesh &mesh, ivect &new_v_pos
     // (1) init the triangles position indices array
     new_triangle_positions.assign(mesh.get_triangles_num(),-1);
     // (2) get the new position indices for the triangles that are not deleted
-    for(itype i=0; i<mesh.get_triangles_num(); ++i)  // See if need to be changed to iterator
+    cout<<"(2) get the new position indices for the triangles that are not deleted"<<endl;
+ 
+    for(auto it=mesh.get_t_array_begin(); it!=mesh.get_t_array_end(); ++it)  // TODO: Understand why index cannot work, should use iterator
     {
-        if(!mesh.is_triangle_removed(i))
+       
+        if(!mesh.is_triangle_removed( *it))
         {
+          //   cout<<"Add a new one"<<endl;
             new_triangle_positions[t] = t_counter;
+           
             t_counter++;
         }
+       // cout<<"Removed"<<endl;
         t++;
     }
     // (3) reorder (inline) the triangles arrays
+    cout<<"reorder (inline) the triangles arrays"<<endl;
     reorder_triangles_array(mesh,new_triangle_positions);
     // (4) delete the positions from t_counter to the end of the array
     mesh.resize_triangle_array(t_counter-1);
+    cout<<"Cleaned triangle array"<<endl;
 }
 
 
@@ -75,19 +85,19 @@ bool Mesh_Updater::update_and_clean_triangles_array(Mesh &mesh, ivect &new_v_pos
 void Mesh_Updater::update_triangles_boundary(Mesh &mesh, ivect &new_v_positions)
 {
     int t_id = 1;
-    for(itype i=0; i<mesh.get_triangles_num(); ++i)
+    for(auto it=mesh.get_t_array_begin(); it!=mesh.get_t_array_end(); ++it) 
     {
-        if(!mesh.is_triangle_removed(i))
+        if(!mesh.is_triangle_removed(*it))
         {
             for(int v=0; v<3; v++)
             {
-                if(new_v_positions[abs(mesh.get_triangle(i).TV(v))-1]==-1)
+                if(new_v_positions[abs(it->TV(v))-1]==-1)
                 {
-                    cout<<"UPDATING A TOP-SIMPLEX WITH A DELETED VERTEX: "<<abs(mesh.get_triangle(i).TV(v))-1<<endl;
-                    cout<<t_id<<" "<<i<<endl;
+                    cout<<"UPDATING A TOP-SIMPLEX WITH A DELETED VERTEX: "<<abs(it->TV(v))-1<<endl;
+                   // cout<<t_id<<" "<<*it<<endl;
                     int a; cin>>a;
                 }
-                mesh.get_triangle(i).setTV(v, new_v_positions[abs(mesh.get_triangle(i).TV(v))-1]);
+                it->setTV(v, new_v_positions[abs(it->TV(v))-1]);
             }
         }
         else
@@ -95,6 +105,8 @@ void Mesh_Updater::update_triangles_boundary(Mesh &mesh, ivect &new_v_positions)
 
         t_id++;
     }
+
+     cout<<"Updated triangle boundary"<<endl;
 }
 
  void Mesh_Updater::reorder_vertices_array(Mesh &mesh, ivect &new_v_positions)

@@ -14,6 +14,7 @@ README
 Makefile
 *.py
 *.cmake
+CMakeDoxyfile.in
 /CMakeCache.txt
 /CMakeFiles/
 /data/*.tree

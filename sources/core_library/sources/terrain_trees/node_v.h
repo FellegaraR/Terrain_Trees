@@ -255,7 +255,7 @@ public:
      *
      * NOTA: this update removes the run compression!
      */
-    void update_and_compress_triangles_arrays(ivect  &new_t_positions, boost::dynamic_bitset<> &all_deleted);
+    void update_and_compress_triangles_arrays(ivect  &new_t_positions, bool all_deleted);
     /**
      * @brief A public method that updates the top d-cells encoded in the leaf block by updating the position indexes
      *

@@ -33,7 +33,13 @@
         for(RunIteratorPair itPair = n.make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
         {   
             RunIterator const& t_id = itPair.first;
+            if(mesh.is_triangle_removed(*t_id)){
+              //  cout<<"triangle removed"<<endl;
+                continue;
+
+            }
             Triangle& t = mesh.get_triangle(*t_id);
+            
             for(int i=0; i<t.vertices_num(); i++)
             {
                 t.TE(i,e);
@@ -46,13 +52,15 @@
                     Vertex &v1=mesh.get_vertex(e[0]);
                     Vertex &v2=mesh.get_vertex(e[1]);
                     dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
+                  //  cout<<dif[0]<<", "<<dif[1]<<", "<<dif[2]<<endl;
                     length = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
-            //  Edge e((*it)[0],(*it)[1]);
+                  //  cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<length<<endl;
+                    //  Edge e((*it)[0],(*it)[1]);
                     lengths[e] = length;
                    //Edge edge_obj(e[0],e[1]);
                    if(length<params.get_maximum_length()){
-                    Geom_Edge new_edge(e,length);
-                    edges.push(&new_edge);
+                       
+                    edges.push(new Geom_Edge(e,length));
                     }
                     }
                 }
@@ -65,12 +73,15 @@
 void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  Node_V &outer_v_block, edge_queue &edges,
                                            Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params)
 {
+   // cout<<"[NOTICE] Contract Edge"<<endl;
     ivect et_vec;
     et_vec.push_back(et.first);
-    et_vec.push_back(et.second);
+    if(et.second!=-1)
+        et_vec.push_back(et.second);
     difference_of_vectors(vt0,et_vec); // vt0 now contains the difference VT0 - ET
     difference_of_vectors(vt1,et_vec); // vt1 now contains the difference VT1 - ET
 
+   // cout<<"VT1 size: "<<vt0.size()<<" VT2 size: "<<vt1.size()<<endl;
     // contract v1 to v0.
 
     /// prior checking the d-1 faces we update
@@ -105,15 +116,26 @@ void Contraction_Simplifier::get_ET(ivect &e, ET &et, Node_V &n, Mesh &mesh, lea
     VT &vt = vts[local_v_id];
 
     ivect et_tmp;
-    
+   // cout<<"vt size:"<<vt.size()<<endl;
+
     for(unsigned i=0; i<vt.size();i++)
         {
             Triangle &t = mesh.get_triangle(vt[i]);
             if(t.has_vertex(other_v))
                 et_tmp.push_back(vt[i]);
         }
+       // cout<<"et size:"<<et_tmp.size()<<endl;
+    if(et_tmp.size()==2)
     et=make_pair(et_tmp[0],et_tmp[1]);
-
+    else if(et_tmp.size()==0)
+    {
+        et=make_pair(-1,-1);
+    }
+    else
+    {
+        et=make_pair(et_tmp[0],-1);
+    }
+    
 }
 
 void Contraction_Simplifier::clean_coboundary(VT &cob, Mesh &mesh)
@@ -134,7 +156,7 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                                                             edge_queue &edges, Mesh &mesh, contraction_parameters &params)
 {
     set<ivect> e_set; /// we insert the new edges first in this set to avoid duplicate insertions in the queue
-
+  
     // for(unsigned d=0; d<difference.size(); d++)
     // {
         for(ivect_iter it=difference.begin(); it!=difference.end(); ++it)
@@ -180,8 +202,8 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
         dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
         length = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
         ivect e{(*it)[0],(*it)[1]};
-        Geom_Edge new_edge(e,length);
-        edges.push(&new_edge);
+        // Geom_Edge new_edge(e,length);
+        edges.push(new Geom_Edge(e,length));
     }
 
     /// finally we update the VT relation of e[0]
@@ -191,7 +213,9 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
 
 void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &mesh, contraction_parameters &params)
 {
+    if(et.first!=-1)
     mesh.remove_triangle(et.first);
+   if(et.second!=-1)
     mesh.remove_triangle(et.second);
 
     mesh.remove_vertex(to_delete_v);
@@ -199,6 +223,7 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
 }
 
  bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1,Mesh &mesh){
+
 
     iset vv0,vv1;
     for (int i=0;i<vt0.size();i++){

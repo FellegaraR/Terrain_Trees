@@ -223,10 +223,10 @@ void Node_V::compress_triangle_array( ivect &new_t_list){
 }
 
 
-void Node_V::update_and_compress_triangles_arrays(ivect &new_t_positions, boost::dynamic_bitset<> &all_deleted)
+void Node_V::update_and_compress_triangles_arrays(ivect &new_t_positions, bool all_deleted)
 {
 
-        if(all_deleted[0])  //TODO: Need to check what is all_deleted
+        if(all_deleted)  
             this->clear_t_array();
         else
             this->update_and_compress_triangles_array(new_t_positions);
