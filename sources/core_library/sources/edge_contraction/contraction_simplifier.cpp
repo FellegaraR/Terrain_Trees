@@ -85,14 +85,14 @@ void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  
     // contract v1 to v0.
 
     /// prior checking the d-1 faces we update
-    /// (1) the corresponding vt0 relation (by adding the tops in vt1-et to vt0)
+    /// (1) the corresponding vt0 relation (by adding the triangles in vt1-et to vt0)
     /// (2) then the outer_v_block (if e is a cross edge)
     /// (3) and, finally, we add the new edges crossing b to the edge queue
     Contraction_Simplifier::update(e,vt0,vt1,n,outer_v_block,edges,mesh,params);
 
     // we remove v2 and the triangles in et
-    Contraction_Simplifier::remove_from_mesh(e[1],et,mesh,params);  // What is e_top_id
-    // finally we clear the VTop(v2)
+    Contraction_Simplifier::remove_from_mesh(e[1],et,mesh,params); 
+    // finally we clear the VT(v2)
     vt1.clear();
     //et.clear();
 }
@@ -127,7 +127,7 @@ void Contraction_Simplifier::get_ET(ivect &e, ET &et, Node_V &n, Mesh &mesh, lea
        // cout<<"et size:"<<et_tmp.size()<<endl;
     if(et_tmp.size()==2)
     et=make_pair(et_tmp[0],et_tmp[1]);
-    else if(et_tmp.size()==0)
+    else if(et_tmp.size()==0)// Can be deleted, since the default is (-1,-1)
     {
         et=make_pair(-1,-1);
     }
@@ -140,8 +140,7 @@ void Contraction_Simplifier::get_ET(ivect &e, ET &et, Node_V &n, Mesh &mesh, lea
 
 void Contraction_Simplifier::clean_coboundary(VT &cob, Mesh &mesh)
 {
-  //  for(unsigned d=0; d<cob.size(); d++)
-  //  {
+
         for(ivect_iter it=cob.begin(); it!=cob.end(); )
         {
             if(mesh.is_triangle_removed(*it))
@@ -149,23 +148,21 @@ void Contraction_Simplifier::clean_coboundary(VT &cob, Mesh &mesh)
             else
                 ++it;
         }
-  //  }
+
 }
 
 void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block,
                                                             edge_queue &edges, Mesh &mesh, contraction_parameters &params)
 {
     set<ivect> e_set; /// we insert the new edges first in this set to avoid duplicate insertions in the queue
-  
-    // for(unsigned d=0; d<difference.size(); d++)
-    // {
+
         for(ivect_iter it=difference.begin(); it!=difference.end(); ++it)
         {
             Triangle &t = mesh.get_triangle(*it);
 
-            /// before updating the top simplex, we check
-            /// if the leaf block indexing e[0] does not contain the current top d-simplex we have to add it
-            /// NOTA: there is one possible case.. as leaf block n already indexes the top simplices in e[1]
+            /// before updating the triangle, we check
+            /// if the leaf block indexing e[0] does not contain the current triangle we have to add it
+            /// NOTA: there is one possible case.. as leaf block n already indexes the triangle in e[1]
             /// NOTA2: we have just to check that n and v_block are different (as if they are equal the edge is internal in n)
             if(n.get_v_start() != v_block.get_v_start() && !v_block.indexes_triangle_vertices(t))
             {
@@ -174,7 +171,7 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                 v_block.add_triangle(*it);
             }
 
-            /// then we update the top simplex changing e[1] with e[0]
+            /// then we update the triangle changing e[1] with e[0]
             int pos = t.vertex_index(e[1]);
             t.setTV(pos,e[0]);
 
@@ -191,11 +188,13 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                 }
             }
         }
-    //}
+
 
     /// we push the new "unique" edges in the queue
     for(auto it=e_set.begin(); it!=e_set.end(); ++it)
     {
+
+        //Calculate length
         double length;
         Vertex &v1=mesh.get_vertex((*it)[0]);
         Vertex &v2=mesh.get_vertex((*it)[1]);
@@ -214,10 +213,13 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
 void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &mesh, contraction_parameters &params)
 {
     if(et.first!=-1)
-    mesh.remove_triangle(et.first);
-   if(et.second!=-1)
+    {mesh.remove_triangle(et.first);
+    params.increment_counter();
+    }
+   if(et.second!=-1){
     mesh.remove_triangle(et.second);
-
+   params.increment_counter();
+   }
     mesh.remove_vertex(to_delete_v);
     params.increment_contracted_edges_counter();
 }

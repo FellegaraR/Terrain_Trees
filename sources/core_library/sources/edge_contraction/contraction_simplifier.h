@@ -75,7 +75,7 @@ template<class T> void Contraction_Simplifier::simplify(T &tree, Mesh &mesh, cli
     cerr<<"==Homology preserving simplification - weak-link condition=="<<endl;
 
     cerr<<"[NOTICED] Cache size: "<<cli.cache_size<<endl;
-    LRU_Cache<int,leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VTop relations
+    LRU_Cache<int,leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VT relations
     contraction_parameters params;
     params.set_maximum_length(cli.maximum_length);
 
@@ -168,6 +168,7 @@ find_candidate_edges(n,mesh,local_vts,edges,params);
         if (mesh.is_vertex_removed(e[0])||mesh.is_vertex_removed(e[1])){
 
          //   cout<<"Vertex removed"<<endl;
+         delete current;
             continue;
 
         }
@@ -175,7 +176,7 @@ find_candidate_edges(n,mesh,local_vts,edges,params);
         ET et(-1,-1);
         VT *vt0=NULL,*vt1=NULL;
         Node_V *outer_v_block=NULL;
-        //leaf_VT vts;
+
        
         
     
@@ -288,7 +289,7 @@ template<class T> void Contraction_Simplifier::update_mesh_and_tree(T &tree, Mes
     Mesh_Updater mu;
     cout<<"number of surviving vertices:"<<surviving_vertices.size()<<endl;
     mu.clean_vertices_array(mesh,new_v_positions,surviving_vertices);
-    cout<<"cleaned vertices array"<<endl;
+   cout<<"number of deleted triangles:"<< params.get_counter()<<endl;
     /// NEW: the update_and_compact procedure check internally if we have removed all the top d-simplices
     bool all_deleted = mu.update_and_clean_triangles_arrays(mesh,new_v_positions,new_t_positions,params.get_counter());
     time.stop();

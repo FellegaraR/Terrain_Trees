@@ -7,7 +7,7 @@ template<class T> void load_tree(T& tree, cli_parameters &cli);
 int main(int , char** )
 {
 	cli_parameters cli;
-	cli.mesh_path = "../data/devil_0.tri";
+	cli.mesh_path = "../data/eggs64z4.tri";
 	
 	cerr<<"[OBJECTIVE] this unit-test generates a PR-quadtree on the input TIN dataset "
 	    <<"then, it simplifies the triangle mesh with an edge contraction operator following a length criteria."<<endl;
@@ -16,8 +16,8 @@ int main(int , char** )
 	
 	cli.division_type = QUAD;
     cli.crit_type = "pr";
-    cli.v_per_leaf = 20;
-    cli.maximum_length=50;
+    cli.v_per_leaf = 10;
+    cli.maximum_length=0.1;
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cerr<<"[GENERATION] PR-T tree"<<endl;
     load_tree(ptree,cli);

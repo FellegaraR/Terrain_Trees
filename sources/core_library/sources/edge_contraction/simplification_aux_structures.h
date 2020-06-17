@@ -21,7 +21,7 @@ typedef std::priority_queue<Geom_Edge*, std::vector<Geom_Edge*>, CompareEdge> ed
 class contraction_parameters
 {
 public: 
-  contraction_parameters(){checked_edges = 0;maximum_length=0;}
+  contraction_parameters(){checked_edges = 0;maximum_length=0;simplification_counter=0;}
     inline void increment_contracted_edges_counter() { checked_edges++; }
     inline int get_contracted_edges_num() { return checked_edges; }
     inline void set_maximum_length(double l){this->maximum_length=l;}

@@ -240,7 +240,7 @@ void Node_V::update_and_compress_triangles_array(ivect &new_indices)
     for(RunIteratorPair itPair = this->make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
     {
         RunIterator const& t_id = itPair.first;
-        if(new_indices[*t_id-1] != -1) // the top d-cell still exists
+        if(new_indices[*t_id-1] != -1) // the triangle still exists
         {
             t_list.push_back(new_indices[*t_id-1]);
         }
