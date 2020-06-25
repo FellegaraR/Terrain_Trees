@@ -809,7 +809,7 @@ template<class T> void load_tree_lite(T& tree, cli_parameters &cli)
 
 template<class T> void SF_test(T& tree, cli_parameters &cli){
     Timer time = Timer();
-
+    cli.app_debug=OUTPUT;
     //    Topological_Queries tq;
     //    tq.batched_VT(tree.get_root(),tree.get_mesh().get_domain(),tree.get_mesh(),tree.get_subdivision(),cli.reindex);
 
@@ -871,7 +871,7 @@ template<class T> void SF_test(T& tree, cli_parameters &cli){
 void SF_test(PMRT_Tree& tree, cli_parameters &cli){
 
     Timer time = Timer();
-
+    cli.app_debug=OUTPUT;
     //    Topological_Queries tq;
     //    tq.batched_VT(tree.get_root(),tree.get_mesh().get_domain(),tree.get_mesh(),tree.get_subdivision(),cli.reindex);
 
