@@ -7,6 +7,7 @@ set(INCLUDE_DIRS
 		statistics
 		terrain_trees
 		utilities
+		morse
 	)
 	
 INCLUDE_DIRECTORIES( ${INCLUDE_DIRS} )
@@ -57,6 +58,11 @@ file(GLOB UTILITIES_SRC
 		utilities/*.h
         utilities/*.cpp
 	)
+	
+file(GLOB MORSE_SRC 
+		morse/*.h
+        morse/*.cpp
+	)
 
 set(TERRAIN_TREES_CORE_SRC
         ${BASIC_TYPES_SRC}
@@ -71,6 +77,7 @@ set(TERRAIN_TREES_APPS_SRC
                 ${CURVATURE_SRC}
                 ${QUERIES_SRC}
                 ${TERRAIN_FEATURES_SRC}
+				${MORSE_SRC}
         )
 
 add_library(_terrain_trees_core ${TERRAIN_TREES_CORE_SRC})
