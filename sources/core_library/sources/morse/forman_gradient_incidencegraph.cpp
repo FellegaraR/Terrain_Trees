@@ -370,7 +370,7 @@ void Forman_Gradient_Features_Extractor::get_dangling_IG_paths(Node_V &n, Mesh &
 {
     itype key = n.get_v_start()+n.get_v_end();
 
-    leaves_1_desc_mig_map::iterator it1 = paths.find_desc1cell(key);
+    leaves_1_desc_mig_map::iterator it1 = paths.find_desc1cell(key); // Using key to find saved paths
     if(it1 != paths.end_desc1cell())
     {
         set_1paths &unfinished = it1->second;
