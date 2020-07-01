@@ -597,6 +597,7 @@ void Forman_Gradient_Features_Extractor::explore_asc1cell_mig(Node_V &n, const p
                 }
                 else if (operation == OUTPUT && gradient.is_triangle_critical(current_pair.first))
                 {
+                    //cout<<"Triangle "<<current_pair.first<<" is critical. "<<endl;
                     pair_saddle_maximum(saddle_node,first_t_id,current_pair.first,last_t,ig);
                 }
             }
