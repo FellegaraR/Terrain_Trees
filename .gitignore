@@ -9,14 +9,14 @@
 *.pro
 *.user
 *.user.*
-Doxyfile
+*Doxyfile*
 *.directory
 README
 Makefile
 *.py
 *.cmake
-/CMakeCache.txt
-/CMakeFiles/
+CMakeCache.txt
+CMakeFiles/
 /data/*.tree
 /data/*.vtk
 *.cbp

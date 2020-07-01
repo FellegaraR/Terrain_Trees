@@ -68,6 +68,7 @@ public:
     {
         return (indexes_vertices() && v_id >= get_v_start() && v_id < get_v_end());
     }
+    inline bool indexes_vertex(itype v_start, itype v_end, itype v_id) { return (v_id >= v_start && v_id < v_end); }
 
     /**
      * @brief A public method that checks if a triangle is indexed by the node

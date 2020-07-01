@@ -284,176 +284,83 @@ Gradient::~Gradient() {
     }
     
     
-    void Gradient::VT_relation(Node_V& n, Mesh& mesh, Spatial_Subdivision& division){
-    
-                /// if there are no vertices in the leaf we have nothing to do..
-      if (n.is_leaf())
-    {
-        this->VT_relation_leaf(n,mesh);
-    }
-    else
-    {
-        for (int i = 0; i < division.son_number(); i++)
-        {
-            if(n.get_son(i)!=NULL)
-            {
-                this->VT_relation(*n.get_son(i),mesh,division);
+    void Gradient::VT_relation(Node_V& n, Mesh& mesh, Spatial_Subdivision& division) {
+        if (n.is_leaf()) {
+            this->VT_relation_leaf(n,mesh);
+        }
+        else {
+            for (int i = 0; i < division.son_number(); i++) {
+                if(n.get_son(i)!=NULL) {
+                    this->VT_relation(*n.get_son(i),mesh,division);
+                }
             }
         }
     }
     
-    }
-    
-    void Gradient::VT_relation(Node_T &n, Box &n_dom, int level, Mesh &mesh, Spatial_Subdivision &division){
-        
-            if (n.is_leaf())
-    {
-        this->VT_relation_leaf(n,n_dom,mesh);
-    }
-    else
-    {
-        for (int i = 0; i < division.son_number(); i++)
-        {
-            Box son_dom = division.compute_domain(n_dom,level,i);
-            int son_level = level +1;
-            if(n.get_son(i)!=NULL)
-            {
-                this->VT_relation(*n.get_son(i),son_dom,son_level,mesh,division);
-            }
+    void Gradient::VT_relation(Node_T &n, Box &n_dom, int level, Mesh &mesh, Spatial_Subdivision &division) {
+        if (n.is_leaf()) {
+            this->VT_relation_leaf(n,n_dom,mesh);
         }
-    }
-    }
-    
-    void Gradient::VT_relation_leaf(Node_V& n, Mesh& mesh){
-    
-    //    if(!n.indexes_vertices())
-    //     return;
-
-    // itype v_start = n.get_v_start();
-    // itype v_end = n.get_v_end();
-    // itype v_range = v_end - v_start;
-    
-    leaf_VT vts;//(v_range,VT());
-
-    n.get_VT(vts,mesh);
-   
-    //     for(unsigned i=0;i<v_range;i++)
-    // {
-    //    itype real_v_id=v_start+i;
-    //     VT &vt=vts[i];
-      
-    //  }  
-    
-    }
-    
-    void Gradient::VT_relation_leaf(Node_T& n, Box &dom, Mesh& mesh){
-    
-    // itype v_start;
-    // itype v_end;
-
-    // n.get_v_range(v_start,v_end,dom,mesh); // we need to gather the vertices range..
-
-    // if(v_start == v_end) //no internal vertices..
-    //     return;
-    // itype v_range=v_end-v_start;
-     
-      leaf_VT vts;//(v_end-v_start,VT());
-
-    n.get_VT(vts,dom,mesh);
-    //   for(unsigned i=0;i<v_range;i++)
-    // {
-    //    itype real_v_id=v_start+i;
-
-    //     VT &vt=vts[i];}
-    
-    }
-    
-    
-    
-    void Gradient::VV_relation(Node_V& n, Mesh& mesh, Spatial_Subdivision& division){
-    
-                /// if there are no vertices in the leaf we have nothing to do..
-      if (n.is_leaf())
-    {
-        this->VV_relation_leaf(n,mesh);
-    }
-    else
-    {
-        for (int i = 0; i < division.son_number(); i++)
-        {
-            if(n.get_son(i)!=NULL)
-            {
-                this->VV_relation(*n.get_son(i),mesh,division);
+        else {
+            for (int i = 0; i < division.son_number(); i++) {
+                Box son_dom = division.compute_domain(n_dom,level,i);
+                int son_level = level +1;
+                if(n.get_son(i)!=NULL)
+                {
+                    this->VT_relation(*n.get_son(i),son_dom,son_level,mesh,division);
+                }
             }
         }
     }
     
+    void Gradient::VT_relation_leaf(Node_V& n, Mesh& mesh) {
+        leaf_VT vts;
+        n.get_VT(vts,mesh);
+//        vts.clear();
     }
     
-    void Gradient::VV_relation(Node_T &n, Box &n_dom, int level, Mesh &mesh, Spatial_Subdivision &division){
-        
-            if (n.is_leaf())
-    {
-        this->VV_relation_leaf(n,n_dom,mesh);
+    void Gradient::VT_relation_leaf(Node_T& n, Box &dom, Mesh& mesh) {
+        leaf_VT vts;
+        n.get_VT(vts,dom,mesh);
+//        vts.clear();
     }
-    else
-    {
-        for (int i = 0; i < division.son_number(); i++)
-        {
-            Box son_dom = division.compute_domain(n_dom,level,i);
-            int son_level = level +1;
-            if(n.get_son(i)!=NULL)
-            {
-                this->VV_relation(*n.get_son(i),son_dom,son_level,mesh,division);
+    
+    void Gradient::VV_relation(Node_V& n, Mesh& mesh, Spatial_Subdivision& division) {
+        if (n.is_leaf()) {
+            this->VV_relation_leaf(n,mesh);
+        }
+        else {
+            for (int i = 0; i < division.son_number(); i++) {
+                if(n.get_son(i)!=NULL) {
+                    this->VV_relation(*n.get_son(i),mesh,division);
+                }
             }
         }
     }
+    
+    void Gradient::VV_relation(Node_T &n, Box &n_dom, int level, Mesh &mesh, Spatial_Subdivision &division) {
+        if (n.is_leaf()) {
+            this->VV_relation_leaf(n,n_dom,mesh);
+        }
+        else {
+            for (int i = 0; i < division.son_number(); i++) {
+                Box son_dom = division.compute_domain(n_dom,level,i);
+                int son_level = level +1;
+                if(n.get_son(i)!=NULL) {
+                    this->VV_relation(*n.get_son(i),son_dom,son_level,mesh,division);
+                }
+            }
+        }
+    }
+
+    void Gradient::VV_relation_leaf(Node_V& n, Mesh& mesh) {
+        leaf_VV vvs;
+        n.get_VV(vvs,mesh);
+//        vvs.clear();
     }
     
-    void Gradient::VV_relation_leaf(Node_V& n, Mesh& mesh){
-    
-//    if(!n.indexes_vertices())
-//         return;
-
-//     itype v_start = n.get_v_start();
-//     itype v_end = n.get_v_end();
-//     itype v_range = v_end - v_start;
-
-    leaf_VV vvs;//(v_range,VV());
-    //dvect v_aux(v_range,0.0);
-    n.get_VV(vvs,mesh);
-    // for(unsigned i=0;i<v_range;i++)
-    // {
-      
-    //     itype real_v_id=v_start+i;
-    //     Vertex &v = mesh.get_vertex(real_v_id);
-    //     VV &vv = vvs[i];   
-    // }
-    }
-    
-    void Gradient::VV_relation_leaf(Node_T& n, Box &dom, Mesh& mesh){
-    
-    //  itype v_start;
-    // itype v_end;
-
-    // n.get_v_range(v_start,v_end,dom,mesh); // we need to gather the vertices range..
-    
-    // if(v_start == v_end) //no internal vertices..
-    //     return;
-   
- //   leaf_VT vts(v_end-v_start,VT());
-    
-    leaf_VV vvs;//(v_end-v_start,VV());
-    //dvect v_aux(v_range,0.0);
-    n.get_VV(vvs,dom,mesh);
-    
-     
-    // for(unsigned i=0;i<vvs.size();i++)
-    // {
-    //     itype real_v_id=v_start+i;
-    //     Vertex &v = mesh.get_vertex(real_v_id);
-    //     VV &vv = vvs[i];
-    
-
-    
+    void Gradient::VV_relation_leaf(Node_T& n, Box &dom, Mesh& mesh) {
+        leaf_VV vvs;
+        n.get_VV(vvs,dom,mesh);
+//        vvs.clear();
     }

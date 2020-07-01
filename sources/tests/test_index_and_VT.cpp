@@ -116,8 +116,8 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
     time.stop();
     time.print_elapsed_time("[TIME] Index and Mesh Reindexing ");
 
-       Statistics stats;
-    stats.get_index_statistics(tree,cli.reindex);
+//    Statistics stats;
+//    stats.get_index_statistics(tree,cli.reindex);
 }  
 
 

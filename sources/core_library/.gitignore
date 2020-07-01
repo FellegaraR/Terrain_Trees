@@ -13,7 +13,8 @@ Doxyfile
 README
 Makefile
 *.py
-cmake_install.cmake
+*.cmake
+CMakeFiles/
 /CMakeCache.txt
 /data/*.tree
 /data/*.vtk
@@ -52,7 +53,3 @@ cmake_install.cmake
 *.exe
 *.out
 *.app
-!/sources/Makefile
-!/sources/cmake_install.cmake
-!/cmake_install.cmake
-!/Makefile
