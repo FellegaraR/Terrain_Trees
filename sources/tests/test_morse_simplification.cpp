@@ -10,7 +10,7 @@ template<class T> void load_terrain(T& tree, cli_parameters &cli);
 int main(int , char** )
 {
     cli_parameters cli;
-    cli.mesh_path = "../data/cos_sum.tri";
+    cli.mesh_path = "../data/827_monviso.off";
     cli.division_type = QUAD;
     cli.crit_type = "pr";
     cli.v_per_leaf = 20;

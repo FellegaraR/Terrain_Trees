@@ -653,12 +653,12 @@ void Forman_Gradient_Simplifier::remove_extreme_arcs(nNode* extrema, iNode* sadd
                     /// we simplify using a percentage based critarion
                     /// or if the persistence is below the average
                     //---------COMMENTED SINCE IT IS NOT INCLUDED IN IA VERSION---------
-                    // if(val <= persistence) /// NEW <= instead of <
-                    // {
-                    //     /// this must be enable if we simplify only topologically!! (the same holds in the removal function)
-                    //     Topo_Sempl ts = Topo_Sempl(arco, val, !is_minimum);
-                    //     q.push(ts);
-                    // }
+                    if(val <= persistence) /// NEW <= instead of <
+                    {
+                        /// this must be enable if we simplify only topologically!! (the same holds in the removal function)
+                        Topo_Sempl ts = Topo_Sempl(arco, val, !is_minimum);
+                        q.push(ts);
+                    }
                 }
             }
             else

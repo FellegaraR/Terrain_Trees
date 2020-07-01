@@ -75,7 +75,7 @@ int main(int argc, char** argv)
         //        load_tree(tree,cli);
         if(cli.reindex)
         {
-            // morse_features_extraction_and_simplification(tree,cli);
+             morse_features_extraction_and_simplification(tree,cli);
             //  multi_morse_terrain_analysis(tree,cli);
             //  custom_execution(tree,cli);
             SF_test(tree,cli);
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
         //        load_tree(tree,cli);
         if(cli.reindex)
         {
-            //   morse_features_extraction_and_simplification(tree,cli);
+               morse_features_extraction_and_simplification(tree,cli);
             // multi_morse_terrain_analysis(tree,cli);
             //   custom_execution(tree,cli);
             SF_test(tree,cli);
@@ -293,12 +293,22 @@ template<class T> void morse_features_extraction_and_simplification(T& tree, cli
     out << get_path_without_file_extension(cli.mesh_path);
     Timer time = Timer();
 
+    
+    load_terrain(tree,cli);
     //CALCOLO IL FORMAN GRADIENT VECTOR
     Forman_Gradient forman_gradient = Forman_Gradient(tree.get_mesh().get_triangles_num());
     //    Forman_Gradient_Computation gradient_computation = Forman_Gradient_Computation(cli.original_vertex_indices);
     Forman_Gradient_Features_Extractor features_extractor;
 
     Forman_Gradient_Computation gradient_computation = Forman_Gradient_Computation();
+
+    time.start();
+    gradient_computation.initial_filtering_IA(tree.get_mesh());
+    time.stop();
+    time.print_elapsed_time("[TIME] Initial filtering ");
+
+    load_tree_lite(tree,cli);
+    gradient_computation.reset_filtering(tree.get_mesh(),cli.original_vertex_indices);
 
     /// ---- FORMAN GRADIENT COMPUTATION --- ///
     cout<<"[NOTA] Compute the gradient field"<<endl;
