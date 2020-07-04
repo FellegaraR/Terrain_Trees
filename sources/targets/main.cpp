@@ -482,6 +482,7 @@ template<class T> void morse_features_extraction_and_simplification(T& tree, cli
         ///
         if(cli.query_type == LOCAL_MORSE_SIMPLIFICATION) /// we have chosen a fully local simplification. i.e. the MIG is computed locally
         {
+            cli.persistence = 0.8;
             cout<<"[LOCALLY] Simplify the forman gradient vector."<<endl;
             time.start();
             forman_simplifier.exec_local_topological_simplification(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),
