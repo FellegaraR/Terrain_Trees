@@ -43,30 +43,35 @@
             for(int i=0; i<t.vertices_num(); i++)
             {
                 t.TE(i,e);
+              
                 if(n.indexes_vertex(e[1]))// e (v1,v2) is a candidate edge if at least v2 is in n
                 {
                     map<ivect,coord_type>::iterator it = lengths.find(e);
+                   // cout<<e[0]<<" and "<<e[1]<<endl;
                     if(it == lengths.end())
                     {
+                    
                     coord_type   length;
                     Vertex &v1=mesh.get_vertex(e[0]);
                     Vertex &v2=mesh.get_vertex(e[1]);
                     dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
                   //  cout<<dif[0]<<", "<<dif[1]<<", "<<dif[2]<<endl;
                     length = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
-                  //  cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<length<<endl;
+                  cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<length<<endl;
                     //  Edge e((*it)[0],(*it)[1]);
                     lengths[e] = length;
                    //Edge edge_obj(e[0],e[1]);
                    if(length<params.get_maximum_length()){
                        
                     edges.push(new Geom_Edge(e,length));
+                        cout<<"ENQUEUE"<<endl;
                     }
                     }
                 }
 
             }   
         }
+        cout<<"======NEXT NODE======"<<endl;
 }
 
 
@@ -200,9 +205,10 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
         Vertex &v2=mesh.get_vertex((*it)[1]);
         dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
         length = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
+        if(length<params.get_maximum_length()){
         ivect e{(*it)[0],(*it)[1]};
         // Geom_Edge new_edge(e,length);
-        edges.push(new Geom_Edge(e,length));
+        edges.push(new Geom_Edge(e,length));}
     }
 
     /// finally we update the VT relation of e[0]

@@ -76,6 +76,9 @@ bool Mesh_Updater::update_and_clean_triangles_array(Mesh &mesh, ivect &new_v_pos
     cout<<"reorder (inline) the triangles arrays"<<endl;
     reorder_triangles_array(mesh,new_triangle_positions);
     // (4) delete the positions from t_counter to the end of the array
+    cout<<"delete the positions from t_counter to the end of the array"<<endl;
+    cout<<"New size:"<<t_counter-1<<endl;
+    cout<<"Old size:"<<mesh.get_triangles_num()<<endl;
     mesh.resize_triangle_array(t_counter-1);
     cout<<"Cleaned triangle array"<<endl;
 }
@@ -163,4 +166,5 @@ void Mesh_Updater::update_triangles_boundary(Mesh &mesh, ivect &new_v_positions)
         // mark the last entry visited...
         new_triangles_positions[j] = -1;
     }
+    cout<<"Finished reordering"<<endl;
 }

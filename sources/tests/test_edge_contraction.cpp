@@ -7,7 +7,7 @@ template<class T> void load_tree(T& tree, cli_parameters &cli);
 int main(int , char** )
 {
 	cli_parameters cli;
-	cli.mesh_path = "../data/eggs64z4.tri";
+	cli.mesh_path = "../data/cos_sum.tri";
 	
 	cerr<<"[OBJECTIVE] this unit-test generates a PR-quadtree on the input TIN dataset "
 	    <<"then, it simplifies the triangle mesh with an edge contraction operator following a length criteria."<<endl;
@@ -16,8 +16,8 @@ int main(int , char** )
 	
 	cli.division_type = QUAD;
     cli.crit_type = "pr";
-    cli.v_per_leaf = 10;
-    cli.maximum_length=0.1;
+    cli.v_per_leaf = 50;
+    cli.maximum_length=0.45;
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cerr<<"[GENERATION] PR-T tree"<<endl;
     load_tree(ptree,cli);
@@ -47,6 +47,8 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
     time.stop();
     time.print_elapsed_time(tree_info.str());
 
+   cout<<"number of triangles: "<<tree.get_mesh().get_triangles_num()<<endl;
+cout<<"number of vertices: "<<tree.get_mesh().get_vertices_num()<<endl;
     stringstream out;
     out << base.str() << "_" << SpatialDecType2string(cli.division_type) << "_" << cli.crit_type;
     if (cli.crit_type == "pr")
@@ -65,8 +67,9 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
        out2 << "_" << SpatialDecType2string(cli.division_type) << "_" << cli.crit_type << "_v_" << cli.v_per_leaf << "_t_" << cli.t_per_leaf << "_tree.vtk";
     else if (cli.crit_type == "pmr")
        out2 << "_" << SpatialDecType2string(cli.division_type) << "_" << cli.crit_type << "_t_" << cli.t_per_leaf << "_tree.vtk";
-
-    // Writer::write_tree_VTK(out2.str(),tree.get_root(),tree.get_subdivision(),tree.get_mesh());
+   
+   string output_name=base.str()+"_simplified_v_"+to_string(cli.v_per_leaf);
+     Writer::write_tree_VTK(out2.str(),tree.get_root(),tree.get_subdivision(),tree.get_mesh());
     // Writer::write_mesh_VTK(base.str(),tree.get_mesh());        
 
     time.start();
@@ -83,5 +86,9 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
     simplifier.simplify(tree,tree.get_mesh(),cli);
 
     cout<<"number of remaining triangles: "<<tree.get_mesh().get_triangles_num()<<endl;
+
+    
+    cout<<output_name<<endl;
+    Writer::write_mesh_VTK(output_name,tree.get_mesh());  
 
 }

@@ -89,6 +89,8 @@ template<class T> void Contraction_Simplifier::simplify(T &tree, Mesh &mesh, cli
         simplification_round = params.get_contracted_edges_num();  //checked edges
         /// HERE YOU NEED TO DEFINE A PROCEDURE FOR SIMPLIFY THE TIN BY USING THE SPATIAL INDEX
         this->simplify_compute(tree.get_root(),mesh,cache,tree.get_subdivision(),params,tree);
+
+        cout<<"Num of edges enqueued:"<<params.get_sum_edge_queue_sizes()<<endl;
         // PARTIAL SIMPLIFICATION STATS
         cerr<<"=== end-of-round "<<round<<") --> contracted edges: ";
         cerr<<params.get_contracted_edges_num()-simplification_round<<endl;
@@ -106,6 +108,8 @@ template<class T> void Contraction_Simplifier::simplify(T &tree, Mesh &mesh, cli
             break;
 
         cache.reset();
+        //    if(round==2)
+        //      break;
     }
     time.stop();
     if(!cli.debug_mode)
@@ -157,34 +161,48 @@ n.get_VT(local_vts,mesh);
 // Create a priority quue of candidate edges
 edge_queue edges;
 find_candidate_edges(n,mesh,local_vts,edges,params);
+int edge_num=edges.size();
+int edges_contracted_leaf=0;
 //cout<<"Edge number:"<<edges.size()<<endl;
+params.add_edge_queue_size(edges.size());
     while(!edges.empty())
     {
         Geom_Edge* current = edges.top();
          ivect e=current->edge;
   //    cout<<"Start contraction."<<endl;
+  //  cout<<"Edge Length:"<<current->val<<endl;
+
         edges.pop();
-           
+
+        // if(edges_contracted_leaf>edge_num*0.2)
+        //     { 
+        //     delete current;
+        //     continue;}
         if (mesh.is_vertex_removed(e[0])||mesh.is_vertex_removed(e[1])){
 
          //   cout<<"Vertex removed"<<endl;
          delete current;
+        // if(edges_contracted_leaf>edge_num*0.2)
+           // cout<<"Num of deleted in a leaf"<<edges_contracted_leaf<<"; 20% of the queue num:"<<edge_num*0.2<<endl;
             continue;
 
         }
+
+
 
         ET et(-1,-1);
         VT *vt0=NULL,*vt1=NULL;
         Node_V *outer_v_block=NULL;
 
        
-        
     
         get_edge_relations(e,et,vt0,vt1,outer_v_block,n,mesh,local_vts,cache,params,tree);
         if(link_condition(e[0],e[1],*vt0,*vt1,mesh)){
         contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params);
-    
+    edges_contracted_leaf++;
+    // break;
         }
+
     }
 
 
