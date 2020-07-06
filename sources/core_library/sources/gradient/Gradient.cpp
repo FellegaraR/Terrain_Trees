@@ -314,15 +314,15 @@ Gradient::~Gradient() {
     }
     
     void Gradient::VT_relation_leaf(Node_V& n, Mesh& mesh) {
-        leaf_VT vts;
+       // leaf_VT vts;
         n.get_VT(vts,mesh);
-//        vts.clear();
+        vts.clear();
     }
     
     void Gradient::VT_relation_leaf(Node_T& n, Box &dom, Mesh& mesh) {
-        leaf_VT vts;
+        //leaf_VT vts;
         n.get_VT(vts,dom,mesh);
-//        vts.clear();
+        vts.clear();
     }
     
     void Gradient::VV_relation(Node_V& n, Mesh& mesh, Spatial_Subdivision& division) {
