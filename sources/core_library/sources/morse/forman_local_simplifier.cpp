@@ -32,7 +32,8 @@ void Forman_Gradient_Simplifier::exec_local_topological_simplification(Node_V &n
     mig_cache cache = mig_cache(cache_size);
 
     this->local_topological_simplification(n,mesh,gradient,division,n,operation,cache,persistence);
-
+    print_arc_nums();
+  
 }
 
 void Forman_Gradient_Simplifier::local_topological_simplification(Node_V &n, Mesh &mesh, Forman_Gradient &gradient, Spatial_Subdivision &division,
@@ -60,6 +61,7 @@ void Forman_Gradient_Simplifier::local_topological_simplification(Node_V &n, Mes
             time.start();
         }
         this->get_local_MIG(n,mesh,gradient,local_ig,local_rels,root,division,cache);
+        //  print_arc_nums();
        //local_ig.print_saddles();
        // Error at saddle vertices (45.25,11) (45.25,11.25) Should be removed, but becomes two vertices. 
        //cout<<"Coordinates:"<< mesh.get_vertex()
@@ -128,7 +130,7 @@ void Forman_Gradient_Simplifier::get_local_MIG(Node_V &n, Mesh &mesh, Forman_Gra
         if(gradient.is_edge_critical(it_e->first,it_e->second,mesh))
         {
             /// intro stuff.. ///
-            itype max_field_v = mesh.get_max_elevation_vertex(it_e->first);
+            itype max_field_v = get_max_elevation_vertex(it_e->first);
 
             Triangle& t_first = mesh.get_triangle(it_e->second.first);
 
@@ -285,7 +287,7 @@ void Forman_Gradient_Simplifier::simplify(priority_arcs_queue &queue, Node_V &n,
     Topo_Sempl sempl;
     iNode* saddle=NULL;
     nNode* extrema=NULL;
-
+    int lvl0=0,lvl1=0,lvl2=0;
     while(!queue.empty())
     {
         sempl = queue.top();
@@ -293,6 +295,7 @@ void Forman_Gradient_Simplifier::simplify(priority_arcs_queue &queue, Node_V &n,
 
         if(sempl.arc->getLabel() != 1 )
         {
+            lvl2++;
             if(sempl.arc->getLabel() == -1)
                 delete sempl.arc;
             continue;
@@ -300,6 +303,7 @@ void Forman_Gradient_Simplifier::simplify(priority_arcs_queue &queue, Node_V &n,
 
         if(sempl.lvl == 0)
         {
+            lvl0++;
             saddle  = (iNode*)sempl.arc->getNode_j();
 //FOR DEBUG:
         itype sad_vertex= saddle->get_critical_index();
@@ -308,21 +312,23 @@ void Forman_Gradient_Simplifier::simplify(priority_arcs_queue &queue, Node_V &n,
             extrema = (nNode*)sempl.arc->getNode_i();
 
             if(saddle->getArcs(true).size() != 2) continue;
+           // cout<<"Persistence value:"<<sempl.val<<endl;
             contraction(extrema, saddle, queue, ig, mesh, gradient, local_rels, cache, n, root, division, persistence);
 
             refined_topo++;
         }
         else
         {
+            lvl1++;
             saddle  = (iNode*)sempl.arc->getNode_i();
 
-             itype sad_vertex= saddle->get_critical_index();
+           //  itype sad_vertex= saddle->get_critical_index();
        // itype sad_vertex = node->get_critical_index();
            // cout<<"Coordinates of saddle: "<<mesh.get_vertex(sad_vertex).get_x()<<", "<<mesh.get_vertex(sad_vertex).get_y()<<endl;
 
 
             extrema = (nNode*)sempl.arc->getNode_j();
-            itype t_id= sempl.arc->getSimplexj();
+           // itype t_id= sempl.arc->getSimplexj();
             //cout<<"Ending triangle "<<t_id<<endl;
             if(saddle->getArcs(false).size() != 2) continue;
             removal(extrema,saddle, queue, ig, mesh, gradient, local_rels, cache, n, root, division, persistence);
@@ -333,6 +339,8 @@ void Forman_Gradient_Simplifier::simplify(priority_arcs_queue &queue, Node_V &n,
         if(max_priority_queue_size < queue.size())
             max_priority_queue_size = queue.size();
     }
+
+//cout<<"Level 0:"<<lvl0<<", Level 1:"<<lvl1<<", Level 2:"<<lvl2<<endl;
 }
 
 /// involves a minimum and a saddle
@@ -399,7 +407,7 @@ void Forman_Gradient_Simplifier::contraction(nNode *extrema, iNode *saddle, prio
 
     /// remove the saddle and the minimum
 
-    //cout<<"CONTRACTION SADDLE: "<<*saddle<<endl;
+   // cout<<"CONTRACTION SADDLE: "<<*saddle<<endl;
     ig.remove_saddle(saddle->get_edge_id(),saddle);
     ig.remove_minimum(extrema->get_critical_index(),extrema);
 //    int a; cin>>a;
@@ -577,7 +585,7 @@ void Forman_Gradient_Simplifier::build_persistence_queue(priority_arcs_queue &q,
                 coord_type val;
                 if(i==1)
                 {
-                    Vertex &v2 = mesh.get_vertex(mesh.get_max_elevation_vertex(mesh.get_triangle((*it)->getNode_j()->get_critical_index())));
+                    Vertex &v2 = mesh.get_vertex(get_max_elevation_vertex(mesh.get_triangle((*it)->getNode_j()->get_critical_index())));
                     val = fabs(v1.get_z() - v2.get_z());
                 }
                 else{
@@ -588,6 +596,8 @@ void Forman_Gradient_Simplifier::build_persistence_queue(priority_arcs_queue &q,
          
                 if(val <= persistence) /// NEW <= instead of <
                 {
+                   // cout<<"SADDLE is "<< *saddle<<endl;
+                   // cout<<"persistence value is:"<<val<<endl;
                     Topo_Sempl ts = Topo_Sempl(*it, val, i);
                     q.push(ts);
                 }
@@ -646,7 +656,7 @@ void Forman_Gradient_Simplifier::remove_extreme_arcs(nNode* extrema, iNode* sadd
                                    mesh.get_vertex(arco->getNode_j()->get_critical_index()).get_z());
                     else
                         val = fabs(mesh.get_vertex(arco->getNode_i()->get_critical_index()).get_z() -
-                                   mesh.get_vertex(mesh.get_max_elevation_vertex(
+                                   mesh.get_vertex(get_max_elevation_vertex(
                                                        mesh.get_triangle(arco->getNode_j()->get_critical_index()))).get_z());
 
                     /// we push in queue if:
@@ -688,7 +698,7 @@ coord_type Forman_Gradient_Simplifier::get_average_persistence_value(IG &ig, Mes
 
                 if(i==1)
                 {
-                    Vertex &v2 = mesh.get_vertex(mesh.get_max_elevation_vertex(mesh.get_triangle((*it)->getNode_j()->get_critical_index())));
+                    Vertex &v2 = mesh.get_vertex(get_max_elevation_vertex(mesh.get_triangle((*it)->getNode_j()->get_critical_index())));
                     avg += fabs(v1.get_z() - v2.get_z());
                 }
                 else{
@@ -716,7 +726,7 @@ coord_type Forman_Gradient_Simplifier::get_average_persistence_value(IG &ig, Mes
 
                 if(i==1)
                 {
-                    Vertex &v2 = mesh.get_vertex(mesh.get_max_elevation_vertex(mesh.get_triangle((*it)->getNode_j()->get_critical_index())));
+                    Vertex &v2 = mesh.get_vertex(get_max_elevation_vertex(mesh.get_triangle((*it)->getNode_j()->get_critical_index())));
                     if(avg > fabs(v1.get_z() - v2.get_z()))
                         arc_below_counter++;
                 }

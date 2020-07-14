@@ -223,7 +223,7 @@ void Forman_Gradient_Features_Extractor::get_new_IG_paths(Node_V &n, Mesh &mesh,
         if(gradient.is_edge_critical(it_e->first,it_e->second,mesh))
         {
             /// intro stuff.. ///
-            itype max_field_v = mesh.get_max_elevation_vertex(it_e->first);
+            itype max_field_v = get_max_elevation_vertex(it_e->first);
 
             Triangle& t_first = mesh.get_triangle(it_e->second.first);
 
@@ -298,7 +298,7 @@ void Forman_Gradient_Features_Extractor::get_new_IG_paths(Node_T &n, itype v_sta
         if(gradient.is_edge_critical(it_e->first,it_e->second,mesh))
         {
             /// intro stuff.. ///
-            itype max_field_v = mesh.get_max_elevation_vertex(it_e->first);
+            itype max_field_v = get_max_elevation_vertex(it_e->first);
 
             Triangle& t_first = mesh.get_triangle(it_e->second.first);
 

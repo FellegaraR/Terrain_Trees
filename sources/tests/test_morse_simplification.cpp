@@ -7,16 +7,25 @@ template<class T> void morse_simplification(T& tree, cli_parameters &cli);
 template<class T> void load_terrain(T& tree, cli_parameters &cli);
 
 
-int main(int , char** )
+int main(int argc, char** argv )
 {
     cli_parameters cli;
-    cli.mesh_path = "../data/827_monviso.off";
+    cli.mesh_path = "../data/794_lagomaggiore.tri";
     cli.division_type = QUAD;
     cli.crit_type = "pr";
-    cli.v_per_leaf = 20;
+    cli.v_per_leaf = 300;
 	cli.app_debug = OUTPUT;
-	cli.persistence = 0.8;
-		
+	cli.persistence = 1;
+    if(strcmp(argv[1],"local")==0)
+       cli.query_type = LOCAL_MORSE_SIMPLIFICATION;//LOCAL_ or GLOBAL_MORSE_SIMPLIFICATION
+	else if(strcmp(argv[1],"global")==0)
+        cli.query_type=GLOBAL_MORSE_SIMPLIFICATION;
+    else
+    {
+        cout<<"Please enter the type of morse simplificaton"<<endl;
+        return 1;
+    }
+    
     cerr<<"[OBJECTIVE] this unit-test generates a quadtrees based on the PR-T tree criterion. "
 	    <<"then, it saves the index and the mesh in VTK format for visualization purposes and finally "
 		<<"it computes the Morse gradient vector and simplifies it, outputting the initial Morse IG and the simplified one in VTK format."<<endl;
@@ -77,6 +86,7 @@ template<class T> void morse_simplification(T& tree, cli_parameters &cli)
     /// ---- MORPHOLOGICAL SIMPLIFICATION --- ///        
     {
         Forman_Gradient_Simplifier forman_simplifier;
+        forman_simplifier.set_filtration_vec(gradient_computation.get_filtration());
 
         ///
         /// firstly we extract the MIG
@@ -97,6 +107,7 @@ template<class T> void morse_simplification(T& tree, cli_parameters &cli)
         /// then we execute effectively the topological simplification
         ///
         /// we have chosen a fully local simplification. i.e. the MIG is computed locally
+        if (cli.query_type==LOCAL_MORSE_SIMPLIFICATION)
         {
             cout<<"[LOCALLY] Simplify the forman gradient vector."<<endl;
             time.start();
@@ -105,7 +116,17 @@ template<class T> void morse_simplification(T& tree, cli_parameters &cli)
             time.stop();
             time.print_elapsed_time("[TIME] simplify the gradient ");
         }
+        else if(cli.query_type==GLOBAL_MORSE_SIMPLIFICATION){
 
+             cout<<"[GLOBALLY] Simplify the forman gradient vector."<<endl;
+                      time.start();
+            /// otherwise we simplify the gradient computing first a global MIG and then simplifying it and the gradient
+            /// default behaviour with alltime!
+            forman_simplifier.exec_global_topological_simplification(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),
+                                                                     cli.app_debug,cli.cache_size,cli.persistence);
+            time.stop();
+            time.print_elapsed_time("[TIME] simplify the gradient ");
+        }
         forman_simplifier.print_simplification_stats();
     
 
@@ -119,7 +140,11 @@ template<class T> void morse_simplification(T& tree, cli_parameters &cli)
         forman_simplifier.get_incidence_graph().print_stats(true);
         forman_simplifier.reset_stats();
 
-        Writer_Morse::write_incidence_graph_VTK(out.str(),"simplified_mig", cli.v_per_leaf, forman_simplifier.get_incidence_graph(),tree.get_mesh(),
+        if(cli.query_type==LOCAL_MORSE_SIMPLIFICATION)
+        Writer_Morse::write_incidence_graph_VTK(out.str(),"simplified_mig_local", cli.v_per_leaf, forman_simplifier.get_incidence_graph(),tree.get_mesh(),
+                                          cli.original_vertex_indices,cli.original_vertex_fields,cli.rever_to_original);
+        else if (cli.query_type==GLOBAL_MORSE_SIMPLIFICATION)
+         Writer_Morse::write_incidence_graph_VTK(out.str(),"simplified_mig_global", cli.v_per_leaf, forman_simplifier.get_incidence_graph(),tree.get_mesh(),
                                           cli.original_vertex_indices,cli.original_vertex_fields,cli.rever_to_original);
 
         forman_simplifier.reset_output_structures(tree.get_mesh());
@@ -176,7 +201,7 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
             tree.build_tree();
             time.stop();
             time.print_elapsed_time(tree_info.str());
-            Writer::write_tree(out.str(), tree.get_root(), tree.get_subdivision());
+         //   Writer::write_tree(out.str(), tree.get_root(), tree.get_subdivision());
         }
         else
             cout << "[NOTICE] Found corresponding .tree file. Loaded tree from file successfully"<<endl;
@@ -194,7 +219,7 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
                 out2 << "_" << SpatialDecType2string(cli.division_type) << "_" << cli.crit_type << "_t_" << cli.t_per_leaf << "_tree.vtk";
 
             Writer::write_tree_VTK(out2.str(),tree.get_root(),tree.get_subdivision(),tree.get_mesh());
-            Writer::write_mesh_VTK(base.str(),tree.get_mesh());
+            // Writer::write_mesh_VTK(base.str(),tree.get_mesh());
         }
     }
 
