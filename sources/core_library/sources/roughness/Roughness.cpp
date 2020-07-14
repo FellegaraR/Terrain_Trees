@@ -77,7 +77,7 @@ void Roughness::roughness_leaf(Node_V& n, Mesh& mesh)
     itype v_range = v_end - v_start;
    
 
-    leaf_VV_vec vvs(v_range,VV_vec());
+    //vvs(v_range,VV_vec());
 
    
     n.get_VV_vector(vvs,mesh);
@@ -111,7 +111,7 @@ void Roughness::roughness_leaf(Node_V& n, Mesh& mesh)
         roughness[real_v_id]=sqrt(zDistSum/vv.size());
         
     }
-    
+    vvs.clear();
 
  
 }
@@ -126,7 +126,7 @@ void Roughness::roughness_leaf(Node_T &n, Box &n_dom, Mesh &mesh)
     if(v_start == v_end) //no internal vertices..
         return;
    
-    leaf_VV_vec vvs(v_end-v_start,VV_vec());
+   // leaf_VV_vec vvs(v_end-v_start,VV_vec());
     //dvect v_aux(v_range,0.0);
  
        //    
@@ -155,6 +155,8 @@ void Roughness::roughness_leaf(Node_T &n, Box &n_dom, Mesh &mesh)
         }
     roughness[real_v_id]=sqrt(zDistSum/vv.size()); 
     }
+
+    vvs.clear();
 
 }
 

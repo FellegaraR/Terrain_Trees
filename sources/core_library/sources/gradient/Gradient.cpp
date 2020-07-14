@@ -172,8 +172,8 @@ Gradient::~Gradient() {
     itype v_end = n.get_v_end();
     itype v_range = v_end - v_start;
     
-    leaf_VT vts(v_range,VT());
-                           Timer time;
+    //leaf_VT vts(v_range,VT());
+     Timer time;
         time.start();
     n.get_VT(vts,mesh);
       time.stop();
@@ -220,7 +220,8 @@ Gradient::~Gradient() {
     
     
     
-    
+    vts.clear();
+
     }
     
     void Gradient::multi_field_leaf(Node_T& n, Box &dom, Mesh& mesh){
@@ -234,7 +235,7 @@ Gradient::~Gradient() {
         return;
     itype v_range=v_end-v_start;
      
-    leaf_VT vts(v_end-v_start,VT());
+     //vts(v_end-v_start,VT());
     n.get_VT(vts,v_start,v_end,mesh);
       for(unsigned i=0;i<v_range;i++)
     {
@@ -279,7 +280,7 @@ Gradient::~Gradient() {
         multifield=sqrt(max);
         mesh.get_vertex(real_v_id).add_field(multifield);
         }
-    
+    vts.clear();
     
     }
     
@@ -354,13 +355,13 @@ Gradient::~Gradient() {
     }
 
     void Gradient::VV_relation_leaf(Node_V& n, Mesh& mesh) {
-        leaf_VV vvs;
+        //leaf_VV vvs;
         n.get_VV(vvs,mesh);
-//        vvs.clear();
+        vvs.clear();
     }
     
     void Gradient::VV_relation_leaf(Node_T& n, Box &dom, Mesh& mesh) {
-        leaf_VV vvs;
+       // leaf_VV vvs;
         n.get_VV(vvs,dom,mesh);
-//        vvs.clear();
+        vvs.clear();
     }
