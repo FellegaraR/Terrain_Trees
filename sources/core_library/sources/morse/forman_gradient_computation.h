@@ -60,6 +60,7 @@ protected:
     void add_ET_entry(ivect &e, itype max_field_id, itype t_id, Node_V &n, leaf_ET &ets);
 private:
     int saddle, _max, _min;
+    leaf_VT vts;
     inline bool filtration_cmp(const pair<coord_type,itype>& v1, const pair<coord_type,itype>& v2) const
     {
         if(v1.first == v2.first){

@@ -101,7 +101,7 @@ void Forman_Gradient_Computation::compute_local_gradient_vector_leaf(Forman_Grad
     itype v_start = n.get_v_start();
     itype v_end = n.get_v_end();
 
-    leaf_VT vts = leaf_VT();
+    //leaf_VT vts = leaf_VT();
     vts.assign(v_end-v_start, ivect());
 
     lower_star_map tmp = lower_star_map();
@@ -111,6 +111,7 @@ void Forman_Gradient_Computation::compute_local_gradient_vector_leaf(Forman_Grad
 
     extract_topological_relations(n,mesh,lower_stars,vts,ets);
     compute_gradient(fg,v_start,vts,ets,lower_stars,mesh);
+    vts.clear();
 }
 
 void Forman_Gradient_Computation::compute_local_gradient_vector_leaf(Forman_Gradient &fg, Node_T &n, Box &n_dom, Mesh &mesh)
@@ -125,7 +126,7 @@ void Forman_Gradient_Computation::compute_local_gradient_vector_leaf(Forman_Grad
 
    // auto foo = bind(&Forman_Gradient_Computation::cmp_filtered_simplices, this,_1,_2);
 
-    leaf_VT vts = leaf_VT();
+    //leaf_VT vts = leaf_VT();
     vts.assign(v_end-v_start, ivect());
 
     lower_star_map tmp = lower_star_map();
@@ -136,6 +137,7 @@ void Forman_Gradient_Computation::compute_local_gradient_vector_leaf(Forman_Grad
 
     extract_topological_relations(n,v_start,v_end,mesh,lower_stars,vts,ets);
     compute_gradient(fg,v_start,vts,ets,lower_stars,mesh);
+    vts.clear();
 }
 
 void Forman_Gradient_Computation::compute_gradient(Forman_Gradient &fg, itype v_start, leaf_VT &vts, leaf_ET &ets,
