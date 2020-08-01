@@ -580,17 +580,68 @@ void Forman_Gradient_Simplifier::build_persistence_queue(priority_arcs_queue &q,
         {
             if((*it)->getLabel() == 1)
             {
-                Vertex &v1 = mesh.get_vertex((*it)->getNode_i()->get_critical_index());
-
+                itype index_i=(*it)->getNode_i()->get_critical_index();
+                Vertex &v1 = mesh.get_vertex(index_i);
+                itype index_j;
                 coord_type val;
+                Topo_Sempl ts;
+                
                 if(i==1)
                 {
-                    Vertex &v2 = mesh.get_vertex(get_max_elevation_vertex(mesh.get_triangle((*it)->getNode_j()->get_critical_index())));
+                    pair<itype,itype> critical_edge_tetra=((iNode*)(*it)->getNode_i())->get_edge_id();
+                    ivect critical_edge;
+                    Triangle &first = mesh.get_triangle(critical_edge_tetra.first);
+                    if(critical_edge_tetra.second<0)
+                    {
+                        first.TE(-critical_edge_tetra.second-1,critical_edge);
+                    }
+                    else
+                    {
+                        Triangle &second = mesh.get_triangle(critical_edge_tetra.second);
+                        for(int i=0; i<3; i++)
+                        {
+                            if(!(second.has_vertex(first.TV(i))))
+                            {
+                                first.TE(i,critical_edge);
+                                break;
+                            }
+                        }
+                    }
+
+                    index_j=get_max_elevation_vertex(mesh.get_triangle((*it)->getNode_j()->get_critical_index()));
+                   Vertex &v2=mesh.get_vertex(index_j);
                     val = fabs(v1.get_z() - v2.get_z());
+                     ts= Topo_Sempl(*it, val, i,filtration[critical_edge[0]-1],filtration[critical_edge[1]-1],filtration[index_j-1]);
                 }
                 else{
-                    Vertex &v2 = mesh.get_vertex((*it)->getNode_j()->get_critical_index());
+                    index_j=(*it)->getNode_j()->get_critical_index();
+
+                    pair<itype,itype> critical_edge_tetra=((iNode*)(*it)->getNode_j())->get_edge_id();
+                    ivect critical_edge;
+                    Triangle &first = mesh.get_triangle(critical_edge_tetra.first);
+                    if(critical_edge_tetra.second<0)
+                    {
+                        first.TE(-critical_edge_tetra.second-1,critical_edge);
+                    }
+                    else
+                    {
+                        Triangle &second = mesh.get_triangle(critical_edge_tetra.second);
+                        for(int i=0; i<3; i++)
+                        {
+                            if(!(second.has_vertex(first.TV(i))))
+                            {
+                                first.TE(i,critical_edge);
+                                break;
+                            }
+                        }
+                    }
+            
+                    Vertex &v2 = mesh.get_vertex(index_j);
                     val = fabs(v1.get_z() - v2.get_z());
+
+                    ts= Topo_Sempl(*it, val, i,filtration[critical_edge[0]-1],filtration[critical_edge[1]-1],filtration[index_i-1]);
+
+
                 }
                 
          
@@ -598,7 +649,7 @@ void Forman_Gradient_Simplifier::build_persistence_queue(priority_arcs_queue &q,
                 {
                    // cout<<"SADDLE is "<< *saddle<<endl;
                    // cout<<"persistence value is:"<<val<<endl;
-                    Topo_Sempl ts = Topo_Sempl(*it, val, i);
+                    
                     q.push(ts);
                 }
             }
@@ -650,15 +701,64 @@ void Forman_Gradient_Simplifier::remove_extreme_arcs(nNode* extrema, iNode* sadd
 
                 if(arco->getLabel() == 1)
                 {
+                    int index_ex;
+                    ivect critical_edge;
                     /// check how to compute val..
                     if(is_minimum)
-                        val = fabs(mesh.get_vertex(arco->getNode_i()->get_critical_index()).get_z() -
-                                   mesh.get_vertex(arco->getNode_j()->get_critical_index()).get_z());
-                    else
-                        val = fabs(mesh.get_vertex(arco->getNode_i()->get_critical_index()).get_z() -
-                                   mesh.get_vertex(get_max_elevation_vertex(
-                                                       mesh.get_triangle(arco->getNode_j()->get_critical_index()))).get_z());
+                       {
+                        index_ex=arco->getNode_i()->get_critical_index();
+                        itype index_j=arco->getNode_j()->get_critical_index();
+                        pair<itype,itype> critical_edge_tetra=((iNode*)arco->getNode_j())->get_edge_id();
+                        
+                        Triangle &first = mesh.get_triangle(critical_edge_tetra.first);
+                        if(critical_edge_tetra.second<0)
+                        {
+                            first.TE(-critical_edge_tetra.second-1,critical_edge);
+                        }
+                        else
+                        {
+                            Triangle &second = mesh.get_triangle(critical_edge_tetra.second);
+                            for(int i=0; i<3; i++)
+                            {
+                                if(!(second.has_vertex(first.TV(i))))
+                                {
+                                    first.TE(i,critical_edge);
+                                    break;
+                                }
+                            }
+                        }
 
+                           index_j=arco->getNode_j()->get_critical_index();
+                            val = fabs(mesh.get_vertex(index_ex).get_z() -
+                                   mesh.get_vertex(index_j).get_z());
+                       }
+                    else
+                      { 
+                         itype index_i=arco->getNode_i()->get_critical_index();
+
+                        pair<itype,itype> critical_edge_tetra=((iNode*)arco->getNode_i())->get_edge_id();
+                        
+                        Triangle &first = mesh.get_triangle(critical_edge_tetra.first);
+                        if(critical_edge_tetra.second<0)
+                        {
+                            first.TE(-critical_edge_tetra.second-1,critical_edge);
+                        }
+                        else
+                        {
+                            Triangle &second = mesh.get_triangle(critical_edge_tetra.second);
+                            for(int i=0; i<3; i++)
+                            {
+                                if(!(second.has_vertex(first.TV(i))))
+                                {
+                                    first.TE(i,critical_edge);
+                                    break;
+                                }
+                            }
+                        }
+
+                          index_ex=get_max_elevation_vertex(mesh.get_triangle(arco->getNode_j()->get_critical_index()));
+                           val = fabs(mesh.get_vertex(index_i).get_z() -  mesh.get_vertex(index_ex).get_z());
+                      }
                     /// we push in queue if:
                     /// we simplify using a percentage based critarion
                     /// or if the persistence is below the average
@@ -666,7 +766,7 @@ void Forman_Gradient_Simplifier::remove_extreme_arcs(nNode* extrema, iNode* sadd
                     if(val <= persistence) /// NEW <= instead of <
                     {
                         /// this must be enable if we simplify only topologically!! (the same holds in the removal function)
-                        Topo_Sempl ts = Topo_Sempl(arco, val, !is_minimum);
+                        Topo_Sempl ts = Topo_Sempl(arco, val, !is_minimum,filtration[critical_edge[0]-1],filtration[critical_edge[1]-1],filtration[index_ex-1]);
                         q.push(ts);
                     }
                 }

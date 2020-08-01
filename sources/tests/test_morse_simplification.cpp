@@ -13,7 +13,7 @@ int main(int argc, char** argv )
     cli.mesh_path = "../data/794_lagomaggiore.tri";
     cli.division_type = QUAD;
     cli.crit_type = "pr";
-    cli.v_per_leaf = 300;
+    cli.v_per_leaf = 20000000;
 	cli.app_debug = OUTPUT;
 	cli.persistence = 1;
     if(strcmp(argv[1],"local")==0)
