@@ -608,10 +608,16 @@ void Forman_Gradient_Simplifier::build_persistence_queue(priority_arcs_queue &q,
                         }
                     }
 
-                    index_j=get_max_elevation_vertex(mesh.get_triangle((*it)->getNode_j()->get_critical_index()));
+                     ivect filt_ex;
+                        Triangle t=mesh.get_triangle((*it)->getNode_j()->get_critical_index());
+
+                        for (int i=0;i<3;i++)
+                            filt_ex.push_back(filtration[t.TV(i)-1]);
+                    sort(filt_ex.begin(), filt_ex.end(), greater<int>()); 
+                   // index_j=get_max_elevation_vertex(mesh.get_triangle((*it)->getNode_j()->get_critical_index()));
                    Vertex &v2=mesh.get_vertex(index_j);
                     val = fabs(v1.get_z() - v2.get_z());
-                     ts= Topo_Sempl(*it, val, i,filtration[critical_edge[0]-1],filtration[critical_edge[1]-1],filtration[index_j-1]);
+                     ts= Topo_Sempl(*it, val, i,filtration[critical_edge[0]-1],filtration[critical_edge[1]-1],filt_ex);
                 }
                 else{
                     index_j=(*it)->getNode_j()->get_critical_index();
@@ -638,8 +644,9 @@ void Forman_Gradient_Simplifier::build_persistence_queue(priority_arcs_queue &q,
             
                     Vertex &v2 = mesh.get_vertex(index_j);
                     val = fabs(v1.get_z() - v2.get_z());
-
-                    ts= Topo_Sempl(*it, val, i,filtration[critical_edge[0]-1],filtration[critical_edge[1]-1],filtration[index_i-1]);
+                    ivect filt_ex;
+                    filt_ex.push_back(filtration[index_i-1]);
+                    ts= Topo_Sempl(*it, val, i,filtration[critical_edge[0]-1],filtration[critical_edge[1]-1],filt_ex);
 
 
                 }
@@ -703,10 +710,12 @@ void Forman_Gradient_Simplifier::remove_extreme_arcs(nNode* extrema, iNode* sadd
                 {
                     int index_ex;
                     ivect critical_edge;
+                    ivect filt_ex;
                     /// check how to compute val..
                     if(is_minimum)
                        {
                         index_ex=arco->getNode_i()->get_critical_index();
+                        filt_ex.push_back(filtration[index_ex-1]);
                         itype index_j=arco->getNode_j()->get_critical_index();
                         pair<itype,itype> critical_edge_tetra=((iNode*)arco->getNode_j())->get_edge_id();
                         
@@ -755,9 +764,14 @@ void Forman_Gradient_Simplifier::remove_extreme_arcs(nNode* extrema, iNode* sadd
                                 }
                             }
                         }
-
-                          index_ex=get_max_elevation_vertex(mesh.get_triangle(arco->getNode_j()->get_critical_index()));
+                            Triangle t=mesh.get_triangle(arco->getNode_j()->get_critical_index());
+                          index_ex=get_max_elevation_vertex(t);
                            val = fabs(mesh.get_vertex(index_i).get_z() -  mesh.get_vertex(index_ex).get_z());
+                      
+                          for (int i=0;i<3;i++)
+                            filt_ex.push_back(filtration[t.TV(i)-1]);
+                        sort(filt_ex.begin(), filt_ex.end(), greater<int>()); 
+                      
                       }
                     /// we push in queue if:
                     /// we simplify using a percentage based critarion
@@ -766,7 +780,7 @@ void Forman_Gradient_Simplifier::remove_extreme_arcs(nNode* extrema, iNode* sadd
                     if(val <= persistence) /// NEW <= instead of <
                     {
                         /// this must be enable if we simplify only topologically!! (the same holds in the removal function)
-                        Topo_Sempl ts = Topo_Sempl(arco, val, !is_minimum,filtration[critical_edge[0]-1],filtration[critical_edge[1]-1],filtration[index_ex-1]);
+                        Topo_Sempl ts = Topo_Sempl(arco, val, !is_minimum,filtration[critical_edge[0]-1],filtration[critical_edge[1]-1],filt_ex);
                         q.push(ts);
                     }
                 }

@@ -192,7 +192,7 @@ void Forman_Gradient_Simplifier::simplify(priority_arcs_queue &queue, Node_V &n,
                         lvl0++;
             saddle  = (iNode*)sempl.arc->getNode_j();
             extrema = (nNode*)sempl.arc->getNode_i();
-
+          //  cout<<"[Contraction] persistence value:"<<sempl.val<<" edge filtration: "<<sempl.filt_s0<<", "<<sempl.filt_s1<<"; extreme filtration: "<<sempl.filt_ex<<endl;
             if(saddle->getArcs(true).size() != 2) continue;
             // cout<<sempl.arc->getSimplexi()"Persistence value:"<<sempl.val<<endl;
             contraction(extrema, saddle, queue, mesh, gradient, local_rels, cache, n, root, division, persistence);
@@ -206,6 +206,9 @@ void Forman_Gradient_Simplifier::simplify(priority_arcs_queue &queue, Node_V &n,
             extrema = (nNode*)sempl.arc->getNode_j();
 
             if(saddle->getArcs(false).size() != 2) continue;
+           // cout<<"[Removal] persistence value:"<<sempl.val<<" edge filtration: "<<sempl.filt_s0<<", "<<sempl.filt_s1<<endl;
+           // cout<<"extreme filtration: "<<sempl.filt_ex[0]<<"; "<<sempl.filt_ex[1]<<"; "<<sempl.filt_ex[2]<<endl;
+
             removal(extrema,saddle, queue, mesh, gradient, local_rels, cache, n, root, division, persistence);
 
             refined_topo++;
@@ -326,7 +329,7 @@ void Forman_Gradient_Simplifier::removal(nNode *extrema, iNode *saddle, priority
     /// remove the saddle and the maximum
    //cout<<"REMOVAL SADDLE: "<<*saddle<<endl;
     cout<<"[REMOVAL]Filtration value: "<<filtration[saddle->get_critical_index()-1]<<endl;
- //   cout<<"[REMOVAL]Maximum Filtration value: "<<filtration[get_max_elevation_vertex(mesh.get_triangle(extrema->get_critical_index()))-1]<<endl;
+    //cout<<"[REMOVAL]Maximum Filtration value: "<<filtration[get_max_elevation_vertex(mesh.get_triangle(extrema->get_critical_index()))-1]<<endl;
     forman_ig.remove_saddle(saddle->get_edge_id(),saddle);
     forman_ig.remove_maximum(extrema->get_critical_index(),extrema);
 
@@ -381,24 +384,86 @@ void Forman_Gradient_Simplifier::remove_extreme_arcs(nNode* extrema, iNode* sadd
                 if(arco->getLabel() == 1 && n.visited_vertex(node_saddle1->get_critical_index()))
                 {
                     itype index_i,index_j;
+                    itype filt_i,filt_j;
+                    ivect filt_ex;
                     /// check how to compute val..
                     if(is_minimum)
-                        {index_i=arco->getNode_i()->get_critical_index();
-                        index_j=arco->getNode_j()->get_critical_index();}
+                    {
+                        index_i=arco->getNode_i()->get_critical_index();
+                        index_j=arco->getNode_j()->get_critical_index();
+                        filt_ex.push_back(filtration[index_i-1]);
+                        pair<itype,itype> critical_edge_tetra=((iNode*)arco->getNode_j())->get_edge_id();
+                        ivect critical_edge;
+
+                        Triangle &first = mesh.get_triangle(critical_edge_tetra.first);
+
+                        if(critical_edge_tetra.second<0)
+                        {
+                            first.TE(-critical_edge_tetra.second-1,critical_edge);
+                        }
+                        else
+                        {
+                            Triangle &second = mesh.get_triangle(critical_edge_tetra.second);
+                            for(int i=0; i<3; i++)
+                            {
+                                if(!(second.has_vertex(first.TV(i))))
+                                {
+                                    first.TE(i,critical_edge);
+                                    break;
+                                }
+                            }
+                        }
+                         filt_i=(filtration[critical_edge[0]-1]>filtration[critical_edge[1]-1])?filtration[critical_edge[0]-1]:filtration[critical_edge[1]-1];
+                        filt_j=(filtration[critical_edge[0]-1]>filtration[critical_edge[1]-1])?filtration[critical_edge[1]-1]:filtration[critical_edge[0]-1];
+
+                    }
 
                     else
                         {index_i=arco->getNode_i()->get_critical_index();
-                         index_j=get_max_elevation_vertex(mesh.get_triangle(arco->getNode_j()->get_critical_index()));}
+
+                        pair<itype,itype> critical_edge_tetra=((iNode*)arco->getNode_i())->get_edge_id();
+                        ivect critical_edge;
+
+                        Triangle &first = mesh.get_triangle(critical_edge_tetra.first);
+
+                        if(critical_edge_tetra.second<0)
+                        {
+                            first.TE(-critical_edge_tetra.second-1,critical_edge);
+                        }
+                        else
+                        {
+                            Triangle &second = mesh.get_triangle(critical_edge_tetra.second);
+                            for(int i=0; i<3; i++)
+                            {
+                                if(!(second.has_vertex(first.TV(i))))
+                                {
+                                    first.TE(i,critical_edge);
+                                    break;
+                                }
+                            }
+                        }
+                        //filt_i=filtration[critical_edge[0]-1];
+                       // filt_j=filtration[critical_edge[1]-1];
+                        filt_i=(filtration[critical_edge[0]-1]>filtration[critical_edge[1]-1])?filtration[critical_edge[0]-1]:filtration[critical_edge[1]-1];
+                        filt_j=(filtration[critical_edge[0]-1]>filtration[critical_edge[1]-1])?filtration[critical_edge[1]-1]:filtration[critical_edge[0]-1];
+                        Triangle t=mesh.get_triangle(arco->getNode_j()->get_critical_index());
+                        for(int i=0;i<3;i++)
+                            filt_ex.push_back(filtration[t.TV(i)-1]);
+                         index_j=get_max_elevation_vertex(t);
+                         
+                         
+                         
+                         }
                     
                     val=abs(mesh.get_vertex(index_i).get_z()-mesh.get_vertex(index_j).get_z());
                     
                     ///////COMMENTED FOR DEBUG
-                    // if(val <= persistence) /// NEW <= instead of < (uniform execution pattern)
-                    // {
-                    //     /// this must be enable if we simplify only topologically!! (the same holds in the removal function)
-                    //     Topo_Sempl ts = Topo_Sempl(arco, val, !is_minimum,filtration[index_i-1],filtration[index_j-1]);
-                    //     q.push(ts);
-                    // }
+                    if(val <= persistence) /// NEW <= instead of < (uniform execution pattern)
+                    {
+                        /// this must be enable if we simplify only topologically!! (the same holds in the removal function)
+                        Topo_Sempl ts = Topo_Sempl(arco, val, !is_minimum,filt_i,filt_j,filt_ex);
+                        q.push(ts);
+                    }
 
                 }
             }
@@ -453,10 +518,20 @@ void Forman_Gradient_Simplifier::build_persistence_queue(priority_arcs_queue &q,
 
                         if(val <= persistence) /// NEW <= instead of <
                         {
-                        double filt0=(filtration[it_e->first[0]-1]>filtration[it_e->first[1]-1])?filtration[it_e->first[0]-1]:filtration[it_e->first[1]-1];
-                        double filt1=(filtration[it_e->first[0]-1]>filtration[it_e->first[1]-1])?filtration[it_e->first[1]-1]:filtration[it_e->first[0]-1];
+                            Triangle t=mesh.get_triangle((*it)->getNode_j()->get_critical_index());
+                          //  cout<<"saddle index: "<<(*it)->getNode_i()->get_critical_index()<<endl;
+                         //   cout<<"Triangle index: "<<t.TV(0)<<"; "<<t.TV(1)<<"; "<<t.TV(2)<<endl;
+                        int filt0=(filtration[it_e->first[0]-1]>filtration[it_e->first[1]-1])?filtration[it_e->first[0]-1]:filtration[it_e->first[1]-1];
+                        int filt1=(filtration[it_e->first[0]-1]>filtration[it_e->first[1]-1])?filtration[it_e->first[1]-1]:filtration[it_e->first[0]-1];
+                        ivect filt_ex;
+                        
 
-                            Topo_Sempl ts = Topo_Sempl(*it, val, 1,filt0,filt1,filtration[get_max_elevation_vertex(mesh.get_triangle((*it)->getNode_j()->get_critical_index()))-1]);
+                        for (int i=0;i<3;i++)
+                            {filt_ex.push_back(filtration[t.TV(i)-1]);
+                         // cout<<"Filt ex "<<i<<" :"<<filtration[t.TV(i)-1]<<endl;
+                            }
+                        sort(filt_ex.begin(), filt_ex.end(), greater<int>()); 
+                        Topo_Sempl ts = Topo_Sempl(*it, val, 1,filt0,filt1,filt_ex);
                           // cout<<"SADDLE is "<< *saddle<<endl;
                           //  cout<<"persistence value is:"<<val<<endl;
                             q.push(ts);
@@ -478,9 +553,10 @@ void Forman_Gradient_Simplifier::build_persistence_queue(priority_arcs_queue &q,
                         {
                         int filt0=(filtration[it_e->first[0]-1]>filtration[it_e->first[1]-1])?filtration[it_e->first[0]-1]:filtration[it_e->first[1]-1];
                         int filt1=(filtration[it_e->first[0]-1]>filtration[it_e->first[1]-1])?filtration[it_e->first[1]-1]:filtration[it_e->first[0]-1];
+                            ivect filt_ex;
+                            filt_ex.push_back(filtration[(*it)->getNode_i()->get_critical_index()-1]);
 
-
-                            Topo_Sempl ts = Topo_Sempl(*it, val, 0,filt0,filt1,filtration[(*it)->getNode_j()->get_critical_index()-1]);
+                            Topo_Sempl ts = Topo_Sempl(*it, val, 0,filt0,filt1,filt_ex);
                             // cout<<"SADDLE is "<< *saddle<<endl;
                             // cout<<"persistence value is:"<<val<<endl;
                             q.push(ts);
