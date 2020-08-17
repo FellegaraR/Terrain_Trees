@@ -155,7 +155,7 @@ dvect ranges;
 ivect fields;
 string mode;
 leaf_VT vts;
-leaf_VV vvs;
+leaf_VV_vec vvs;
 };
 
 #endif /* GRADIENT_H */

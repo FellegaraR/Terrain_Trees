@@ -356,12 +356,14 @@ Gradient::~Gradient() {
 
     void Gradient::VV_relation_leaf(Node_V& n, Mesh& mesh) {
         //leaf_VV vvs;
-        n.get_VV(vvs,mesh);
+       // n.get_VV(vvs,mesh);
+       n.get_VV_vector(vvs,mesh);
         vvs.clear();
     }
     
     void Gradient::VV_relation_leaf(Node_T& n, Box &dom, Mesh& mesh) {
        // leaf_VV vvs;
-        n.get_VV(vvs,dom,mesh);
+        //n.get_VV(vvs,dom,mesh);
+        n.get_VV_vector(vvs,dom,mesh);
         vvs.clear();
     }
