@@ -30,6 +30,7 @@
 #include "vertex.h"
 #include "triangle.h"
 #include "box.h"
+#include "Matrix.h"
 
 using namespace std;
 /// A class representing a triangulated terrain.
@@ -243,6 +244,104 @@ public:
 
     inline std::vector<Triangle>::iterator get_t_array_begin(){return this->triangles.begin();}
     inline std::vector<Triangle>::iterator get_t_array_end(){return this->triangles.end();}
+
+    inline void computeInitialQEM(vector<Matrix>* vQEM, vector<dvect >* planes){
+
+  for (int i = 0; i < get_triangles_num(); i++)
+    {
+        /* faces are triangles */
+        for (int j = 0; j < 3; j++)
+        {
+            double* a = &((*planes)[i][0]);
+            (*vQEM)[ get_triangle(i).TV(j) ] += Matrix(a);
+        }
+    }
+
+    }
+    inline void computeTrianglesPlane(vector<dvect >* trPl)
+    {
+  double coords[3][3];
+
+    for(int i=0; i<get_triangles_num(); i++){
+
+        for(int v=0; v<3; v++){
+            coords[0][v] = get_vertex(get_triangle(i).TV(v)).get_x();
+            coords[1][v] = get_vertex(get_triangle(i).TV(v)).get_y();
+            coords[2][v] = get_vertex(get_triangle(i).TV(v)).get_z();
+        }
+
+        double a,b,c,m;
+
+        a = (coords[1][1] - coords[1][0]) * (coords[2][2] - coords[2][0]) - (coords[2][1] - coords[2][0]) * (coords[1][2] - coords[1][0]);
+
+        b = (coords[2][1] - coords[2][0]) * (coords[0][2] - coords[0][0]) - (coords[0][1] - coords[0][0]) * (coords[2][2] - coords[2][0]);
+
+        c = (coords[0][1] - coords[0][0]) * (coords[1][2] - coords[1][0]) - (coords[1][1] - coords[1][0]) * (coords[0][2] - coords[0][0]);
+
+        m = sqrt(a*a + b*b + c*c);
+        a = a/m;
+        b = b/m;
+        c = c/m;
+
+        (*trPl)[i][0]=a;
+        (*trPl)[i][1]=b;
+        (*trPl)[i][2]=c;
+        (*trPl)[i][3]= -1*(a*coords[0][0] + b*coords[1][0] + c*coords[2][0]);
+    }
+
+    }
+
+    inline double vertex_error(Matrix q, double x, double y, double z)
+{
+    return q[0]*x*x + 2*q[1]*x*y + 2*q[2]*x*z + 2*q[3]*x + q[5]*y*y
+        + 2*q[6]*y*z + 2*q[7]*y + q[10]*z*z + 2*q[11]*z + q[15];
+}
+
+
+    inline double compute_error(int v1, int v2, vector<Matrix>* vQEM, dvect* new_vertex){
+      double min_error;
+    Matrix q_bar;
+    Matrix q_delta;
+    assert(new_vertex != NULL);
+
+    /* computer quadric of virtual vertex vf */
+    q_bar = (*vQEM)[v1] + (*vQEM)[v2];
+
+
+    q_delta = Matrix( q_bar[0], q_bar[1],  q_bar[2],  q_bar[3],
+                      q_bar[4], q_bar[5],  q_bar[6],  q_bar[7],
+                      q_bar[8], q_bar[9], q_bar[10], q_bar[11],
+                             0,        0,	      0,        1);
+
+    double vx1 = vertices[v1].get_x();
+    double vy1 = vertices[v1].get_y();
+    double vz1 = vertices[v1].get_z();
+
+    double vx2 = vertices[v2].get_x();
+    double vy2 = vertices[v2].get_y();
+    double vz2 = vertices[v2].get_z();
+
+
+        double vx3 = double (vx1+vx2)/2.0;
+        double vy3 = double (vy1+vy2)/2.0;
+        double vz3 = double (vz1+vz2)/2.0;
+
+        double error1 = vertex_error(q_bar, vx1, vy1, vz1);
+        double error2 = vertex_error(q_bar, vx2, vy2, vz2);
+        double error3 = vertex_error(q_bar, vx3, vy3, vz3);
+
+        min_error = std::min(error1, std::min(error2, error3));
+        if (error1 == min_error) { (*new_vertex)[0] = vx1; (*new_vertex)[1] = vy1, (*new_vertex)[2] = vz1; }
+        else if (error2 == min_error) { (*new_vertex)[0] = vx2; (*new_vertex)[1] = vy2, (*new_vertex)[2] = vz2; }
+        else{ (*new_vertex)[0] = vx3; (*new_vertex)[1] = vy3, (*new_vertex)[2] = vz3; }
+
+//    }
+
+
+    min_error = vertex_error(q_bar, (*new_vertex)[0], (*new_vertex)[1], (*new_vertex)[2]);
+
+    return min_error;
+    }
 private:
     ///A private varible representing the mesh domain
     Box domain;

@@ -13,7 +13,12 @@ struct CompareEdge{
 
     bool operator()(Geom_Edge* e1,Geom_Edge* e2){
 
+      if(e1->val!=e2->val)
       return e1->val>e2->val;
+      else if(e1->edge[0]!=e2->edge[0])
+      return e1->edge[0]>e2->edge[0];
+      else
+      return e1->edge[1]>e2->edge[1];
     }
 };
 typedef std::priority_queue<Geom_Edge*, std::vector<Geom_Edge*>, CompareEdge> edge_queue;

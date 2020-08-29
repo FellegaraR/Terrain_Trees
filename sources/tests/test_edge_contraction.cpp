@@ -16,8 +16,8 @@ int main(int , char** )
 	
 	cli.division_type = QUAD;
     cli.crit_type = "pr";
-    cli.v_per_leaf = 50;
-    cli.maximum_length=0.45;
+    cli.v_per_leaf = 5000;
+    cli.maximum_length=0.7;
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cerr<<"[GENERATION] PR-T tree"<<endl;
     load_tree(ptree,cli);

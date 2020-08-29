@@ -18,18 +18,24 @@
 
 #include "simplification_aux_structures.h"
 
-
+#define _v0 0
+#define _v1 1
+#define _midpoint 2
 
 /// Contraction_Simplifier class ///
 class Contraction_Simplifier
 {
 public:
-    Contraction_Simplifier() {}
+    Contraction_Simplifier() {QEM_based=false;}
+    Contraction_Simplifier(bool is_QEM) {QEM_based=is_QEM;}
     /// this procedure simplify the simplicial complex without considering any weight for the edges
     template<class T> void simplify(T &tree, Mesh &mesh, cli_parameters &cli);
     template<class T> static void update_mesh_and_tree(T &tree, Mesh &mesh,contraction_parameters &params);
-
+    
 protected:
+    
+
+
     template<class T> static void simplify_compute(Node_V &n,  Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,Spatial_Subdivision &division,  contraction_parameters &params, T &tree);
     template<class T>   static void simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, T& tree);
 
@@ -66,6 +72,10 @@ protected:
                                           Mesh &mesh, contraction_parameters &params);
     static void remove_from_mesh(int to_delete_v, ET &et, Mesh &mesh, contraction_parameters &params);   
     static bool link_condition(int v0, int v1, VT &vt0, VT &vt1, Mesh &mesh); 
+    static void update_new(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
+                                          Mesh &mesh, contraction_parameters &params, int new_vertex_pos);
+private:
+    bool QEM_based;
 };
 
 
@@ -163,7 +173,7 @@ edge_queue edges;
 find_candidate_edges(n,mesh,local_vts,edges,params);
 int edge_num=edges.size();
 int edges_contracted_leaf=0;
-//cout<<"Edge number:"<<edges.size()<<endl;
+cout<<"Edge number:"<<edges.size()<<endl;
 params.add_edge_queue_size(edges.size());
     while(!edges.empty())
     {
@@ -199,11 +209,16 @@ params.add_edge_queue_size(edges.size());
         get_edge_relations(e,et,vt0,vt1,outer_v_block,n,mesh,local_vts,cache,params,tree);
         if(link_condition(e[0],e[1],*vt0,*vt1,mesh)){
         contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params);
-    edges_contracted_leaf++;
+        edges_contracted_leaf++;
     // break;
         }
 
     }
+
+
+// leaf_VV vvs;
+// n.get_VV(vvs,mesh);
+// for()
 
 
 }

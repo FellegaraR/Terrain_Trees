@@ -30,6 +30,7 @@
  void Contraction_Simplifier::find_candidate_edges(Node_V &n, Mesh &mesh,leaf_VT &vts, edge_queue& edges, contraction_parameters &params){
         map<ivect, coord_type> lengths;
         ivect e;
+        
         for(RunIteratorPair itPair = n.make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
         {   
             RunIterator const& t_id = itPair.first;
@@ -43,6 +44,12 @@
             for(int i=0; i<t.vertices_num(); i++)
             {
                 t.TE(i,e);
+                // if(mesh.get_vertex(e[0]).get_z()>mesh.get_vertex(e[1]).get_z()){
+                //     int tmp=e[1];
+                //     e[1]=e[0];
+                //     e[0]=tmp;
+
+                // }
               
                 if(n.indexes_vertex(e[1]))// e (v1,v2) is a candidate edge if at least v2 is in n
                 {
@@ -64,7 +71,7 @@
                    if(length<params.get_maximum_length()){
                        
                     edges.push(new Geom_Edge(e,length));
-                        cout<<"ENQUEUE"<<endl;
+                   //     cout<<"ENQUEUE"<<endl;
                     }
                     }
                 }
@@ -78,6 +85,7 @@
 void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  Node_V &outer_v_block, edge_queue &edges,
                                            Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params)
 {
+    cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
    // cout<<"[NOTICE] Contract Edge"<<endl;
     ivect et_vec;
     et_vec.push_back(et.first);
@@ -232,7 +240,7 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
 
  bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1,Mesh &mesh){
 
-
+    
     iset vv0,vv1;
     for (int i=0;i<vt0.size();i++){
         Triangle t=mesh.get_triangle(vt0[i]);
@@ -247,6 +255,7 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
         vv1.insert(t.TV((v1_id+2)%3));
     }
     int counter=0;
+  //  cout<<v1<<"'s VV size: "<<vv1.size()<<endl;
     for(iset_iter it=vv1.begin();it!=vv1.end();it++){
         if(vv0.find(*it)!=vv0.end()){
             counter++;
@@ -257,3 +266,66 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
 
 return counter<=2;
 }
+
+
+void Contraction_Simplifier::update_new(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
+                                          Mesh &mesh, contraction_parameters &params, int new_vertex_pos){
+    set<ivect> e_set; /// we insert the new edges first in this set to avoid duplicate insertions in the queue
+       
+        for(ivect_iter it=difference.begin(); it!=difference.end(); ++it)
+        {
+            Triangle &t = mesh.get_triangle(*it);
+
+            /// before updating the triangle, we check
+            /// if the leaf block indexing e[0] does not contain the current triangle we have to add it
+            /// NOTA: there is one possible case.. as leaf block n already indexes the triangle in e[1]
+            /// NOTA2: we have just to check that n and v_block are different (as if they are equal the edge is internal in n)
+            if(n.get_v_start() != v_block.get_v_start() && !v_block.indexes_triangle_vertices(t))
+            {
+//                if(debug)
+//                    cout<<"[add top to leaf] "<<t<<" -> "<<*v_block<<endl;
+                v_block.add_triangle(*it);
+            }
+
+            /// then we update the triangle changing e[1] with e[0]
+            int pos = t.vertex_index(e[1]);
+            t.setTV(pos,e[0]);
+            
+
+            /// we have to add the new edges in the queue
+            ivect new_e; new_e.assign(2,0);
+            for(int i=0; i<t.vertices_num(); i++)
+            {
+                if(i!=pos)
+                {
+                    t.TE(i,new_e);  //t.TE(new_e,pos,i); need to check
+
+                    if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed "DON'T Understand"
+                        e_set.insert(new_e);
+                }
+            }
+        }
+
+
+    /// we push the new "unique" edges in the queue
+    for(auto it=e_set.begin(); it!=e_set.end(); ++it)
+    {
+
+        //Calculate length
+        double length;
+        Vertex &v1=mesh.get_vertex((*it)[0]);
+        Vertex &v2=mesh.get_vertex((*it)[1]);
+        dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
+        length = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
+        if(length<params.get_maximum_length()){
+        ivect e{(*it)[0],(*it)[1]};
+        // Geom_Edge new_edge(e,length);
+        edges.push(new Geom_Edge(e,length));}
+    }
+
+    /// finally we update the VT relation of e[0]
+    unify_vectors(vt,difference);
+
+
+
+            }
