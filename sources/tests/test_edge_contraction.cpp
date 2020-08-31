@@ -2,12 +2,12 @@
 
 using namespace utility_functions;
 
-template<class T> void load_tree(T& tree, cli_parameters &cli);
+void load_tree(PRT_Tree& tree, cli_parameters &cli);
 
-int main(int , char** )
+int main(int argc, char** argv)
 {
 	cli_parameters cli;
-	cli.mesh_path = "../data/cos_sum.tri";
+	cli.mesh_path = argv[1];
 	
 	cerr<<"[OBJECTIVE] this unit-test generates a PR-quadtree on the input TIN dataset "
 	    <<"then, it simplifies the triangle mesh with an edge contraction operator following a length criteria."<<endl;
@@ -17,7 +17,7 @@ int main(int , char** )
 	cli.division_type = QUAD;
     cli.crit_type = "pr";
     cli.v_per_leaf = 5000;
-    cli.maximum_length=0.7;
+    cli.maximum_length=atof(argv[2]);
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cerr<<"[GENERATION] PR-T tree"<<endl;
     load_tree(ptree,cli);
@@ -25,7 +25,7 @@ int main(int , char** )
     return (EXIT_SUCCESS);
 }
 
-template<class T> void load_tree(T& tree, cli_parameters &cli)
+void load_tree(PRT_Tree& tree, cli_parameters &cli)
 {
     Timer time;
     if (!Reader::read_mesh(tree.get_mesh(), cli.mesh_path))

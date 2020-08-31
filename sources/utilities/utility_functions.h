@@ -21,7 +21,6 @@
     along with the Terrain Trees library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef MAIN_UTILITY_FUNCTIONS_H
 #define MAIN_UTILITY_FUNCTIONS_H
 
@@ -61,13 +60,13 @@ using namespace string_management;
 
 namespace utility_functions
 {
-extern string SpatialDecType2string(SpatialDecType sdt);
-extern int read_arguments(int argc, char** argv, cli_parameters &variables);
-extern void print_usage();
-extern void setParameters(cli_parameters &variables);
-extern bool checkParameters(cli_parameters &variables);
-extern void print_help();
-extern void print_paragraph(string stringa, int cols);
-}
+    extern string SpatialDecType2string(SpatialDecType sdt);
+    extern int read_arguments(int argc, char **argv, cli_parameters &variables);
+    extern void print_usage();
+    extern void setParameters(cli_parameters &variables);
+    extern bool checkParameters(cli_parameters &variables);
+    extern void print_help();
+    extern void print_paragraph(string stringa, int cols);
+} // namespace utility_functions
 
 #endif // MAIN_UTILITY_FUNCTIONS_H
