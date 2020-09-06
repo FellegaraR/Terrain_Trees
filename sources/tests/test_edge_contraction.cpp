@@ -17,9 +17,13 @@ int main(int argc, char** argv)
 	cli.division_type = QUAD;
     cli.crit_type = "pr";
     cli.v_per_leaf = 5000;
-    cli.maximum_length=atof(argv[2]);
+    cli.maximum_limit=atof(argv[2]);
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cerr<<"[GENERATION] PR-T tree"<<endl;
+    if(strcmp(argv[3],"-q")==0)
+      cli.QEM_based=true;
+    else
+      cli.QEM_based=false;
     load_tree(ptree,cli);
 
     return (EXIT_SUCCESS);

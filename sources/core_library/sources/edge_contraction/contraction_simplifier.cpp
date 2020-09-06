@@ -68,7 +68,7 @@
                     //  Edge e((*it)[0],(*it)[1]);
                     lengths[e] = length;
                    //Edge edge_obj(e[0],e[1]);
-                   if(length<params.get_maximum_length()){
+                   if(length<params.get_maximum_limit()){
                        
                     edges.push(new Geom_Edge(e,length));
                    //     cout<<"ENQUEUE"<<endl;
@@ -208,15 +208,30 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
     {
 
         //Calculate length
-        double length;
+        double value;
+        ivect e;
         Vertex &v1=mesh.get_vertex((*it)[0]);
         Vertex &v2=mesh.get_vertex((*it)[1]);
+        if(params.is_QEM()){
+            int new_vertex_pos=-1;
+              double error = compute_error((*it)[0],(*it)[1],mesh,new_vertex_pos);
+              value=error;
+              assert(new_vertex_pos!=-1);
+                if(new_vertex_pos==1)
+                {
+                    e={(*it)[1],(*it)[0]};
+                }
+                else
+                    e={(*it)[0],(*it)[1]};
+        }
+        else{
         dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
-        length = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
-        if(length<params.get_maximum_length()){
-        ivect e{(*it)[0],(*it)[1]};
+        value = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
+         e={(*it)[0],(*it)[1]};
+         }
+        if(value<params.get_maximum_limit()&&n.indexes_vertex(e[1])){
         // Geom_Edge new_edge(e,length);
-        edges.push(new Geom_Edge(e,length));}
+        edges.push(new Geom_Edge(e,value));}
     }
 
     /// finally we update the VT relation of e[0]
@@ -270,64 +285,7 @@ return counter<=2;
 
 void Contraction_Simplifier::update_new(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
                                           Mesh &mesh, contraction_parameters &params, int new_vertex_pos){
-    set<ivect> e_set; /// we insert the new edges first in this set to avoid duplicate insertions in the queue
-       
-        for(ivect_iter it=difference.begin(); it!=difference.end(); ++it)
-        {
-            Triangle &t = mesh.get_triangle(*it);
-
-            /// before updating the triangle, we check
-            /// if the leaf block indexing e[0] does not contain the current triangle we have to add it
-            /// NOTA: there is one possible case.. as leaf block n already indexes the triangle in e[1]
-            /// NOTA2: we have just to check that n and v_block are different (as if they are equal the edge is internal in n)
-            if(n.get_v_start() != v_block.get_v_start() && !v_block.indexes_triangle_vertices(t))
-            {
-//                if(debug)
-//                    cout<<"[add top to leaf] "<<t<<" -> "<<*v_block<<endl;
-                v_block.add_triangle(*it);
-            }
-
-            /// then we update the triangle changing e[1] with e[0]
-            int pos = t.vertex_index(e[1]);
-            t.setTV(pos,e[0]);
-            
-
-            /// we have to add the new edges in the queue
-            ivect new_e; new_e.assign(2,0);
-            for(int i=0; i<t.vertices_num(); i++)
-            {
-                if(i!=pos)
-                {
-                    t.TE(i,new_e);  //t.TE(new_e,pos,i); need to check
-
-                    if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed "DON'T Understand"
-                        e_set.insert(new_e);
-                }
-            }
-        }
-
-
-    /// we push the new "unique" edges in the queue
-    for(auto it=e_set.begin(); it!=e_set.end(); ++it)
-    {
-
-        //Calculate length
-        double length;
-        Vertex &v1=mesh.get_vertex((*it)[0]);
-        Vertex &v2=mesh.get_vertex((*it)[1]);
-        dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
-        length = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
-        if(length<params.get_maximum_length()){
-        ivect e{(*it)[0],(*it)[1]};
-        // Geom_Edge new_edge(e,length);
-        edges.push(new Geom_Edge(e,length));}
-    }
-
-    /// finally we update the VT relation of e[0]
-    unify_vectors(vt,difference);
-
-
-
+    
             }
 
             
@@ -339,16 +297,32 @@ void Contraction_Simplifier::simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters
     cerr<<"[NOTICED] Cache size: "<<cli.cache_size<<endl;
     LRU_Cache<int,leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VT relations
     contraction_parameters params;
-    params.set_maximum_length(cli.maximum_length);
-
+    params.set_maximum_limit(cli.maximum_limit);
+    if(cli.QEM_based)
+        params.queue_criterion_QEM();
+    else
+    {
+        params.queue_criterion_length();
+    }
+    
     Timer time;
     int simplification_round;
     int round = 1;
+    if(params.is_QEM()){
 
+         trianglePlane =vector<dvect>(mesh.get_triangles_num(),dvect(4,0));
+        initialQuadric = vector<Matrix>(mesh.get_vertices_num()+1,Matrix(0.0));
+        cout<<"=========Calculate triangle plane========"<<endl;
+        compute_triangle_plane(mesh,trianglePlane);
+        cout<<"=========Calculate initial QEM========"<<endl;
+        compute_initial_QEM(mesh,trianglePlane);
+
+        }
     time.start();
     while(1)
     {
         simplification_round = params.get_contracted_edges_num();  //checked edges
+
         /// HERE YOU NEED TO DEFINE A PROCEDURE FOR SIMPLIFY THE TIN BY USING THE SPATIAL INDEX
         this->simplify_compute(tree.get_root(),mesh,cache,tree.get_subdivision(),params,tree);
 
@@ -390,6 +364,9 @@ void Contraction_Simplifier::simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters
 {
       if (n.is_leaf())
     {
+        if(params.is_QEM()==true)
+        simplify_leaf_QEM(n,mesh,cache,params,tree);
+        else
         simplify_leaf(n,mesh,cache,params,tree);
     }
     else
@@ -405,9 +382,66 @@ void Contraction_Simplifier::simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters
 
 }
 
+void Contraction_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,PRT_Tree& tree){
+
+if(!n.indexes_vertices())
+     return;
+
+    itype v_start = n.get_v_start();
+    itype v_end = n.get_v_end();
+    itype v_range = v_end - v_start;
 
 
- void Contraction_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,PRT_Tree& tree){
+    //cout<<"Simplification in leaf."<<endl;
+    leaf_VT local_vts(v_range,VT());
+    n.get_VT(local_vts,mesh);
+    // Create a priority queue of candidate edges
+    edge_queue edges;
+    find_candidate_edges_QEM(n,mesh,local_vts,edges,params);
+    int edge_num=edges.size();
+    int edges_contracted_leaf=0;
+    cout<<"Edge number:"<<edges.size()<<endl;
+    params.add_edge_queue_size(edges.size());
+    while(!edges.empty())
+    {
+        Geom_Edge* current = edges.top();
+         ivect e=current->edge;
+  //    cout<<"Start contraction."<<endl;
+  //  cout<<"Edge Length:"<<current->val<<endl;
+
+        edges.pop();
+
+        if (mesh.is_vertex_removed(e[0])||mesh.is_vertex_removed(e[1])){
+
+         //   cout<<"Vertex removed"<<endl;
+         delete current;
+        // if(edges_contracted_leaf>edge_num*0.2)
+           // cout<<"Num of deleted in a leaf"<<edges_contracted_leaf<<"; 20% of the queue num:"<<edge_num*0.2<<endl;
+            continue;
+
+        }
+
+
+
+        ET et(-1,-1);
+        VT *vt0=NULL,*vt1=NULL;
+        Node_V *outer_v_block=NULL;
+
+        get_edge_relations(e,et,vt0,vt1,outer_v_block,n,mesh,local_vts,cache,params,tree);
+        if(link_condition(e[0],e[1],*vt0,*vt1,mesh)){
+        contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params);
+        edges_contracted_leaf++;
+    // break;
+        }
+
+    }
+
+
+
+}
+
+
+void Contraction_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,PRT_Tree& tree){
 
 if(!n.indexes_vertices())
      return;
@@ -595,4 +629,154 @@ void Contraction_Simplifier::update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh, co
 //    r.reorganize_index_and_mesh(tree,mesh,false);
 
     //cerr << "[RAM peak] for updating the mesh and the tree: " << to_string(MemoryUsage().getValue_in_MB(false)) << " Mbs" << std::endl;
+}
+
+
+void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, leaf_VT &vts,edge_queue& edges, contraction_parameters &params){
+
+      map<ivect, coord_type> edge_map;
+        ivect e;
+        
+        for(RunIteratorPair itPair = n.make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+        {   
+            RunIterator const& t_id = itPair.first;
+            if(mesh.is_triangle_removed(*t_id)){
+              //  cout<<"triangle removed"<<endl;
+                continue;
+
+            }
+            Triangle& t = mesh.get_triangle(*t_id);
+            
+            for(int i=0; i<t.vertices_num(); i++)
+            {
+                t.TE(i,e);
+ 
+              //TODO: compute_error, decide which vertex will be maintained. 
+              //Use that to decide the vertex to be checked in the next step
+              //
+              //
+              int new_vertex_pos=-1;
+              double error = compute_error(e[0],e[1],mesh,new_vertex_pos);
+              assert(new_vertex_pos!=-1);
+                if(new_vertex_pos==1)
+                {
+                    int tmp=e[1];
+                    e[1]=e[0];
+                    e[0]=tmp;
+                }
+       
+                if(n.indexes_vertex(e[1]))// e (v1,v2) is a candidate edge if at least v2 is in n
+                {
+                    map<ivect,coord_type>::iterator it = edge_map.find(e);
+                   // cout<<e[0]<<" and "<<e[1]<<endl;
+                    if(it == edge_map.end())
+                    {
+                    
+                  cout<<"["<<e[0]<<","<<e[1]<<"]  Error will be introduced: "<<error<<endl;
+                    //  Edge e((*it)[0],(*it)[1]);
+                    edge_map[e] = error;
+                   //Edge edge_obj(e[0],e[1]);
+                   if(error<params.get_maximum_limit()){
+                       
+                    edges.push(new Geom_Edge(e,error));
+                   //     cout<<"ENQUEUE"<<endl;
+                    }
+                    }
+                }
+
+            }   
+        }
+        cout<<"======NEXT NODE======"<<endl;
+}
+
+void Contraction_Simplifier::compute_initial_QEM( Mesh &mesh, vector<dvect >& planes){
+
+ for (int i = 1; i <= mesh.get_triangles_num(); i++)
+    {
+        /* faces are triangles */
+        for (int j = 0; j < 3; j++)
+        {
+            double* a = &(planes[i-1][0]);
+            initialQuadric[ mesh.get_triangle(i).TV(j) ] += Matrix(a);
+        }
+    }
+}
+
+void Contraction_Simplifier::compute_triangle_plane(Mesh &mesh,vector<dvect>& trPl){
+
+double coords[3][3];
+for(int i=1; i<=mesh.get_triangles_num(); i++){
+        
+        for(int v=0; v<3; v++){
+            Vertex v1= mesh.get_vertex(mesh.get_triangle(i).TV(v));
+            coords[0][v] = v1.get_x();
+            coords[1][v] = v1.get_y();
+            coords[2][v] = v1.get_z();
+        }
+
+        double a,b,c,m;
+
+        a = (coords[1][1] - coords[1][0]) * (coords[2][2] - coords[2][0]) - (coords[2][1] - coords[2][0]) * (coords[1][2] - coords[1][0]);
+
+        b = (coords[2][1] - coords[2][0]) * (coords[0][2] - coords[0][0]) - (coords[0][1] - coords[0][0]) * (coords[2][2] - coords[2][0]);
+
+        c = (coords[0][1] - coords[0][0]) * (coords[1][2] - coords[1][0]) - (coords[1][1] - coords[1][0]) * (coords[0][2] - coords[0][0]);
+
+        m = sqrt(a*a + b*b + c*c);
+        a = a/m;
+        b = b/m;
+        c = c/m;
+
+        trPl[i-1][0]=a;
+        trPl[i-1][1]=b;
+        trPl[i-1][2]=c;
+        trPl[i-1][3]= -1*(a*coords[0][0] + b*coords[1][0] + c*coords[2][0]);
+    }
+}
+
+double Contraction_Simplifier::compute_error(int v1, int v2, Mesh &mesh,int& new_vertex_pos){
+ double min_error;
+    Matrix q_bar;
+    Matrix q_delta;
+
+
+    /* computer quadric of virtual vertex vf */
+    q_bar = initialQuadric[v1] + initialQuadric[v2];
+
+
+    q_delta = Matrix( q_bar[0], q_bar[1],  q_bar[2],  q_bar[3],
+                      q_bar[4], q_bar[5],  q_bar[6],  q_bar[7],
+                      q_bar[8], q_bar[9], q_bar[10], q_bar[11],
+                             0,        0,	      0,        1);
+
+    Vertex vertex_1 = mesh.get_vertex(v1);
+    double vx1 = vertex_1.get_x();
+    double vy1 = vertex_1.get_y();
+    double vz1 = vertex_1.get_z();
+
+    Vertex vertex_2 = mesh.get_vertex(v2);
+    double vx2 = vertex_2.get_x();
+    double vy2 = vertex_2.get_y();
+    double vz2 = vertex_2.get_z();
+
+
+        double vx3 = double (vx1+vx2)/2.0;
+        double vy3 = double (vy1+vy2)/2.0;
+        double vz3 = double (vz1+vz2)/2.0;
+
+        double error1 = vertex_error(q_bar, vx1, vy1, vz1);
+        double error2 = vertex_error(q_bar, vx2, vy2, vz2);
+ 
+
+        min_error = std::min(error1,error2);
+      
+        if (error1 == min_error) {new_vertex_pos=0; min_error=error1; }
+        else {new_vertex_pos=1; min_error=error2; }
+ 
+
+
+  //  min_error = vertex_error(q_bar, new_vertex[0], new_vertex[1], new_vertex[2]);
+
+    return min_error;
+
 }

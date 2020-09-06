@@ -20,62 +20,72 @@
 
 #define _v0 0
 #define _v1 1
-#define _midpoint 2
+
 
 /// Contraction_Simplifier class ///
 class Contraction_Simplifier
 {
 public:
-    Contraction_Simplifier() {QEM_based=false;}
-    Contraction_Simplifier(bool is_QEM) {QEM_based=is_QEM;}
+    Contraction_Simplifier() {}
     /// this procedure simplify the simplicial complex without considering any weight for the edges
     void simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
-     static void update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh,contraction_parameters &params);
+    void update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh,contraction_parameters &params);
     
+
 protected:
     
-
-
-    static void simplify_compute(Node_V &n,  Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,Spatial_Subdivision &division,  contraction_parameters &params,PRT_Tree &tree);
-    static void simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree& tree);
-
+   void simplify_compute(Node_V &n,  Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,Spatial_Subdivision &division,  contraction_parameters &params,PRT_Tree &tree);
+    void simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree& tree);
+    ///edge contraction based on QEM criterion 
+    void simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree& tree);
     /// skips an edge that has one of the two extreme deleted
-    inline static bool skip_edge(const ivect &e, Mesh &mesh) /// the procedure checks if one of the two extreme is already deleted
+    inline bool skip_edge(const ivect &e, Mesh &mesh) /// the procedure checks if one of the two extreme is already deleted
     {
         return (mesh.is_vertex_removed(e[0]) || mesh.is_vertex_removed(e[1]));
     }
 
     ///
-    static void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
+     void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
                               Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params);
     /// initializes the VTop and ETop of the edge and its two vertices
     /// plus saves the second leaf block if we are processing a cross-edge
-     static void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *& outer_v_block,
+    void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *& outer_v_block,
                                    Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int,leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree);
     /// the VTop is always without removed top-simplices
-    static VT* get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int,leaf_VT> &cache,
+     VT* get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int,leaf_VT> &cache,
                         PRT_Tree &tree, Node_V *& v_block, contraction_parameters &params);
      // Find two adjacent triangles of edge e.                   
-    static void get_ET(ivect &e, ET &et, Node_V &n, Mesh &mesh, leaf_VT &vts);
+    void get_ET(ivect &e, ET &et, Node_V &n, Mesh &mesh, leaf_VT &vts);
     ///
 
     /// the procedure removes from the VT relation the deleted top d-simplices
-    static void clean_coboundary(VT &cob, Mesh &mesh);
+    void clean_coboundary(VT &cob, Mesh &mesh);
 
-    static void find_candidate_edges(Node_V &n, Mesh &mesh, leaf_VT &vts,edge_queue& edges, contraction_parameters &params);
+    void find_candidate_edges_QEM(Node_V &n, Mesh &mesh, leaf_VT &vts,edge_queue& edges, contraction_parameters &params);
+    void find_candidate_edges(Node_V &n, Mesh &mesh, leaf_VT &vts,edge_queue& edges, contraction_parameters &params);
     /// the procedure updatess
     /// (1) the VTop relation of the surviving vertex
     /// (2) the top simplices for which we change the v2 with v1
     /// (3) checks and updates the top list in the target leaf block n (if a top simplex is now incident in it)
     /// (4) and add the new edges to the edge queue
-    static void update(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
+    void update(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
                                           Mesh &mesh, contraction_parameters &params);
-    static void remove_from_mesh(int to_delete_v, ET &et, Mesh &mesh, contraction_parameters &params);   
-    static bool link_condition(int v0, int v1, VT &vt0, VT &vt1, Mesh &mesh); 
-    static void update_new(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
+    void remove_from_mesh(int to_delete_v, ET &et, Mesh &mesh, contraction_parameters &params);   
+    bool link_condition(int v0, int v1, VT &vt0, VT &vt1, Mesh &mesh); 
+    void update_new(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
                                           Mesh &mesh, contraction_parameters &params, int new_vertex_pos);
-private:
-    bool QEM_based;
+    void compute_initial_QEM(Mesh &mesh, vector<dvect >& planes);
+    void compute_triangle_plane( Mesh &mesh,vector<dvect>& trPl);
+    // new_vertex is the pos of the remaining vertex in the edge to be contracted. 0 refers to e[0], 1 refers to e[1]
+    double compute_error(int v1, int v2, Mesh &mesh,  int& new_vertex_pos);
+    inline double vertex_error(Matrix q, double x, double y, double z)
+{
+    return q[0]*x*x + 2*q[1]*x*y + 2*q[2]*x*z + 2*q[3]*x + q[5]*y*y
+        + 2*q[6]*y*z + 2*q[7]*y + q[10]*z*z + 2*q[11]*z + q[15];
+}
+
+      vector<Matrix> initialQuadric;
+      vector<dvect> trianglePlane;
 };
 
 
