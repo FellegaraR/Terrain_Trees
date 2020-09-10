@@ -85,7 +85,7 @@
 void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  Node_V &outer_v_block, edge_queue &edges,
                                            Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params)
 {
-    cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
+    cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]<<", "<<e[1]<<endl;
    // cout<<"[NOTICE] Contract Edge"<<endl;
     ivect et_vec;
     et_vec.push_back(et.first);
@@ -97,11 +97,22 @@ void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  
    // cout<<"VT1 size: "<<vt0.size()<<" VT2 size: "<<vt1.size()<<endl;
     // contract v1 to v0.
 
+    ////Update the QEM of vertices in t1 and t2
+    if(et.first!=-1)
+     for(int i=0;i<et_vec.size();i++){
+     dvect diff(4,0.0);
+    //  diff[0] = 0;
+    //  diff[1] = 0;
+    //  diff[2] = 0;
+    //  diff[3] = 0;
+
+     update_QEM(mesh,diff,et_vec[i],-1);
+     }
     /// prior checking the d-1 faces we update
     /// (1) the corresponding vt0 relation (by adding the triangles in vt1-et to vt0)
     /// (2) then the outer_v_block (if e is a cross edge)
     /// (3) and, finally, we add the new edges crossing b to the edge queue
-    Contraction_Simplifier::update(e,vt0,vt1,n,outer_v_block,edges,mesh,params);
+    Contraction_Simplifier::update(e,vt0,vt1,et_vec,n,outer_v_block,edges,mesh,params);
 
     // we remove v2 and the triangles in et
     Contraction_Simplifier::remove_from_mesh(e[1],et,mesh,params); 
@@ -164,10 +175,27 @@ void Contraction_Simplifier::clean_coboundary(VT &cob, Mesh &mesh)
 
 }
 
-void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block,
+void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference,const ivect& et_vec, Node_V &n, Node_V &v_block,
                                                             edge_queue &edges, Mesh &mesh, contraction_parameters &params)
 {
     set<ivect> e_set; /// we insert the new edges first in this set to avoid duplicate insertions in the queue
+
+    if(params.is_QEM()){
+        
+        for(int i=0;i<et_vec.size();i++){
+            if(et_vec[i]!=-1)
+            { 
+                ivect new_e; new_e.assign(2,0);
+                Triangle &t = mesh.get_triangle(et_vec[i]);
+                 t.TE(t.vertex_index(e[1]),new_e);  //t.TE(new_e,pos,i); need to check
+
+               //     if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed 
+                        e_set.insert(new_e);
+                    //    updated_edges.insert(new_e);
+            }
+        }
+
+    }
 
         for(ivect_iter it=difference.begin(); it!=difference.end(); ++it)
         {
@@ -187,7 +215,27 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
             /// then we update the triangle changing e[1] with e[0]
             int pos = t.vertex_index(e[1]);
             t.setTV(pos,e[0]);
+            dvect diff(4,0.0);
+            if(params.is_QEM()){
+            if(update_plane_dif(mesh,diff,*it))
+            {update_QEM(mesh,diff,*it,e[0]);}
+            else{
+                update_QEM(mesh,diff,*it,e[0]);
+                mesh.remove_triangle(*it);
+                continue;
+            }
+            ivect new_e; new_e.assign(2,0);
+            for(int i=0; i<t.vertices_num(); i++)
+            {
 
+                    t.TE(i,new_e);  //t.TE(new_e,pos,i); need to check
+                    e_set.insert(new_e);
+                    // if(i==pos)
+                    // updated_edges.insert(new_e);
+        
+            }
+            }
+            else{
             /// we have to add the new edges in the queue
             ivect new_e; new_e.assign(2,0);
             for(int i=0; i<t.vertices_num(); i++)
@@ -196,13 +244,17 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                 {
                     t.TE(i,new_e);  //t.TE(new_e,pos,i); need to check
 
-                    if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed "DON'T Understand"
+               //     if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed 
                         e_set.insert(new_e);
                 }
             }
+            }
         }
 
-
+    if(e[0]==33)
+    {
+        cout<<"v32, e_set size:"<<e_set.size()<<endl;
+    }
     /// we push the new "unique" edges in the queue
     for(auto it=e_set.begin(); it!=e_set.end(); ++it)
     {
@@ -223,15 +275,25 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                 }
                 else
                     e={(*it)[0],(*it)[1]};
+            cout<<"["<<e[0]<<","<<e[1]<<"]  Error will be introduced: "<<error<<endl;
+
+            if(value<params.get_maximum_limit()&&n.indexes_vertex(e[1])){
+        // Geom_Edge new_edge(e,length);
+                 edges.push(new Geom_Edge(e,value));
+        }
+                 
+       
         }
         else{
         dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
         value = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
          e={(*it)[0],(*it)[1]};
-         }
+         
         if(value<params.get_maximum_limit()&&n.indexes_vertex(e[1])){
         // Geom_Edge new_edge(e,length);
         edges.push(new Geom_Edge(e,value));}
+        
+        }
     }
 
     /// finally we update the VT relation of e[0]
@@ -420,8 +482,18 @@ if(!n.indexes_vertices())
             continue;
 
         }
-
-
+        if(params.is_QEM()){
+        ivect sorted_e=e;
+        sort(sorted_e.begin(),sorted_e.end());
+        if(updated_edges.find(sorted_e)!=updated_edges.end()){
+        int tmp=-1;
+        double error = compute_error(e[0],e[1],mesh,tmp);
+        if(error!=current->val)
+        {
+            delete current;
+            continue;
+        }
+        }}
 
         ET et(-1,-1);
         VT *vt0=NULL,*vt1=NULL;
@@ -636,7 +708,7 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
 
       map<ivect, coord_type> edge_map;
         ivect e;
-        
+        int t_count=0;
         for(RunIteratorPair itPair = n.make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
         {   
             RunIterator const& t_id = itPair.first;
@@ -645,6 +717,7 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
                 continue;
 
             }
+            t_count++;
             Triangle& t = mesh.get_triangle(*t_id);
             
             for(int i=0; i<t.vertices_num(); i++)
@@ -686,6 +759,9 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
 
             }   
         }
+        cout<<"**** [Number] "<<edges.size()<<" edges enqueued. Start simplification.****"<<endl;
+         cout<<"number of remaining triangles:"<<t_count<<endl;
+
         cout<<"======NEXT NODE======"<<endl;
 }
 
@@ -702,8 +778,45 @@ void Contraction_Simplifier::compute_initial_QEM( Mesh &mesh, vector<dvect >& pl
     }
 }
 
-void Contraction_Simplifier::compute_triangle_plane(Mesh &mesh,vector<dvect>& trPl){
+void Contraction_Simplifier::update_QEM(Mesh &mesh, vector<coord_type >& diff, int updated_triangle,int central_vertex){
+//cout<<"start updating QEM of triangle "<<updated_triangle<<endl;
+Triangle t=mesh.get_triangle(updated_triangle);
 
+        /* faces are triangles */
+        for (int j = 0; j < 3; j++)
+        {
+           // cout<<"Vertex "<<t.TV(j)<<endl;
+            cout<<"Vertex "<<t.TV(j)<<" 's old QEM:"<<endl;
+            initialQuadric[t.TV(j) ].print();
+           if(t.TV(j)!=central_vertex){
+            double* orig= &(trianglePlane[updated_triangle-1][0]);
+           // cout<<"old:"<<orig[0]<<", "<<orig[1]<<", "<<orig[2]<<", "<<orig[3]<<endl;
+
+             initialQuadric[t.TV(j) ]-=Matrix(orig);}
+             else
+             {
+                 cout<<"skip the v1"<<endl;
+             }
+             
+            double* a = &(diff[0]);
+           cout<<"new:"<<a[0]<<", "<<a[1]<<", "<<a[2]<<", "<<a[3]<<endl;
+            initialQuadric[t.TV(j) ] += Matrix(a);
+            cout<<"Vertex "<<t.TV(j)<<" 's new QEM:"<<endl;
+            initialQuadric[t.TV(j) ].print();
+        }
+        trianglePlane[updated_triangle-1][0]=diff[0];
+        trianglePlane[updated_triangle-1][1]=diff[1];
+        trianglePlane[updated_triangle-1][2]=diff[2];
+        trianglePlane[updated_triangle-1][3]=diff[3];
+
+
+//cout<<"end"<<endl;
+}
+
+
+
+
+void Contraction_Simplifier::compute_triangle_plane(Mesh &mesh,vector<dvect>& trPl){
 double coords[3][3];
 for(int i=1; i<=mesh.get_triangles_num(); i++){
         
@@ -712,6 +825,7 @@ for(int i=1; i<=mesh.get_triangles_num(); i++){
             coords[0][v] = v1.get_x();
             coords[1][v] = v1.get_y();
             coords[2][v] = v1.get_z();
+
         }
 
         double a,b,c,m;
@@ -733,6 +847,49 @@ for(int i=1; i<=mesh.get_triangles_num(); i++){
         trPl[i-1][3]= -1*(a*coords[0][0] + b*coords[1][0] + c*coords[2][0]);
     }
 }
+
+bool Contraction_Simplifier::update_plane_dif(Mesh &mesh,vector<coord_type>& diff,int updated_triangle){
+
+double coords[3][3];
+       
+        for(int v=0; v<3; v++){
+            Vertex v1= mesh.get_vertex(mesh.get_triangle(updated_triangle).TV(v));
+            coords[0][v] = v1.get_x();
+            coords[1][v] = v1.get_y();
+            coords[2][v] = v1.get_z();
+            if(mesh.get_triangle(updated_triangle).TV(v)>=33&&mesh.get_triangle(updated_triangle).TV(v)<=35)
+            {cout<<"[DEBUG] coordinates:"<<coords[0][v]<<", "<<coords[1][v]<<", "<<coords[2][v]<<endl;
+            cout<<"[DEBUG] coordinates of vertex 9: "<<mesh.get_vertex(9).get_x()<<", "<<mesh.get_vertex(9).get_y()<<", "<<mesh.get_vertex(9).get_z()<<endl;
+         }
+          }
+
+        double a,b,c,m;
+
+        a = (coords[1][1] - coords[1][0]) * (coords[2][2] - coords[2][0]) - (coords[2][1] - coords[2][0]) * (coords[1][2] - coords[1][0]);
+
+        b = (coords[2][1] - coords[2][0]) * (coords[0][2] - coords[0][0]) - (coords[0][1] - coords[0][0]) * (coords[2][2] - coords[2][0]);
+
+        c = (coords[0][1] - coords[0][0]) * (coords[1][2] - coords[1][0]) - (coords[1][1] - coords[1][0]) * (coords[0][2] - coords[0][0]);
+
+        m = sqrt(a*a + b*b + c*c);
+        if(m==0){
+            return false;
+     //   mesh.remove_triangle(updated_triangle);
+        }
+        else{
+        a = a/m;
+        b = b/m;
+        c = c/m;
+
+        diff[0]=  a ;
+        diff[1]= b ;
+        diff[2]= c;
+        diff[3]= -1*(a*coords[0][0] + b*coords[1][0] + c*coords[2][0]) ;
+        return true;
+        }
+}
+
+
 
 double Contraction_Simplifier::compute_error(int v1, int v2, Mesh &mesh,int& new_vertex_pos){
  double min_error;
@@ -776,7 +933,8 @@ double Contraction_Simplifier::compute_error(int v1, int v2, Mesh &mesh,int& new
 
 
   //  min_error = vertex_error(q_bar, new_vertex[0], new_vertex[1], new_vertex[2]);
-
+if(min_error<=0.00000001)
+    min_error=0;
     return min_error;
 
 }
