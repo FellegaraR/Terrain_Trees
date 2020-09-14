@@ -68,7 +68,7 @@ protected:
     /// (2) the top simplices for which we change the v2 with v1
     /// (3) checks and updates the top list in the target leaf block n (if a top simplex is now incident in it)
     /// (4) and add the new edges to the edge queue
-    void update(const ivect &e, VT& vt, VT& difference,const ivect& et_vec, Node_V &n, Node_V &v_block, edge_queue &edges,
+    void update(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
                                           Mesh &mesh, contraction_parameters &params);
     void remove_from_mesh(int to_delete_v, ET &et, Mesh &mesh, contraction_parameters &params);   
     bool link_condition(int v0, int v1, VT &vt0, VT &vt1, Mesh &mesh); 
@@ -76,9 +76,7 @@ protected:
                                           Mesh &mesh, contraction_parameters &params, int new_vertex_pos);
     void compute_initial_QEM(Mesh &mesh, vector<dvect >& planes);
     void compute_triangle_plane( Mesh &mesh,vector<dvect>& trPl);
-    void update_QEM(Mesh &mesh, vector<coord_type >& diff, int updated_triangle,int central_vertex);
-    bool update_plane_dif( Mesh &mesh,vector<coord_type>& diff,int updated_triangle);
-    // new_vertex is the pos of the remaining vertex in the edge to be contracted. 0 refers to e[0], 1 refers to e[1]
+   // new_vertex is the pos of the remaining vertex in the edge to be contracted. 0 refers to e[0], 1 refers to e[1]
     double compute_error(int v1, int v2, Mesh &mesh,  int& new_vertex_pos);
     inline double vertex_error(Matrix q, double x, double y, double z)
 {
@@ -88,7 +86,7 @@ protected:
 
       vector<Matrix> initialQuadric;
       vector<dvect> trianglePlane;
-       set<ivect> updated_edges;
+      map<vector<int>,double> updated_edges;
 };
 
 
