@@ -10,7 +10,7 @@ template<class T> void load_terrain(T& tree, cli_parameters &cli);
 int main(int argc, char** argv )
 {
     cli_parameters cli;
-    cli.mesh_path = "../data/794_lagomaggiore.tri";
+    cli.mesh_path = "../data/devil_0.tri";
     cli.division_type = QUAD;
     cli.crit_type = "pr";
     cli.v_per_leaf = 20000000;

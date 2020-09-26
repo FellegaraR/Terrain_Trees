@@ -370,11 +370,12 @@ void Forman_Gradient_Topological_Relations::get_VTstar_ET(local_VTstar_ET &all_r
 
         for(int v=0; v<t.vertices_num(); v++)
         {
+            //if vertex is in the leaf node, check VT*
             if(n.indexes_vertex(t.TV(v)))
                 Forman_Gradient_Topological_Relations::check_VTstar(t.TV(v),*t_id,t,all_rels.get_VTstars(),n.get_v_start(),mesh,gradient);
             //the first 4 edge are checked into the vertices loop
-            t.TE(v,e);
-            if(n.indexes_vertex(e[1]))
+            t.TE(v,e);////corresponding edge
+            if(n.indexes_vertex(e[1])) //if e[1] is in the current node, extract ET.
             {
                 leaf_ET::iterator it = all_rels.find_ET(e);
                 if(it != all_rels.end_ETs())
