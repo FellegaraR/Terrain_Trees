@@ -71,7 +71,7 @@ protected:
     void update(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
                                           Mesh &mesh, contraction_parameters &params);
     void remove_from_mesh(int to_delete_v, ET &et, Mesh &mesh, contraction_parameters &params);   
-    bool link_condition(int v0, int v1, VT &vt0, VT &vt1, Mesh &mesh); 
+    bool link_condition(int v0, int v1,   VT &vt0, VT &vt1, Mesh &mesh); 
     void update_new(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
                                           Mesh &mesh, contraction_parameters &params, int new_vertex_pos);
     void compute_initial_QEM(Mesh &mesh, vector<dvect >& planes);
@@ -80,8 +80,14 @@ protected:
     double compute_error(int v1, int v2, Mesh &mesh,  int& new_vertex_pos);
     inline double vertex_error(Matrix q, double x, double y, double z)
 {
-    return q[0]*x*x + 2*q[1]*x*y + 2*q[2]*x*z + 2*q[3]*x + q[5]*y*y
-        + 2*q[6]*y*z + 2*q[7]*y + q[10]*z*z + 2*q[11]*z + q[15];
+
+   double result= q[0]*x*x;
+result+= 2*q[1]*x*y;result += 2*q[2]*x*z ;result += 2*q[3]*x ;result += q[5]*y*y;
+result += 2*q[6]*y*z ;result += 2*q[7]*y; result +=q[10]*z*z ;result += 2*q[11]*z ;result += q[15];
+
+  //   cout<<"calculated result: "<<result<<endl;
+  result=round(result*1000000)/1000000.0;
+        return result;
 }
 
       vector<Matrix> initialQuadric;

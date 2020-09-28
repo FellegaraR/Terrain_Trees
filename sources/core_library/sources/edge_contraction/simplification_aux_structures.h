@@ -1,8 +1,10 @@
 #ifndef SIMPLIFICATION_AUX_STRUCTURES_H
 #define SIMPLIFICATION_AUX_STRUCTURES_H
 
+
 #include "basic_types/edge.h"
 #include "basic_types/basic_wrappers.h"
+#define SMALL_TOLER (1e-7)
 struct Geom_Edge{
     ivect edge;
     double val;
@@ -13,8 +15,8 @@ struct CompareEdge{
 
     bool operator()(Geom_Edge* e1,Geom_Edge* e2){
 
-      if(e1->val!=e2->val)
-      return e1->val>e2->val;
+      if(fabs(e1->val-e2->val)>SMALL_TOLER)
+      return (e1->val-e2->val)>SMALL_TOLER;
       else if(e1->edge[0]!=e2->edge[0])
       return e1->edge[0]>e2->edge[0];
       else

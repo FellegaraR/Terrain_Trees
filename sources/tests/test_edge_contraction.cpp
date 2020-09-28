@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 	
 	cli.division_type = QUAD;
     cli.crit_type = "pr";
-    cli.v_per_leaf = 500;
+    cli.v_per_leaf = 50000000;
     cli.maximum_limit=atof(argv[2]);
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cerr<<"[GENERATION] PR-T tree"<<endl;
@@ -73,6 +73,14 @@ cout<<"number of vertices: "<<tree.get_mesh().get_vertices_num()<<endl;
        out2 << "_" << SpatialDecType2string(cli.division_type) << "_" << cli.crit_type << "_t_" << cli.t_per_leaf << "_tree.vtk";
    
    string output_name=base.str()+"_simplified_v_"+to_string(cli.v_per_leaf);
+   if(cli.QEM_based==true){
+
+      output_name=output_name+"_qem";
+
+   }
+   else{
+       output_name=output_name+"_length";
+   }
      Writer::write_tree_VTK(out2.str(),tree.get_root(),tree.get_subdivision(),tree.get_mesh());
     // Writer::write_mesh_VTK(base.str(),tree.get_mesh());        
 

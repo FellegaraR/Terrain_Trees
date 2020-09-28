@@ -25,7 +25,7 @@
 #include "terrain_trees/reindexer.h"
 #include "utilities/container_utilities.h"
 
-
+#define SMALL_TOLER (1e-7)
 
  void Contraction_Simplifier::find_candidate_edges(Node_V &n, Mesh &mesh,leaf_VT &vts, edge_queue& edges, contraction_parameters &params){
         map<ivect, coord_type> lengths;
@@ -64,12 +64,12 @@
                     dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
                   //  cout<<dif[0]<<", "<<dif[1]<<", "<<dif[2]<<endl;
                     length = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
-                  cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<length<<endl;
+                
                     //  Edge e((*it)[0],(*it)[1]);
                     lengths[e] = length;
                    //Edge edge_obj(e[0],e[1]);
-                   if(length<params.get_maximum_limit()){
-                       
+                   if(length-params.get_maximum_limit()<SMALL_TOLER){
+                       // cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<length<<endl;
                     edges.push(new Geom_Edge(e,length));
                    //     cout<<"ENQUEUE"<<endl;
                     }
@@ -85,7 +85,7 @@
 void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  Node_V &outer_v_block, edge_queue &edges,
                                            Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params)
 {
-    cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]<<", "<<e[1]<<endl;
+    cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
    // cout<<"[NOTICE] Contract Edge"<<endl;
     ivect et_vec;
     et_vec.push_back(et.first);
@@ -193,11 +193,6 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                 Triangle &t = mesh.get_triangle(vt[i]);
                 int v1_pos=t.vertex_index(e[0]);
 
-          //      if(e[0]==24993||e[1]==24995)
-                // {
-                //     cout<<"[DEBUG]Triangle "<<vt[i]<<": "<<t.TV(0)<<","<<t.TV(1)<<", "<<t.TV(2)<<endl;
-                //     }
-
                 for(int i=0; i<t.vertices_num(); i++)
             {
                 if(i!=v1_pos)
@@ -230,9 +225,9 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                 else
                     e={(*it)[0],(*it)[1]};
 
-            if(error<params.get_maximum_limit()&&n.indexes_vertex(e[1])){
+            if((error-params.get_maximum_limit()<SMALL_TOLER)&&n.indexes_vertex(e[1])){
                     updated_edges[*it]=error;
-                cout<<"["<<e[0]<<","<<e[1]<<"]  Error will be introduced: "<<error<<endl;
+              cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                  edges.push(new Geom_Edge(e,error));
         }
@@ -306,7 +301,6 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
             int new_vertex_pos=-1;
               double error = compute_error((*it)[0],(*it)[1],mesh,new_vertex_pos);
           //    cout<<"[DEBUG] calculated error: "<<error<<endl;
-         
               assert(new_vertex_pos!=-1);
                 if(new_vertex_pos==1)
                 {
@@ -315,13 +309,13 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                 else
                     e={(*it)[0],(*it)[1]};
 
-            if(error<params.get_maximum_limit()&&n.indexes_vertex(e[1])){
+            if((error-params.get_maximum_limit()<SMALL_TOLER)&&n.indexes_vertex(e[1])){
                 if(updated_edges.find(*it)!=updated_edges.end())
                 {
                     updated_edges[*it]=error;
                 }
 
-                cout<<"["<<e[0]<<","<<e[1]<<"]  Error will be introduced: "<<error<<endl;
+            cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                  edges.push(new Geom_Edge(e,error));
         }
@@ -333,9 +327,11 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
         value = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
          e={(*it)[0],(*it)[1]};
          
-        if(value<params.get_maximum_limit()&&n.indexes_vertex(e[1])){
+        if((value-params.get_maximum_limit()<SMALL_TOLER)&&n.indexes_vertex(e[1])){
         // Geom_Edge new_edge(e,length);
-        edges.push(new Geom_Edge(e,value));}
+ //    cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<value<<endl;
+        edges.push(new Geom_Edge(e,value));
+        }
         
         }
     }
@@ -513,13 +509,13 @@ if(!n.indexes_vertices())
         Geom_Edge* current = edges.top();
          ivect e=current->edge;
   //    cout<<"Start contraction."<<endl;
-  //  cout<<"Edge Length:"<<current->val<<endl;
+  //  cout<<"Edge error:"<<current->val<<endl;
 
         edges.pop();
 
         if (mesh.is_vertex_removed(e[0])||mesh.is_vertex_removed(e[1])){
 
-
+     //       cout<<"skip current edge."<<endl;
      //   cout<<"[DEBUG] edge not complete: "<<e[0]<<", "<<e[1]<<endl;
          //   cout<<"Vertex removed"<<endl;
          delete current;
@@ -535,8 +531,9 @@ if(!n.indexes_vertices())
         if(it!=updated_edges.end()){
         //int tmp=-1;
        // double error = compute_error(e[0],e[1],mesh,tmp);
-        if(it->second!=current->val)
+        if(fabs(it->second-current->val)>SMALL_TOLER)
         {
+           // cout<<"skip current edge."<<endl;
          // cout<<"[DEBUG] edge: "<<sorted_e[0]<<", "<<sorted_e[1]<<"; updated error: "<<it->second<<"old error: "<<current->val<<endl;
             delete current;
             continue;
@@ -554,7 +551,7 @@ if(!n.indexes_vertices())
         edges_contracted_leaf++;
     // break;
         }
-
+     cout<<"Number of edges remaining:"<<edges.size()<<endl;
     }
 
 
@@ -594,6 +591,7 @@ params.add_edge_queue_size(edges.size());
         if (mesh.is_vertex_removed(e[0])||mesh.is_vertex_removed(e[1])){
 
          //   cout<<"Vertex removed"<<endl;
+        // cout<<"skip current edge"<<endl;
          delete current;
         // if(edges_contracted_leaf>edge_num*0.2)
            // cout<<"Num of deleted in a leaf"<<edges_contracted_leaf<<"; 20% of the queue num:"<<edge_num*0.2<<endl;
@@ -785,8 +783,8 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
                                    //  Edge e((*it)[0],(*it)[1]);
                     edge_map[e] = error;
                    //Edge edge_obj(e[0],e[1]);
-                   if(error<params.get_maximum_limit()){
-                    cout<<"["<<e[0]<<","<<e[1]<<"]  Error will be introduced: "<<error<<endl;
+                   if(error-params.get_maximum_limit()<SMALL_TOLER){
+               cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                     edges.push(new Geom_Edge(e,error));
                    //     cout<<"ENQUEUE"<<endl;
@@ -837,15 +835,17 @@ for(int i=1; i<=mesh.get_triangles_num(); i++){
 
         c = (coords[0][1] - coords[0][0]) * (coords[1][2] - coords[1][0]) - (coords[1][1] - coords[1][0]) * (coords[0][2] - coords[0][0]);
 
-        m = sqrt(a*a + b*b + c*c);
+        double tmp=a*a + b*b + c*c;
+        m = sqrt(tmp);
+   
         a = a/m;
         b = b/m;
         c = c/m;
 
-        trPl[i-1][0]=a;
-        trPl[i-1][1]=b;
-        trPl[i-1][2]=c;
-        trPl[i-1][3]= -1*(a*coords[0][0] + b*coords[1][0] + c*coords[2][0]);
+        trPl[i-1][0]=round(a*1000000)/1000000.0;
+        trPl[i-1][1]=round(b*1000000)/1000000.0;
+        trPl[i-1][2]=round(c*1000000)/1000000.0;
+        trPl[i-1][3]= -1*round((a*coords[0][0] + b*coords[1][0] + c*coords[2][0])*1000000)/1000000.0;
     }
 }
 
@@ -878,23 +878,29 @@ double Contraction_Simplifier::compute_error(int v1, int v2, Mesh &mesh,int& new
     double vz2 = vertex_2.get_z();
 
 
-        double vx3 = double (vx1+vx2)/2.0;
-        double vy3 = double (vy1+vy2)/2.0;
-        double vz3 = double (vz1+vz2)/2.0;
 
         double error1 = vertex_error(q_bar, vx1, vy1, vz1);
         double error2 = vertex_error(q_bar, vx2, vy2, vz2);
- 
+    //  if(v1==3215||v2==3215)
+    // {
+    //     cout<<"[DEBUG] v1 "<<v1<<endl;
+    //     cout<<vx1<<", "<<vy1<<", "<<vz1<<endl;
+    //     cout<<"[DEBUG] v2 "<<v2<<endl;
+    //     cout<<vx2<<", "<<vy2<<", "<<vz2<<endl;
+    //     cout<<"[DEBUG] error1 "<<error1<<"; error2 "<<error2<<endl;
+    //     cout<<"[DEBUG] quadric matrix"<<endl;
+    //     q_bar.print();
+    // }
 
         min_error = std::min(error1,error2);
       
-        if (error1 == min_error) {new_vertex_pos=0; min_error=error1; }
+        if (fabs(error1 -min_error)<SMALL_TOLER) {new_vertex_pos=0; min_error=error1; }
         else {new_vertex_pos=1; min_error=error2; }
  
 
 
   //  min_error = vertex_error(q_bar, new_vertex[0], new_vertex[1], new_vertex[2]);
-if(min_error<=0.00000001)
+if(min_error<SMALL_TOLER)
     min_error=0;
     return min_error;
 

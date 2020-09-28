@@ -36,6 +36,9 @@ public:
         m[4] = a*b;  m[5] = b*b;  m[6] = b*c;  m[7] = b*d;
         m[8] = a*c;  m[9] = b*c; m[10] = c*c; m[11] = c*d;
         m[12] = a*d; m[13] = b*d; m[14] = c*d; m[15] = d*d;
+        // for(int i=0;i<16;i++){
+        //     m[i]=round(m[i]*1000000)/1000000.0;
+        // }
     }
 
     double operator[](int c) const { return m[c]; }
@@ -59,7 +62,7 @@ public:
    {
        for (int i = 0; i < 16; )
        {
-           printf("%.8lf ", m[i++]);
+           printf("%.10lf ", m[i++]);
            if (i % 4 == 0)
            {
                printf("\n");
