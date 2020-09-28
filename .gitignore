@@ -9,6 +9,7 @@
 *.user
 *.user.*
 Doxyfile
+CMakeDoxyfile.in
 *.directory
 README
 Makefile

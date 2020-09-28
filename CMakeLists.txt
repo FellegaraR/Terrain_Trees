@@ -32,8 +32,8 @@ add_subdirectory(sources)
 
 ### MAIN OF THE LIBRARY
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin )
-add_executable(terrain_trees sources/targets/main.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
-target_link_libraries(terrain_trees _terrain_trees_apps)
+add_executable(ttrees_morse sources/targets/main.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
+target_link_libraries(ttrees_morse _terrain_trees_apps)
 
 
 ### TEST THE LIBRARY
@@ -59,6 +59,14 @@ target_link_libraries(test_spatial_queries _terrain_trees_apps)
 add_executable(test_edge_contraction EXCLUDE_FROM_ALL sources/tests/test_edge_contraction.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
 target_link_libraries(test_edge_contraction _terrain_trees_apps)
 
-add_custom_target(tests DEPENDS test_index_generation test_curvature test_soup test_batched_queries test_terrain_feature_extraction test_spatial_queries test_edge_contraction)
+add_executable(test_morse EXCLUDE_FROM_ALL sources/tests/test_morse.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
+target_link_libraries(test_morse _terrain_trees_apps)
 
+add_executable(test_multivariate_morse EXCLUDE_FROM_ALL sources/tests/test_multivariate_morse.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
+target_link_libraries(test_multivariate_morse _terrain_trees_apps)
+
+add_executable(test_morse_simplification EXCLUDE_FROM_ALL sources/tests/test_morse_simplification.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
+target_link_libraries(test_morse_simplification _terrain_trees_apps)
+
+add_custom_target(tests DEPENDS test_index_generation test_curvature test_soup test_batched_queries test_terrain_feature_extraction test_spatial_queries test_edge_contraction test_morse test_morse_simplification test_multivariate_morse)
 

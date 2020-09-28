@@ -117,6 +117,17 @@ public:
      * @param mesh a Mesh& variable representing the triangle mesh
      */
     void get_VV_VT(leaf_VV &all_vv, leaf_VT &all_vt, itype v_start, itype v_end, Mesh& mesh);
+    /**
+     * @brief A public method that extracts the Edge-Triangle (ET) relations for the edges indexed in the current block
+     * Notice that an edge is considered processed only if the current leaf block indexes the extreme with the higher position index
+     * in this way each edge is processed once during each traversal of the tree
+     *
+     * @param ets a leaf_ET variable, that encodes the ET relations
+     * @param v_start an integer that it will contains the first vertex indexed by the leaf
+     * @param v_end an integer that it will contains the first vertex outside the leaf
+     * @param mesh a Mesh& variable representing the triangle mesh
+     */
+    void get_ET(leaf_ET &ets, itype v_start, itype v_end, Mesh &mesh);
 
 protected:
 };
