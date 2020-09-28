@@ -10,12 +10,12 @@ template<class T> void load_terrain(T& tree, cli_parameters &cli);
 int main(int argc, char** argv )
 {
     cli_parameters cli;
-    cli.mesh_path = "../data/devil_0.tri";
+    cli.mesh_path = argv[2];
     cli.division_type = QUAD;
     cli.crit_type = "pr";
     cli.v_per_leaf = 20000000;
 	cli.app_debug = OUTPUT;
-	cli.persistence = 1;
+	cli.persistence = atof(argv[3]);
     if(strcmp(argv[1],"local")==0)
        cli.query_type = LOCAL_MORSE_SIMPLIFICATION;//LOCAL_ or GLOBAL_MORSE_SIMPLIFICATION
 	else if(strcmp(argv[1],"global")==0)
