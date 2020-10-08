@@ -114,6 +114,15 @@ public:
         forman_gradient[t-1] = convert_expand_to_compressed(ga.getArrow());//TESTING
     }
 
+    inline void update_VE_adj_T(itype tid,itype v1, itype v2, Mesh &mesh, Forman_Gradient &gradient){
+
+    TriGradient grad = gradient.convert_compressed_to_expand(tid);
+    grad.erase_edge_relation(mesh.get_triangle(tid).vertex_index(v1),mesh.get_triangle(tid).vertex_index(v2));
+    grad.setVE(mesh.get_triangle(tid).vertex_index(v1),mesh.get_triangle(tid).vertex_index(v2));
+    forman_gradient[tid-1]=convert_expand_to_compressed(grad.getArrow());
+
+    }
+    
     /// for debug only
     vector<ushort>& get_gradient() { return forman_gradient; }
 

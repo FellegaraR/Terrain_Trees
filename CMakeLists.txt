@@ -32,8 +32,8 @@ add_subdirectory(sources)
 
 ### MAIN OF THE LIBRARY
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin )
-add_executable(ttrees_morse sources/targets/main.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
-target_link_libraries(ttrees_morse _terrain_trees_apps)
+add_executable(ttrees sources/targets/main.cpp sources/utilities/utility_functions.h sources/utilities/utility_functions.cpp)
+target_link_libraries(ttrees _terrain_trees_apps)
 
 
 ### TEST THE LIBRARY

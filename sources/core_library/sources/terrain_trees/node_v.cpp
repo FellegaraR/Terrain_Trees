@@ -25,6 +25,49 @@ void Node_V::get_VT(leaf_VT &all_vt, Mesh &mesh)
     }
 }
 
+void Node_V::get_VT_and_border(leaf_VT &all_vt, boost::dynamic_bitset<> &is_v_border,Mesh &mesh)
+{
+    // here we have a reindexed index thus, if there are no vertices indexed the array size is zero
+    if(!indexes_vertices())
+        return;
+
+    itype v_start = get_v_start();
+    itype v_end = get_v_end();
+
+    all_vt.assign(v_end-v_start,ivect());
+
+    for(RunIteratorPair itPair = make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+    {
+        RunIterator const& t_id = itPair.first;
+        Triangle& t = mesh.get_triangle(*t_id);
+
+
+
+        for(int v=0; v<t.vertices_num(); v++)
+        {
+            itype real_v_index = t.TV(v);
+            //a vertex must be inside the leaf and inside the box (this avoids to insert the same vertex in different leaves)
+            if (indexes_vertex(real_v_index))
+                all_vt[real_v_index-v_start].push_back(*t_id);
+
+                if(!is_v_border[real_v_index-v_start])
+        {
+            for(int v1=1; v1<t.vertices_num(); v++)
+            {
+                if(t.is_border_edge((v1+v)%t.vertices_num()))
+                {
+                    is_v_border[real_v_index-v_start] = true;
+                    break;
+                }
+            }
+        }
+        }
+    }
+}
+
+
+
+
 void Node_V::get_VV(leaf_VV &all_vv,  Mesh& mesh)
 {
     if(!this->indexes_vertices())

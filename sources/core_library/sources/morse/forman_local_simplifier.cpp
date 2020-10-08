@@ -476,6 +476,7 @@ void Forman_Gradient_Simplifier::contraction_update_gradient(itype vertex, itype
         //trovo il nuovo edge;
         itype vtstar = Forman_Gradient_Topological_Relations::get_VTstar(n,next_vertex,local_rels.get_VTstars(),cache.get_vtstar_cache(),root,division,mesh,gradient);
         Triangle &t = mesh.get_triangle(vtstar);
+        //The same as getVE in IA version.
         short v1i = gradient.convert_compressed_to_expand(vtstar).get_vertex_pair(t.vertex_index(next_vertex));
 
         /// no checking vli != -1 because it must be paired

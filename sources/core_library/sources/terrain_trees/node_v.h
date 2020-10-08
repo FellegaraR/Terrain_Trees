@@ -196,6 +196,14 @@ public:
      * @param mesh a Mesh& variable representing the triangle mesh
      */
     void get_VT(leaf_VT &all_vt, Mesh &mesh);
+
+    /**
+     * @brief A public method that extracts the Vertex-Triangle (VT) relations for the vertices indexed in the current block
+     * @param all_vt a leaf_VT variable, that encodes the VT relations
+     * @param mesh a Mesh& variable representing the triangle mesh
+     */
+    void get_VT_and_border(leaf_VT &all_vt, boost::dynamic_bitset<> &is_v_border,Mesh &mesh);
+
     /**
      * @brief A public method that extracts the Vertex-Vertex (VV) relations for the vertices indexed in the current block
      * @param all_vv a leaf_VV variable, that encodes the VV relations

@@ -355,7 +355,7 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
     params.increment_contracted_edges_counter();
 }
 
- bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1,Mesh &mesh){
+ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1,ET& et,Mesh &mesh){
 
     
     iset vv0,vv1;
@@ -372,16 +372,31 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
         vv1.insert(t.TV((v1_id+2)%3));
     }
     int counter=0;
+    iset link_ab;
   //  cout<<v1<<"'s VV size: "<<vv1.size()<<endl;
     for(iset_iter it=vv1.begin();it!=vv1.end();it++){
         if(vv0.find(*it)!=vv0.end()){
+            link_ab.insert(*it);
             counter++;
-
         }
-
     }   
+    iset link_e;
+    if(et.first!=-1){
+        Triangle t1= mesh.get_triangle(et.first);
+        for(int i=0;i<3;i++){
+            if(t1.TV(i)!=v0&&t1.TV(i)!=v1)
+             link_e.insert(t1.TV(i));
+        }
+    }
+    if(et.second!=-1){
+        Triangle t2= mesh.get_triangle(et.second);
+        for(int i=0;i<3;i++){
+            if(t2.TV(i)!=v0&&t2.TV(i)!=v1)
+             link_e.insert(t2.TV(i));
+        }
+    }
 
-return counter<=2;
+return link_e.size()==link_ab.size();
 }
 
 
@@ -546,7 +561,7 @@ if(!n.indexes_vertices())
         Node_V *outer_v_block=NULL;
 
         get_edge_relations(e,et,vt0,vt1,outer_v_block,n,mesh,local_vts,cache,params,tree);
-        if(link_condition(e[0],e[1],*vt0,*vt1,mesh)){
+        if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)){
         contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params);
         edges_contracted_leaf++;
     // break;
@@ -604,7 +619,7 @@ params.add_edge_queue_size(edges.size());
         Node_V *outer_v_block=NULL;
 
         get_edge_relations(e,et,vt0,vt1,outer_v_block,n,mesh,local_vts,cache,params,tree);
-        if(link_condition(e[0],e[1],*vt0,*vt1,mesh)){
+        if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)){
         contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params);
         edges_contracted_leaf++;
     // break;
@@ -630,7 +645,19 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
     vt1 = Contraction_Simplifier::get_VT(e[1],n,mesh,vts,cache,tree,outer_v_block,params);
     vt0 = Contraction_Simplifier::get_VT(e[0],n,mesh,vts,cache,tree,outer_v_block,params);
 
-
+    if(e[1]==87960){
+        cout<<"==[DEBUG]=="<<vt1->size()<<endl;
+        for(auto it=vt1->begin();it!=vt1->end();it++){
+            cout<<"triangle:"<<*it<<endl;
+        }
+    }
+    else if(e[0]==87960){
+                cout<<"==[DEBUG]=="<<vt0->size()<<endl;
+        for(auto it=vt0->begin();it!=vt0->end();it++){
+            cout<<"triangle:"<<*it<<endl;
+        }
+    }
+    
 
     Contraction_Simplifier::get_ET(e,et,n,mesh,vts);
 

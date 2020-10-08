@@ -4,22 +4,17 @@
 
 #include "terrain_trees/node_v.h"
 #include "terrain_trees/node_t.h"
-#include "utilities/lru_cache.h"
+#include "basic_types/lru_cache.h"
 #include "terrain_trees/prt_tree.h"
-//#include "topological_ds/links_aux_structures.h"  SHOULD BE REPLACED WITH WHICH HEADER?
 #include "statistics/statistics.h"
 #include "utilities/container_utilities.h"
 #include "terrain_trees/mesh_updater.h"
 #include "utilities/usage.h"
 #include "utilities/cli_parameters.h"
-#include "utilities/string_management.h"
-//#include "topological_queries/topological_query_extractor.h"
 #include "queries/topological_queries.h"
-
 #include "simplification_aux_structures.h"
 
-#define _v0 0
-#define _v1 1
+
 
 
 /// Contraction_Simplifier class ///
@@ -71,7 +66,7 @@ protected:
     void update(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
                                           Mesh &mesh, contraction_parameters &params);
     void remove_from_mesh(int to_delete_v, ET &et, Mesh &mesh, contraction_parameters &params);   
-    bool link_condition(int v0, int v1,   VT &vt0, VT &vt1, Mesh &mesh); 
+    bool link_condition(int v0, int v1,   VT &vt0, VT &vt1, ET& et, Mesh &mesh); 
     void update_new(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
                                           Mesh &mesh, contraction_parameters &params, int new_vertex_pos);
     void compute_initial_QEM(Mesh &mesh, vector<dvect >& planes);
@@ -86,7 +81,7 @@ result+= 2*q[1]*x*y;result += 2*q[2]*x*z ;result += 2*q[3]*x ;result += q[5]*y*y
 result += 2*q[6]*y*z ;result += 2*q[7]*y; result +=q[10]*z*z ;result += 2*q[11]*z ;result += q[15];
 
   //   cout<<"calculated result: "<<result<<endl;
-  result=round(result*1000000)/1000000.0;
+  result=round(result*100000)/100000.0;
         return result;
 }
 

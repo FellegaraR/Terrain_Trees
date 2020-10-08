@@ -51,6 +51,7 @@
 #include "terrain_features/slope_extractor.h"
 #include "terrain_features/critical_points_extractor.h"
 #include "edge_contraction/contraction_simplifier.h"
+#include "edge_contraction/gradient_aware_contraction.h"
 
 #include "morse/forman_gradient.h"
 #include "morse/forman_gradient_computation.h"

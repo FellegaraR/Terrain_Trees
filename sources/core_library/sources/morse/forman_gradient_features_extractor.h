@@ -133,7 +133,7 @@ protected:
     simplices_map edges_1celle;
     ivect manifold_2celle_asc;
     IG forman_ig;
-      uvect filtration; //for each vertex its filtration value
+    uvect filtration; //for each vertex its filtration value
     
     //contains the net timing obtained for a single manifold extraction
     coord_type new_paths, u_paths, cache_t, rels_gathering;

@@ -484,7 +484,8 @@ bool Forman_Gradient_Topological_Relations::check_VTstar(itype v_id, itype t_id,
     //if in the current top simplex the vertex is unpaired.. nothing to do
     if(t_grad.is_vertex_unpaired(t.vertex_index(v_id)))
         return true;
-
+    
+    //Check in the original vtstar if the vertex is paired. 
     Triangle &first_t = mesh.get_triangle(vtstars[v_pos]);
     TriGradient t_grad_first = gradient.convert_compressed_to_expand(vtstars[v_pos]);
 
@@ -539,3 +540,4 @@ itype Forman_Gradient_Topological_Relations::get_triangle_id(ivect max_tri, VT &
     // it should never reach this point if we give the correct VT relation
     return -1;
 }
+
