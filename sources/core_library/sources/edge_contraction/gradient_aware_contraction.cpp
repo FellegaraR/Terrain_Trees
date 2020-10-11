@@ -98,9 +98,12 @@ if(!n.indexes_vertices())
     itype v_range = v_end - v_start;
 
 
-    //cout<<"Simplification in leaf."<<endl;
-    leaf_VT local_vts(v_range,VT());
-    n.get_VT(local_vts,mesh);
+    cout<<"Simplification in leaf."<<endl;
+boost::dynamic_bitset<> is_v_border(v_end-v_start);
+//cout<<"Simplification in leaf."<<endl;
+leaf_VT local_vts(v_range,VT());
+n.get_VT_and_border(local_vts,is_v_border,mesh);
+cout<<"Extracted VT and border edges"<<endl;
     // Create a priority queue of candidate edges
     edge_queue edges;
     find_candidate_edges_QEM(n,mesh,local_vts,edges,params);
@@ -119,8 +122,6 @@ if(!n.indexes_vertices())
 
         if (mesh.is_vertex_removed(e[0])||mesh.is_vertex_removed(e[1])){
 
-     //       cout<<"skip current edge."<<endl;
-     //   cout<<"[DEBUG] edge not complete: "<<e[0]<<", "<<e[1]<<endl;
          //   cout<<"Vertex removed"<<endl;
          delete current;
         // if(edges_contracted_leaf>edge_num*0.2)
@@ -130,7 +131,7 @@ if(!n.indexes_vertices())
         }
 
         ivect sorted_e=e;
-        sort(sorted_e.begin(),sorted_e.end());
+        std::sort(sorted_e.begin(),sorted_e.end());
         auto it= updated_edges.find(sorted_e);
         if(it!=updated_edges.end()){
         //int tmp=-1;
@@ -150,12 +151,12 @@ if(!n.indexes_vertices())
         Node_V *outer_v_block=NULL;
 
         get_edge_relations(e,et,vt0,vt1,outer_v_block,n,mesh,local_vts,cache,params,tree);
-        if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)){
+        if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,is_v_border[e[0]-v_start],is_v_border[e[1]-v_start],gradient,mesh)){
         contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params,gradient);
         edges_contracted_leaf++;
     // break;
         }
-     cout<<"Number of edges remaining:"<<edges.size()<<endl;
+    // cout<<"Number of edges remaining:"<<edges.size()<<endl;
     }
 
 
@@ -254,15 +255,23 @@ void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1
 
 bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &vt1, VT &vt2,ET& et ,bool v1_is_border, bool v2_is_border, Forman_Gradient &gradient, Mesh &mesh){
 
-    if(v1_is_border||v2_is_border)
-    return false;
-    if(vt1.size()<4||vt2.size()<4)
-    return false;
+    cout<<"[debug]checking edge "<<v1<<", "<<v2<<endl;
+    if(v1_is_border||v2_is_border){
+      cout<<"border edge"<<endl;
+    return false;}
+    if(vt1.size()<4||vt2.size()<4){
+
+        cout<<"less than 4 triangles"<<endl;
+        return false;
+    }
+    
     int t1=et.first;
     int t2=et.second;
     if(gradient.is_triangle_critical(t1)||gradient.is_triangle_critical(t2))
-    return false;
-
+    {
+        cout<<"t1 or t2 is critical"<<endl;
+        return false;
+    }
     int v3_sin, v3_des;
     v3_sin = v3_des = -1;
  //   iset vv2;
@@ -283,7 +292,11 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
 
     itype v3_sin_pair= (v3_sin_pair_id!=-1) ? mesh.get_triangle(t1).TV(v3_sin_pair_id):-1;
     if(v3_sin_pair==v2)
-        return false;
+        {
+            cout<<"v3_sin:"<<v3_sin<<" v2:"<<v2<<endl;
+            cout<<"v3 sin pair is v2"<<endl;
+            return false;
+        }
 
     short v3_des_pair_id;
     for(int i=0; i<3; i++){
@@ -296,10 +309,14 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     }
     itype v3_des_pair= (v3_des_pair_id!=-1) ? mesh.get_triangle(t2).TV(v3_des_pair_id):-1;
     if(v3_des_pair==v2)
-        return false;
-
+        {
+            cout<<"v3 des pair is v2"<<endl;
+            return false;
+        }
     itype t3_des=-1;
     itype t3_sin=-1;
+    bool v2_is_critical=true;
+    bool edge0_is_critical=true;
     for(int i=0; i<vt2.size(); i++){
         
         Triangle &t = mesh.get_triangle(vt2[i]);
@@ -310,8 +327,8 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
                     //vv2.insert(t.TV(j));
                 t.TE(j,new_e);
                 v2_edges.insert(new_e);            
-                if(gradient.is_edge_critical(new_e,vt2[i],mesh))
-                return false;
+                if(!gradient.is_edge_critical(new_e,vt2[i],mesh))
+                edge0_is_critical = false;
             if(t.TV(j)==v3_des&&vt2[i]!=t2)
             {
                 t3_des=vt2[i];
@@ -322,119 +339,306 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
             }
                 }
         }
+            if(v2==71)
+            cout<<"[DEBUG]"<<vt2[i]<<endl;
+        if(gradient.is_triangle_critical(vt2[i])) {
 
-        if(gradient.is_triangle_critical(vt2[i])) return false;
+             cout<<"vt2 is critical"<<endl;
+            return false;}
         //Instead of searching for vtstar, we check all the triangles here
-        if(gradient.is_vertex_critical(v2,vt2[i],mesh));
+        if(!gradient.is_vertex_critical(v2,vt2[i],mesh)) 
+        v2_is_critical=false;
     }
 
-
+    if(v2_is_critical)
+     {
+         cout<<"v2 is critical"<<endl;
+         return false;}
+    if(edge0_is_critical)
+    {
+        cout<<"vv(v2) has critical edge"<<endl;
+        return false;
+    }
 
     ivect edge;
     edge={v1,v2};
+    std::sort(edge.begin(),edge.end());
     if(gradient.is_edge_critical(edge,et,mesh))
     return false;
     itype t3_adj_sin=-1;
     itype t3_adj_des=-1;
-
+    bool edge1_critical=true;
+    bool edge2_critical=true;
     for(int i=0; i<vt1.size(); i++){
-        if(gradient.is_triangle_critical(vt1[i]))
-         return false;
+        if(gradient.is_triangle_critical(vt1[i])){
+            cout<<"vt1 is critical"<<endl;
+         return false;}
         for(int j=0; j<3; j++){
             int vid=mesh.get_triangle(vt1[i]).TV(j);
             if(vid==v3_des){
                 if(vt1[i]!=t2)
                 t3_adj_des=vt1[i];
-                ivect edge;
-                edge ={v1,v3_des};
-            if(gradient.is_edge_critical(edge,vt1[i],mesh))
-                return false;
+                ivect edge1;
+                edge1 ={v1,v3_des};
+                sort(edge1.begin(),edge1.end());
+            if(!gradient.is_edge_critical(edge1,vt1[i],mesh))
+                edge1_critical=false;
             }
             else if(vid==v3_sin){
                 if(vt1[i]!=t1)
                  t3_adj_sin=vt1[i];
-                ivect edge;
-                edge ={v1,v3_sin};
-            if(gradient.is_edge_critical(edge,vt1[i],mesh))
-                return false;
+                ivect edge1;
+                edge1 ={v1,v3_sin};
+                std::sort(edge1.begin(),edge1.end());
+            if(!gradient.is_edge_critical(edge1,vt1[i],mesh))
+                edge2_critical=false;
             }
 
         }
     }
-
+    if(edge1_critical||edge2_critical)
+     {
+         cout<<"edge is critical"<<endl;
+         return false;}
     //Check if v1 is point to v3_sin
+    itype v1_pair=-1;
     itype v1_id=mesh.get_triangle(t1).vertex_index(v1);
     short v1_pair_id=gradient.convert_compressed_to_expand(t1).get_vertex_pair(v1_id);
-    itype v1_pair= (v1_pair_id!=-1) ? mesh.get_triangle(t1).TV(v1_pair_id):-1;
-    
+    if(v1_pair_id==-1)
+    {
+        v1_id=mesh.get_triangle(t2).vertex_index(v1);
+        v1_pair_id=gradient.convert_compressed_to_expand(t2).get_vertex_pair(v1_id);
+        v1_pair= (v1_pair_id!=-1) ? mesh.get_triangle(t2).TV(v1_pair_id):-1;
+
+    }
+    else{
+        v1_pair= mesh.get_triangle(t1).TV(v1_pair_id);
+    }
+
+    //Check if v2 is point to v3_sin/v3_des
+    itype v2_pair=-1;
+    itype v2_id=mesh.get_triangle(t1).vertex_index(v2);
+    short v2_pair_id=gradient.convert_compressed_to_expand(t1).get_vertex_pair(v2_id);
+    if(v2_pair_id==-1)
+    {
+        v2_id=mesh.get_triangle(t2).vertex_index(v2);
+        v2_pair_id=gradient.convert_compressed_to_expand(t2).get_vertex_pair(v2_id);
+        v2_pair= (v2_pair_id!=-1) ? mesh.get_triangle(t2).TV(v2_pair_id):-1;
+
+    }
+    else{
+        v2_pair= mesh.get_triangle(t1).TV(v2_pair_id);
+    }
+
 
 
     if(v3_sin_pair!=-1&& v3_sin_pair==v2){
+        cout<<"v3_sin is paired with v2"<<endl;
+        cout<<"t3_adj_sin:"<<t3_adj_sin<<endl;
      gradient.update_VE_adj_T(t3_adj_sin,v3_sin,v1,mesh,gradient);   
     }
     else if (v3_sin_pair!=-1&& v3_sin_pair==v1)
     {
+           cout<<"v3_sin is paired with v1"<<endl;
+           cout<<"v3_sin:"<<v3_sin<<" v3_sin_pair:"<<v3_sin_pair<<endl;
+         cout<<"t3_sin:"<<t3_sin<<endl;
      gradient.update_VE_adj_T(t3_sin,v3_sin,v2,mesh,gradient);
     }
     else if (v1_pair!=-1&&v1_pair==v3_sin)
     {
+        cout<<"v1 is paired with v3_sin"<<endl;
+        cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
      gradient.update_VE_adj_T(t3_sin,v2,v3_sin,mesh,gradient);
     }
+    
 
 
     if(v3_des_pair!=-1&& v3_des_pair==v2){
         // gradient.update_VE_adj_T(t3,v3_des,v1,mesh);
+        cout<<"v3_des is paired with v2"<<endl;
+         cout<<"t3_adj_des:"<<t3_adj_des<<endl;
      gradient.update_VE_adj_T(t3_adj_des,v3_des,v1,mesh,gradient);   
     }
     else if (v3_des_pair!=-1&& v3_des_pair==v1)
     {
+        cout<<"v3_des is paired with v1"<<endl;
+         cout<<"t3_des:"<<t3_des<<endl;
       //  gradient.update_VE_adj_T(t3,v3_des,v2,mesh);
      gradient.update_VE_adj_T(t3_des,v3_des,v2,mesh,gradient);
     }
     else if (v1_pair!=-1&&v1_pair==v3_des)
     {
+         cout<<"v1 is paired with v3_des"<<endl;
         //gradient.update_VE_adj_T(t3,v2,v3_des,mesh);
+        cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
      gradient.update_VE_adj_T(t3_des,v2,v3_des,mesh,gradient);
     }
+
+    return true;
     //Triangle 
 
-    /* ******IN IA***********
-    if(getVE(v3_sin) != NULL && getVE(v3_sin)->EV(1) == v2) return false;
-    if(getVE(v3_des) != NULL && getVE(v3_des)->EV(1) == v2) return false;
-
-    if(is_vertex_critical(v2))  //need vtstar of v2
-        return false;
-
-    Edge* edge1=getVE(v3_sin);
-    Edge* edge2=getVE(v1);
-
-    
-    edge1=getVE(v3_des);
-    	if(edge1 != NULL && *edge1==Edge(v3_des,v2)){
-
-        int t3 = mesh->getTopSimplex(t2).TT(mesh->getTopSimplex(t2).vertex_index(v2));
-        gradient.update_VE_adj_T(t3,v3_des,v1,mesh);
-     
-    }
-    else if(edge1 != NULL && *edge1==Edge(v3_des,v1)){
-        int t3 = mesh->getTopSimplex(t2).TT(mesh->getTopSimplex(t2).vertex_index(v1));
-		gradient.update_VE_adj_T(t3,v3_des,v2,mesh);
-               
-
-    }
-    else if(edge2 != NULL && *edge2==Edge(v3_des,v1)){
-        int t3 = mesh->getTopSimplex(t2).TT(mesh->getTopSimplex(t2).vertex_index(v1));
-		gradient.update_VE_adj_T(t3,v2,v3_des,mesh);
-
-    }
-
-    delete edge1;
-    delete edge2;
-
-
-    */
 
 }
 
 
 
+void Gradient_Aware_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,  Mesh &mesh, contraction_parameters &params)
+{
+   set<ivect> e_set; /// we insert the new edges first in this set to avoid duplicate insertions in the queue
+    
+    if(params.is_QEM()){
+        initialQuadric[e[0]]+=initialQuadric[e[1]];
+        set<ivect> v1_related_set;
+        for(int i=0;i<vt.size();i++){
+                ivect new_e; new_e.assign(2,0);
+                Triangle &t = mesh.get_triangle(vt[i]);
+                int v1_pos=t.vertex_index(e[0]);
+                for(int i=0; i<t.vertices_num(); i++)
+            {
+                if(i!=v1_pos)
+                {
+                    t.TE(i,new_e);  //t.TE(new_e,pos,i); need to check
+                    //cout<<"New edge"<<new_e[0]<<", "<<new_e[1]<<endl;
+               //     if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed 
+                        v1_related_set.insert(new_e);
+                       // updated_edges[new_e]=-1;
+                }
+            }
+   
+        }
+        for(auto it=v1_related_set.begin(); it!=v1_related_set.end(); ++it)
+    {
+        //Calculate length
+        double value;
+        ivect e;
+        Vertex &v1=mesh.get_vertex((*it)[0]);
+        Vertex &v2=mesh.get_vertex((*it)[1]);
+            int new_vertex_pos=-1;
+              double error = compute_error((*it)[0],(*it)[1],mesh,new_vertex_pos);
+          //    cout<<"[DEBUG] calculated error: "<<error<<endl;
+              assert(new_vertex_pos!=-1);
+                if(new_vertex_pos==1)
+                {
+                    e={(*it)[1],(*it)[0]};
+                }
+                else
+                    e={(*it)[0],(*it)[1]};
+
+            if((error-params.get_maximum_limit()<SMALL_TOLER)&&n.indexes_vertex(e[1])){
+                    updated_edges[*it]=error;
+            //  cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
+
+                 edges.push(new Geom_Edge(e,error));
+        }
+                 
+    }
+
+
+
+    }
+
+        for(ivect_iter it=difference.begin(); it!=difference.end(); ++it)
+        {
+            Triangle &t = mesh.get_triangle(*it);
+
+
+            /// before updating the triangle, we check
+            /// if the leaf block indexing e[0] does not contain the current triangle we have to add it
+            /// NOTA: there is one possible case.. as leaf block n already indexes the triangle in e[1]
+            /// NOTA2: we have just to check that n and v_block are different (as if they are equal the edge is internal in n)
+            if(n.get_v_start() != v_block.get_v_start() && !v_block.indexes_triangle_vertices(t))
+            {
+//                if(debug)
+//                    cout<<"[add top to leaf] "<<t<<" -> "<<*v_block<<endl;
+                v_block.add_triangle(*it);
+            }
+
+            /// then we update the triangle changing e[1] with e[0]
+            int pos = t.vertex_index(e[1]);
+       
+            t.setTV(pos,e[0]);
+            dvect diff(4,0.0);
+            if(params.is_QEM()){
+
+            ivect new_e; new_e.assign(2,0);
+            for(int i=0; i<t.vertices_num(); i++)
+            {
+                if(i!=pos)
+                {
+                    t.TE(i,new_e);  //t.TE(new_e,pos,i); need to check
+                 //   cout<<"New edge"<<new_e[0]<<", "<<new_e[1]<<endl;
+               //     if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed 
+                        e_set.insert(new_e);
+                }
+            }
+            }
+            else{
+            /// we have to add the new edges in the queue
+            ivect new_e; new_e.assign(2,0);
+            for(int i=0; i<t.vertices_num(); i++)
+            {
+                if(i!=pos)
+                {
+                    t.TE(i,new_e);  //t.TE(new_e,pos,i); need to check
+               //     if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed 
+                        e_set.insert(new_e);
+                }
+            }
+            }
+        }
+
+
+    /// we push the new "unique" edges in the queue
+    for(auto it=e_set.begin(); it!=e_set.end(); ++it)
+    {
+
+        //Calculate length
+        double value;
+        ivect e;
+        Vertex &v1=mesh.get_vertex((*it)[0]);
+        Vertex &v2=mesh.get_vertex((*it)[1]);
+        if(params.is_QEM()){
+            int new_vertex_pos=-1;
+              double error = compute_error((*it)[0],(*it)[1],mesh,new_vertex_pos);
+          //    cout<<"[DEBUG] calculated error: "<<error<<endl;
+              assert(new_vertex_pos!=-1);
+                if(new_vertex_pos==1)
+                {
+                    e={(*it)[1],(*it)[0]};
+                }
+                else
+                    e={(*it)[0],(*it)[1]};
+
+            if((error-params.get_maximum_limit()<SMALL_TOLER)&&n.indexes_vertex(e[1])){
+                if(updated_edges.find(*it)!=updated_edges.end())
+                {
+                    updated_edges[*it]=error;
+                }
+
+           // cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
+
+                 edges.push(new Geom_Edge(e,error));
+        }
+                 
+       
+        }
+        else{
+        dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
+        value = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
+         e={(*it)[0],(*it)[1]};
+         
+        if((value-params.get_maximum_limit()<SMALL_TOLER)&&n.indexes_vertex(e[1])){
+        // Geom_Edge new_edge(e,length);
+ //    cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<value<<endl;
+        edges.push(new Geom_Edge(e,value));
+        }
+        
+        }
+    }
+
+    /// finally we update the VT relation of e[0]
+    unify_vectors(vt,difference);
+
+
+
+}
