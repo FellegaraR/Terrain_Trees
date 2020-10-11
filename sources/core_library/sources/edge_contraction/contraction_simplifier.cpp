@@ -224,10 +224,10 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                 }
                 else
                     e={(*it)[0],(*it)[1]};
-
+            updated_edges[*it]=error;
             if((error-params.get_maximum_limit()<SMALL_TOLER)&&n.indexes_vertex(e[1])){
-                    updated_edges[*it]=error;
-            //  cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
+                    
+              cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                  edges.push(new Geom_Edge(e,error));
         }
@@ -316,7 +316,7 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                     updated_edges[*it]=error;
                 }
 
-           // cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
+            cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                  edges.push(new Geom_Edge(e,error));
         }
@@ -812,7 +812,7 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
                     edge_map[e] = error;
                    //Edge edge_obj(e[0],e[1]);
                    if(error-params.get_maximum_limit()<SMALL_TOLER){
-            //   cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
+               cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                     edges.push(new Geom_Edge(e,error));
                    //     cout<<"ENQUEUE"<<endl;

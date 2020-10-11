@@ -294,8 +294,8 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     if(v3_sin_pair==v2)
         {
             cout<<"v3_sin:"<<v3_sin<<" v2:"<<v2<<endl;
-            cout<<"v3 sin pair is v2"<<endl;
-            return false;
+            cout<<"v3 sin pair is v2"<<endl;  // why this case? 
+      //      return false;
         }
 
     short v3_des_pair_id;
@@ -310,8 +310,8 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     itype v3_des_pair= (v3_des_pair_id!=-1) ? mesh.get_triangle(t2).TV(v3_des_pair_id):-1;
     if(v3_des_pair==v2)
         {
-            cout<<"v3 des pair is v2"<<endl;
-            return false;
+            cout<<"v3 des pair is v2"<<endl; // why this case? 
+           // return false;
         }
     itype t3_des=-1;
     itype t3_sin=-1;
@@ -430,7 +430,12 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
         v2_pair= mesh.get_triangle(t1).TV(v2_pair_id);
     }
 
-
+    if(v1_pair!=v2&&v2_pair!=v1){
+        cout<<"edge should be paired with either v1 or v2"<<endl;
+        cout<<"v1: "<<v1<<" v1_pair:"<<v1_pair<<endl;
+        cout<<"v2: "<<v2<<" v2_pair:"<<v2_pair<<endl;
+        return false;
+    }
 
     if(v3_sin_pair!=-1&& v3_sin_pair==v2){
         cout<<"v3_sin is paired with v2"<<endl;
@@ -450,8 +455,12 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
         cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
      gradient.update_VE_adj_T(t3_sin,v2,v3_sin,mesh,gradient);
     }
-    
-
+    else if(v1_pair==v2&&v2_pair==v3_sin)
+    {
+        cout<<"v2 is paired with v3_sin"<<endl;
+        cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
+        gradient.update_VE_adj_T(t3_adj_sin,v1,v3_sin,mesh,gradient);
+    }
 
     if(v3_des_pair!=-1&& v3_des_pair==v2){
         // gradient.update_VE_adj_T(t3,v3_des,v1,mesh);
@@ -473,7 +482,12 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
         cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
      gradient.update_VE_adj_T(t3_des,v2,v3_des,mesh,gradient);
     }
-
+    else if(v1_pair==v2&&v2_pair==v3_des)
+    {
+        cout<<"v2 is paired with v3_des"<<endl;
+        cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
+        gradient.update_VE_adj_T(t3_adj_des,v1,v3_des,mesh,gradient);
+    }
     return true;
     //Triangle 
 
@@ -526,7 +540,7 @@ void Gradient_Aware_Simplifier::update(const ivect &e, VT& vt, VT& difference, N
 
             if((error-params.get_maximum_limit()<SMALL_TOLER)&&n.indexes_vertex(e[1])){
                     updated_edges[*it]=error;
-            //  cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
+              cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                  edges.push(new Geom_Edge(e,error));
         }
@@ -615,7 +629,7 @@ void Gradient_Aware_Simplifier::update(const ivect &e, VT& vt, VT& difference, N
                     updated_edges[*it]=error;
                 }
 
-           // cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
+            cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                  edges.push(new Geom_Edge(e,error));
         }
