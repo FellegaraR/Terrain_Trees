@@ -257,7 +257,7 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
             /// then we update the triangle changing e[1] with e[0]
             int pos = t.vertex_index(e[1]);
        
-            t.setTV(pos,e[0]);
+            t.setTV_keep_border(pos,e[0]);
             dvect diff(4,0.0);
             if(params.is_QEM()){
 
@@ -310,16 +310,15 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                 else
                     e={(*it)[0],(*it)[1]};
 
+            updated_edges[*it]=error;
+            
             if((error-params.get_maximum_limit()<SMALL_TOLER)&&n.indexes_vertex(e[1])){
-                if(updated_edges.find(*it)!=updated_edges.end())
-                {
-                    updated_edges[*it]=error;
-                }
+
 
             cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                  edges.push(new Geom_Edge(e,error));
-        }
+            }
                  
        
         }

@@ -39,8 +39,11 @@ void Node_V::get_VT_and_border(leaf_VT &all_vt, boost::dynamic_bitset<> &is_v_bo
     for(RunIteratorPair itPair = make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
     {
         RunIterator const& t_id = itPair.first;
-       
+        
         Triangle& t = mesh.get_triangle(*t_id);
+        
+            cout<<"DEBUG:"<<"t_id:"<<*t_id<<" V:"<<t.TV(0)<<", "<<t.TV(1)<<", "<<t.TV(2)<<endl;
+        
         
         for(int v=0; v<t.vertices_num(); v++)
         {
@@ -56,7 +59,9 @@ void Node_V::get_VT_and_border(leaf_VT &all_vt, boost::dynamic_bitset<> &is_v_bo
             {
                 if(t.is_border_edge((v1+v)%t.vertices_num()))
                 {
+                   // cout<<"[DEBUG] triangle id:"<<*t_id<<endl;
                     is_v_border[real_v_index-v_start] = true;
+                   // cout<<"Vertex "<<real_v_index<<" is on the boundary."<<endl;
                     break;
                 }
             }

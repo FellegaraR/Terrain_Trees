@@ -81,6 +81,8 @@ public:
      * @param newId an integer representing the new vertex in the boundary
      */
     inline void setTV(int pos, itype newId) { this->vertices[pos] = newId; }
+
+    inline void setTV_keep_border(int pos, itype newId) { this->vertices[pos] = (this->vertices[pos]>0)? newId:-newId; }
     /**
      * @brief A public procedure that returns an edge in the boundary of the triangle
      * NOTA: as a vertex index can be negative we return the positive indices during an edge initialization

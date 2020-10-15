@@ -220,6 +220,7 @@ public:
     inline void remove_triangle(itype t)
     {
         Triangle& tri = get_triangle(t);
+        cout<<"Triangle "<<t<<" has been removed."<<endl;
         tri.setTV(0,0);
     }
 
