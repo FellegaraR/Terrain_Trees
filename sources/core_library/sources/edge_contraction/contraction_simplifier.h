@@ -28,7 +28,7 @@ public:
     
 
 protected:
-    
+    const double Zero =1e-7;
    void simplify_compute(Node_V &n,  Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,Spatial_Subdivision &division,  contraction_parameters &params,PRT_Tree &tree);
     void simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree& tree);
     ///edge contraction based on QEM criterion 
@@ -46,6 +46,8 @@ protected:
     /// plus saves the second leaf block if we are processing a cross-edge
     void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *& outer_v_block,
                                    Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int,leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree);
+    
+    void update_cached_VT(int v_id, LRU_Cache<int,leaf_VT> &cache );
     /// the VTop is always without removed top-simplices
      VT* get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int,leaf_VT> &cache,
                         PRT_Tree &tree, Node_V *& v_block, contraction_parameters &params);

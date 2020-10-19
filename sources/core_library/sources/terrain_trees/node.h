@@ -172,6 +172,17 @@ public:
      */
     inline N* get_parent() { return this->parent; }
 
+    inline bool index_triangle(itype tid){
+        for(RunIteratorPair itPair = make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+    {
+        RunIterator const& t_id = itPair.first;
+        if(*t_id==tid){
+            return true;
+        }
+        }
+        return false;
+        }
+
 protected:    
     ///A constructor method
     Node() { this->sons = NULL; this->parent = NULL; }

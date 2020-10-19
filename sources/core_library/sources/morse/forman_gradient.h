@@ -117,6 +117,7 @@ public:
     inline void update_VE_adj_T(itype tid,itype v1, itype v2, Mesh &mesh, Forman_Gradient &gradient){
 
     TriGradient grad = gradient.convert_compressed_to_expand(tid);
+    cout<<"[DEBUG]tid:"<<tid<<"v1 and v2:"<<v1<<", "<<v2<<endl;
     grad.erase_edge_relation(mesh.get_triangle(tid).vertex_index(v1),mesh.get_triangle(tid).vertex_index(v2));
     grad.setVE(mesh.get_triangle(tid).vertex_index(v1),mesh.get_triangle(tid).vertex_index(v2));
     forman_gradient[tid-1]=convert_expand_to_compressed(grad.getArrow());

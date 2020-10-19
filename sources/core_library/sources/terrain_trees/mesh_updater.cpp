@@ -79,6 +79,12 @@ bool Mesh_Updater::update_and_clean_triangles_array(Mesh &mesh, ivect &new_v_pos
     cout<<"delete the positions from t_counter to the end of the array"<<endl;
     cout<<"New size:"<<t_counter-1<<endl;
     cout<<"Old size:"<<mesh.get_triangles_num()<<endl;
+    cout<<"[DEBUG]"<<endl;
+    // for(auto it=mesh.get_t_array_begin();it!=mesh.get_t_array_end();it++){
+
+    //     cout<<"Triangle id:"<<it-mesh.get_t_array_begin()<<endl;
+    //     cout<<"TV:"<<it->TV(0)<<", "<<it->TV(1)<<", "<<it->TV(2)<<endl;
+    // }
     mesh.resize_triangle_array(t_counter-1);
     cout<<"Cleaned triangle array"<<endl;
 }

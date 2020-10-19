@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 	
 	cli.division_type = QUAD;
     cli.crit_type = "pr";
-    cli.v_per_leaf = 50000000;
+    cli.v_per_leaf = 5000;
     cli.maximum_limit=atof(argv[2]);
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cli.app_debug=OUTPUT;
@@ -252,13 +252,17 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     Border_Checker border_checker=Border_Checker();
     border_checker.compute_borders(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
     Gradient_Aware_Simplifier simplifier;
+      time.start();
     simplifier.gradient_aware_simplify(tree,tree.get_mesh(),cli,forman_gradient);
+    time.stop();
+    time.print_elapsed_time("[TIME] Gradient-aware simplification ");
 
     cout<<"number of remaining triangles: "<<tree.get_mesh().get_triangles_num()<<endl;
 
     
     cout<<output_name<<endl;
-    Writer::write_mesh_VTK(output_name,tree.get_mesh());  
+    Writer::write_mesh_VTK(output_name,tree.get_mesh()); 
+    Writer::write_mesh(output_name,"simplified",tree.get_mesh(),false); 
     // Forman_Gradient_Features_Extractor features_extractor;   
     // features_extractor.extract_incidence_graph(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),cli.app_debug,cli.cache_size);
     // features_extractor.print_stats();

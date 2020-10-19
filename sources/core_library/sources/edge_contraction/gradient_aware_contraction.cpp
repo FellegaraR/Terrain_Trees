@@ -136,7 +136,7 @@ cout<<"Extracted VT and border edges"<<endl;
         if(it!=updated_edges.end()){
         //int tmp=-1;
        // double error = compute_error(e[0],e[1],mesh,tmp);
-        if(fabs(it->second-current->val)>SMALL_TOLER)
+        if(fabs(it->second-current->val)>Zero)
         {
            // cout<<"skip current edge."<<endl;
          // cout<<"[DEBUG] edge: "<<sorted_e[0]<<", "<<sorted_e[1]<<"; updated error: "<<it->second<<"old error: "<<current->val<<endl;
@@ -149,9 +149,10 @@ cout<<"Extracted VT and border edges"<<endl;
         ET et(-1,-1);
         VT *vt0=NULL,*vt1=NULL;
         Node_V *outer_v_block=NULL;
+        bool v1_is_border=false, v2_is_border=false;
 
-        get_edge_relations(e,et,vt0,vt1,outer_v_block,n,mesh,local_vts,cache,params,tree);
-        if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,is_v_border[e[0]-v_start],is_v_border[e[1]-v_start],gradient,mesh)){
+        get_edge_relations(e,et,vt0,vt1,v1_is_border,v2_is_border,outer_v_block,n,mesh,local_vts,is_v_border,cache,params,tree);
+        if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)){
         contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params,gradient);
         edges_contracted_leaf++;
     // break;
@@ -159,7 +160,9 @@ cout<<"Extracted VT and border edges"<<endl;
     // cout<<"Number of edges remaining:"<<edges.size()<<endl;
     }
 
-
+if(cache.find(v_start) != cache.end()){
+    cache.update(v_start,local_vts);
+}
 
 }
 
@@ -212,7 +215,7 @@ params.add_edge_queue_size(edges.size());
         VT *vt0=NULL,*vt1=NULL;
         Node_V *outer_v_block=NULL;
         
-        get_edge_relations(e,et,vt0,vt1,outer_v_block,n,mesh,local_vts,cache,params,tree);
+        Contraction_Simplifier::get_edge_relations(e,et,vt0,vt1,outer_v_block,n,mesh,local_vts,cache,params,tree);
         if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)){
         contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params,gradient);
         edges_contracted_leaf++;
@@ -232,6 +235,9 @@ void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1
     et_vec.push_back(et.first);
     if(et.second!=-1)
         et_vec.push_back(et.second);
+
+
+
 
     difference_of_vectors(vt0,et_vec); // vt0 now contains the difference VT0 - ET
     difference_of_vectors(vt1,et_vec); // vt1 now contains the difference VT1 - ET
@@ -255,13 +261,15 @@ void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1
 
 bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &vt1, VT &vt2,ET& et ,bool v1_is_border, bool v2_is_border, Forman_Gradient &gradient, Mesh &mesh){
 
-    cout<<"[debug]checking edge "<<v1<<", "<<v2<<endl;
+    bool debug=false;
+ 
+    //cout<<"[debug]checking edge "<<v1<<", "<<v2<<endl;
     if(v1_is_border||v2_is_border){
-      cout<<"border edge"<<endl;
+      //cout<<"border edge"<<endl;
     return false;}
     if(vt1.size()<4||vt2.size()<4){
 
-        cout<<"less than 4 triangles"<<endl;
+       // cout<<"less than 4 triangles"<<endl;
         return false;
     }
     
@@ -269,7 +277,7 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     int t2=et.second;
     if(gradient.is_triangle_critical(t1)||gradient.is_triangle_critical(t2))
     {
-        cout<<"t1 or t2 is critical"<<endl;
+     //   cout<<"t1 or t2 is critical"<<endl;
         return false;
     }
     int v3_sin, v3_des;
@@ -278,7 +286,23 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     ivect new_e; new_e.assign(2,0);
    //set<ivect> v2_edges;
     
+    if(debug){
+        cout<<"[DEBUG]vt1 v1:"<<v1<<endl;
+        for(auto it=vt1.begin();it!=vt1.end();it++){
+            Triangle t=mesh.get_triangle(*it);
+            cout<<t<<endl;
 
+        }
+        cout<<endl;
+
+        cout<<"[DEBUG]vt2 v2:"<<v2<<endl;
+        for(auto it=vt2.begin();it!=vt2.end();it++){
+             Triangle t=mesh.get_triangle(*it);
+            cout<<t<<endl;
+
+        }
+        cout<<endl;
+    }
 
 
     short v3_sin_pair_id;
@@ -382,7 +406,7 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     bool edge2_critical=true;
     for(int i=0; i<vt1.size(); i++){
         if(gradient.is_triangle_critical(vt1[i])){
-            cout<<"vt1 is critical"<<endl;
+            //cout<<"vt1 is critical"<<endl;
          return false;}
         for(int j=0; j<3; j++){
             int vid=mesh.get_triangle(vt1[i]).TV(j);
@@ -450,54 +474,54 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     }
 
     if(v3_sin_pair!=-1&& v3_sin_pair==v2){
-        // cout<<"v3_sin is paired with v2"<<endl;
-        // cout<<"t3_adj_sin:"<<t3_adj_sin<<endl;
+        cout<<"v3_sin is paired with v2"<<endl;
+        cout<<"t3_adj_sin:"<<t3_adj_sin<<endl;
      gradient.update_VE_adj_T(t3_adj_sin,v3_sin,v1,mesh,gradient);   
     }
     else if (v3_sin_pair!=-1&& v3_sin_pair==v1)
     {
-        //    cout<<"v3_sin is paired with v1"<<endl;
-        //    cout<<"v3_sin:"<<v3_sin<<" v3_sin_pair:"<<v3_sin_pair<<endl;
-        //  cout<<"t3_sin:"<<t3_sin<<endl;
+           cout<<"v3_sin is paired with v1"<<endl;
+           cout<<"v3_sin:"<<v3_sin<<" v3_sin_pair:"<<v3_sin_pair<<endl;
+         cout<<"t3_sin:"<<t3_sin<<endl;
      gradient.update_VE_adj_T(t3_sin,v3_sin,v2,mesh,gradient);
     }
     else if (v1_pair!=-1&&v1_pair==v3_sin)
     {
-        // cout<<"v1 is paired with v3_sin"<<endl;
-        // cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
+        cout<<"v1 is paired with v3_sin"<<endl;
+        cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
      gradient.update_VE_adj_T(t3_sin,v2,v3_sin,mesh,gradient);
     }
     else if(v1_pair==v2&&v2_pair==v3_sin)
     {
-        // cout<<"v2 is paired with v3_sin"<<endl;
-        // cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
+        cout<<"v2 is paired with v3_sin"<<endl;
+        cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
         gradient.update_VE_adj_T(t3_adj_sin,v1,v3_sin,mesh,gradient);
     }
 
     if(v3_des_pair!=-1&& v3_des_pair==v2){
-        // gradient.update_VE_adj_T(t3,v3_des,v1,mesh);
-        // cout<<"v3_des is paired with v2"<<endl;
-        //  cout<<"t3_adj_des:"<<t3_adj_des<<endl;
+
+        cout<<"v3_des is paired with v2"<<endl;
+         cout<<"t3_adj_des:"<<t3_adj_des<<endl;
      gradient.update_VE_adj_T(t3_adj_des,v3_des,v1,mesh,gradient);   
     }
     else if (v3_des_pair!=-1&& v3_des_pair==v1)
     {
-        // cout<<"v3_des is paired with v1"<<endl;
-        //  cout<<"t3_des:"<<t3_des<<endl;
+        cout<<"v3_des is paired with v1"<<endl;
+         cout<<"t3_des:"<<t3_des<<endl;
       //  gradient.update_VE_adj_T(t3,v3_des,v2,mesh);
      gradient.update_VE_adj_T(t3_des,v3_des,v2,mesh,gradient);
     }
     else if (v1_pair!=-1&&v1_pair==v3_des)
     {
-        //  cout<<"v1 is paired with v3_des"<<endl;
-        // //gradient.update_VE_adj_T(t3,v2,v3_des,mesh);
-        // cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
+         cout<<"v1 is paired with v3_des"<<endl;
+
+        cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
      gradient.update_VE_adj_T(t3_des,v2,v3_des,mesh,gradient);
     }
     else if(v1_pair==v2&&v2_pair==v3_des)
     {
-        // cout<<"v2 is paired with v3_des"<<endl;
-        // cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
+        cout<<"v2 is paired with v3_des"<<endl;
+        cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
         gradient.update_VE_adj_T(t3_adj_des,v1,v3_des,mesh,gradient);
     }
     return true;
@@ -508,159 +532,40 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
 
 
 
-void Gradient_Aware_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,  Mesh &mesh, contraction_parameters &params)
-{
-   set<ivect> e_set; /// we insert the new edges first in this set to avoid duplicate insertions in the queue
+
+
+void Gradient_Aware_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1,bool& v1_is_border, bool& v2_is_border, Node_V *&outer_v_block,
+                                                Node_V &n, Mesh &mesh, leaf_VT &vts,boost::dynamic_bitset<>is_border_edge, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,PRT_Tree &tree){
+
+    //cout<<"[NOTICE]get edge relation"<<endl;
+    outer_v_block = NULL;
+    /// inverted order as I only need the block indexing v1
+    vt1 = Contraction_Simplifier::get_VT(e[1],n,mesh,vts,cache,tree,outer_v_block,params);
+    vt0 = Contraction_Simplifier::get_VT(e[0],n,mesh,vts,cache,tree,outer_v_block,params);
+
+    v2_is_border=is_border_edge[e[1]-n.get_v_start()];
+    if(n.indexes_vertex(e[0])){
+        v1_is_border=is_border_edge[e[0]-n.get_v_start()];
+    }
+    else{
+        for(auto it=vt0->begin();it!=vt0->end();it++){
+            Triangle& t=mesh.get_triangle(*it);
+            int v_pos=t.vertex_index(e[0]);
+            for(int v1=1;v1<t.vertices_num();v1++){
+                if(t.is_border_edge((v1+v_pos)%t.vertices_num()))
+                {
+                    v1_is_border=true;
+                    break;
+                }
+            }
+
+        }
+    }
     
-    if(params.is_QEM()){
-        initialQuadric[e[0]]+=initialQuadric[e[1]];
-        set<ivect> v1_related_set;
-        for(int i=0;i<vt.size();i++){
-                ivect new_e; new_e.assign(2,0);
-                Triangle &t = mesh.get_triangle(vt[i]);
-                int v1_pos=t.vertex_index(e[0]);
-                for(int i=0; i<t.vertices_num(); i++)
-            {
-                if(i!=v1_pos)
-                {
-                    t.TE(i,new_e);  //t.TE(new_e,pos,i); need to check
-                    //cout<<"New edge"<<new_e[0]<<", "<<new_e[1]<<endl;
-               //     if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed 
-                        v1_related_set.insert(new_e);
-                       // updated_edges[new_e]=-1;
-                }
-            }
-   
-        }
-        for(auto it=v1_related_set.begin(); it!=v1_related_set.end(); ++it)
-    {
-        //Calculate length
-        double value;
-        ivect e;
-        Vertex &v1=mesh.get_vertex((*it)[0]);
-        Vertex &v2=mesh.get_vertex((*it)[1]);
-            int new_vertex_pos=-1;
-              double error = compute_error((*it)[0],(*it)[1],mesh,new_vertex_pos);
-          //    cout<<"[DEBUG] calculated error: "<<error<<endl;
-              assert(new_vertex_pos!=-1);
-                if(new_vertex_pos==1)
-                {
-                    e={(*it)[1],(*it)[0]};
-                }
-                else
-                    e={(*it)[0],(*it)[1]};
-            updated_edges[*it]=error;   
-            if((error-params.get_maximum_limit()<SMALL_TOLER)&&n.indexes_vertex(e[1])){
-                    
-              cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
-                 edges.push(new Geom_Edge(e,error));
-        }
-                 
-    }
+    Contraction_Simplifier::get_ET(e,et,n,mesh,vts);
 
 
-
-    }
-
-        for(ivect_iter it=difference.begin(); it!=difference.end(); ++it)
-        {
-            Triangle &t = mesh.get_triangle(*it);
-
-
-            /// before updating the triangle, we check
-            /// if the leaf block indexing e[0] does not contain the current triangle we have to add it
-            /// NOTA: there is one possible case.. as leaf block n already indexes the triangle in e[1]
-            /// NOTA2: we have just to check that n and v_block are different (as if they are equal the edge is internal in n)
-            if(n.get_v_start() != v_block.get_v_start() && !v_block.indexes_triangle_vertices(t))
-            {
-//                if(debug)
-//                    cout<<"[add top to leaf] "<<t<<" -> "<<*v_block<<endl;
-                v_block.add_triangle(*it);
-            }
-
-            /// then we update the triangle changing e[1] with e[0]
-            int pos = t.vertex_index(e[1]);
-       
-            t.setTV_keep_border(pos,e[0]);
-            dvect diff(4,0.0);
-            if(params.is_QEM()){
-
-            ivect new_e; new_e.assign(2,0);
-            for(int i=0; i<t.vertices_num(); i++)
-            {
-                if(i!=pos)
-                {
-                    t.TE(i,new_e);  //t.TE(new_e,pos,i); need to check
-                 //   cout<<"New edge"<<new_e[0]<<", "<<new_e[1]<<endl;
-               //     if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed 
-                        e_set.insert(new_e);
-                }
-            }
-            }
-            else{
-            /// we have to add the new edges in the queue
-            ivect new_e; new_e.assign(2,0);
-            for(int i=0; i<t.vertices_num(); i++)
-            {
-                if(i!=pos)
-                {
-                    t.TE(i,new_e);  //t.TE(new_e,pos,i); need to check
-               //     if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed 
-                        e_set.insert(new_e);
-                }
-            }
-            }
-        }
-
-
-    /// we push the new "unique" edges in the queue
-    for(auto it=e_set.begin(); it!=e_set.end(); ++it)
-    {
-
-        //Calculate length
-        double value;
-        ivect e;
-        Vertex &v1=mesh.get_vertex((*it)[0]);
-        Vertex &v2=mesh.get_vertex((*it)[1]);
-        if(params.is_QEM()){
-            int new_vertex_pos=-1;
-              double error = compute_error((*it)[0],(*it)[1],mesh,new_vertex_pos);
-          //    cout<<"[DEBUG] calculated error: "<<error<<endl;
-              assert(new_vertex_pos!=-1);
-                if(new_vertex_pos==1)
-                {
-                    e={(*it)[1],(*it)[0]};
-                }
-                else
-                    e={(*it)[0],(*it)[1]};
-        updated_edges[*it]=error;
-            if((error-params.get_maximum_limit()<SMALL_TOLER)&&n.indexes_vertex(e[1])){
-  
-
-            cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
-
-                 edges.push(new Geom_Edge(e,error));
-        }
-                 
-       
-        }
-        else{
-        dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
-        value = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
-         e={(*it)[0],(*it)[1]};
-         
-        if((value-params.get_maximum_limit()<SMALL_TOLER)&&n.indexes_vertex(e[1])){
-        // Geom_Edge new_edge(e,length);
- //    cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<value<<endl;
-        edges.push(new Geom_Edge(e,value));
-        }
-        
-        }
-    }
-
-    /// finally we update the VT relation of e[0]
-    unify_vectors(vt,difference);
 
 
 

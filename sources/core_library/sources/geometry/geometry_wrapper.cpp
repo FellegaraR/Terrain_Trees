@@ -103,7 +103,7 @@ bool Geometry_Wrapper::triangle_in_box(int t_id, Box& box, Mesh& mesh)
     delete[] minf;
     delete[] maxf;
     for (int i = 0; i < t.vertices_num(); i++) {
-        delete c[i];
+        delete[] c[i];
     }
     delete[] c;
     //

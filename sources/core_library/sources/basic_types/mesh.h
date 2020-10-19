@@ -220,7 +220,7 @@ public:
     inline void remove_triangle(itype t)
     {
         Triangle& tri = get_triangle(t);
-        cout<<"Triangle "<<t<<" has been removed."<<endl;
+   //     cout<<"Triangle "<<t<<" has been removed."<<endl;
         tri.setTV(0,0);
     }
 
@@ -241,7 +241,8 @@ public:
      * If new_size is smaller than the current size of the array, the position encoded after size are effectively deleted from the array.
      * @param new_size an integer representing the new size of the array
      */
-    inline void resize_triangle_array(int new_size) {this->triangles.resize(new_size);}
+    inline void resize_triangle_array(int new_size) {
+        cout<<new_size<<endl;this->triangles.resize(new_size);}
 
     inline std::vector<Triangle>::iterator get_t_array_begin(){return this->triangles.begin();}
     inline std::vector<Triangle>::iterator get_t_array_end(){return this->triangles.end();}

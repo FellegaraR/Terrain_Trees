@@ -4,7 +4,7 @@
 
 #include "basic_types/edge.h"
 #include "basic_types/basic_wrappers.h"
-#define SMALL_TOLER (1e-7)
+
 struct Geom_Edge{
     ivect edge;
     double val;
@@ -13,10 +13,12 @@ struct Geom_Edge{
 
 struct CompareEdge{
 
+  const double Zero=1e-7;
+
     bool operator()(Geom_Edge* e1,Geom_Edge* e2){
 
-      if(fabs(e1->val-e2->val)>SMALL_TOLER)
-      return (e1->val-e2->val)>SMALL_TOLER;
+      if(fabs(e1->val-e2->val)>Zero)
+      return (e1->val-e2->val)>Zero;
       else if(e1->edge[0]!=e2->edge[0])
       return e1->edge[0]>e2->edge[0];
       else

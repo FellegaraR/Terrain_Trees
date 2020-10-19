@@ -47,10 +47,11 @@ public:
     typename LRU_Cache<Key,Type>::mapIt find(Key chiave);
     inline bool isFull() { return (lru_list.size() >= max_size); }
     inline void reset() {  this->lru_list.clear(); this->lru_map.clear(); }
+    bool update(Key chiave, Type item);
 
 private:
     utype max_size;
-    list<Key> lru_list;
+    list<Key> lru_list;  //Used to decide which stored <Key, Type> pair should be deleted.
     map<Key,Type> lru_map;
 };
 
@@ -95,4 +96,15 @@ template<class Key, class Type> typename LRU_Cache<Key,Type>::mapIt LRU_Cache<Ke
     return ret.first;
 }
 
+template<class Key, class Type> bool LRU_Cache<Key,Type>::update(Key chiave, Type item){
+    LRU_Cache<Key,Type>::mapIt it_c = this->find(chiave); 
+    if(it_c==this->end()){
+        cerr<<"the node to be updated is not in the cache"<<endl;
+        return false;
+    }
+    else{
+        it_c->second=item;
+    }
+    return true;
+}
 #endif // LRU_CACHE_H
