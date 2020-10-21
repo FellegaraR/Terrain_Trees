@@ -78,7 +78,7 @@
 
             }   
         }
-        cout<<"======NEXT NODE======"<<endl;
+      //  cout<<"======NEXT NODE======"<<endl;
 }
 
 
@@ -614,7 +614,7 @@ edge_queue edges;
 find_candidate_edges(n,mesh,local_vts,edges,params);
 int edge_num=edges.size();
 int edges_contracted_leaf=0;
-cout<<"Edge number:"<<edges.size()<<endl;
+//cout<<"Edge number:"<<edges.size()<<endl;
 params.add_edge_queue_size(edges.size());
     while(!edges.empty())
     {
@@ -843,7 +843,7 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
         cout<<"**** [Number] "<<edges.size()<<" edges enqueued. Start simplification.****"<<endl;
          cout<<"number of remaining triangles:"<<t_count<<endl;
 
-        cout<<"======NEXT NODE======"<<endl;
+       // cout<<"======NEXT NODE======"<<endl;
 }
 
 void Contraction_Simplifier::compute_initial_QEM( Mesh &mesh, vector<dvect >& planes){

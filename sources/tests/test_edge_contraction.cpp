@@ -20,8 +20,8 @@ int main(int argc, char** argv)
 	
 	cli.division_type = QUAD;
     cli.crit_type = "pr";
-    cli.v_per_leaf = 5000;
-    cli.maximum_limit=atof(argv[2]);
+    cli.v_per_leaf = atoi(argv[2]);
+    cli.maximum_limit=atof(argv[4]);
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cli.app_debug=OUTPUT;
     cerr<<"[GENERATION] PR-T tree"<<endl;

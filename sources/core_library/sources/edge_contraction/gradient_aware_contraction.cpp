@@ -98,12 +98,12 @@ if(!n.indexes_vertices())
     itype v_range = v_end - v_start;
 
 
-    cout<<"Simplification in leaf."<<endl;
+ //   cout<<"Simplification in leaf."<<endl;
 boost::dynamic_bitset<> is_v_border(v_end-v_start);
 //cout<<"Simplification in leaf."<<endl;
 leaf_VT local_vts(v_range,VT());
 n.get_VT_and_border(local_vts,is_v_border,mesh);
-cout<<"Extracted VT and border edges"<<endl;
+//cout<<"Extracted VT and border edges"<<endl;
     // Create a priority queue of candidate edges
     edge_queue edges;
     find_candidate_edges_QEM(n,mesh,local_vts,edges,params);
@@ -189,7 +189,7 @@ edge_queue edges;
 find_candidate_edges(n,mesh,local_vts,edges,params);
 int edge_num=edges.size();
 int edges_contracted_leaf=0;
-cout<<"Edge number:"<<edges.size()<<endl;
+//cout<<"Edge number:"<<edges.size()<<endl;
 params.add_edge_queue_size(edges.size());
     while(!edges.empty())
     {
@@ -474,54 +474,54 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     }
 
     if(v3_sin_pair!=-1&& v3_sin_pair==v2){
-        cout<<"v3_sin is paired with v2"<<endl;
-        cout<<"t3_adj_sin:"<<t3_adj_sin<<endl;
+        // cout<<"v3_sin is paired with v2"<<endl;
+        // cout<<"t3_adj_sin:"<<t3_adj_sin<<endl;
      gradient.update_VE_adj_T(t3_adj_sin,v3_sin,v1,mesh,gradient);   
     }
     else if (v3_sin_pair!=-1&& v3_sin_pair==v1)
     {
-           cout<<"v3_sin is paired with v1"<<endl;
-           cout<<"v3_sin:"<<v3_sin<<" v3_sin_pair:"<<v3_sin_pair<<endl;
-         cout<<"t3_sin:"<<t3_sin<<endl;
+        //    cout<<"v3_sin is paired with v1"<<endl;
+        //    cout<<"v3_sin:"<<v3_sin<<" v3_sin_pair:"<<v3_sin_pair<<endl;
+        //  cout<<"t3_sin:"<<t3_sin<<endl;
      gradient.update_VE_adj_T(t3_sin,v3_sin,v2,mesh,gradient);
     }
     else if (v1_pair!=-1&&v1_pair==v3_sin)
     {
-        cout<<"v1 is paired with v3_sin"<<endl;
-        cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
+        // cout<<"v1 is paired with v3_sin"<<endl;
+        // cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
      gradient.update_VE_adj_T(t3_sin,v2,v3_sin,mesh,gradient);
     }
     else if(v1_pair==v2&&v2_pair==v3_sin)
     {
-        cout<<"v2 is paired with v3_sin"<<endl;
-        cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
+        // cout<<"v2 is paired with v3_sin"<<endl;
+        // cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
         gradient.update_VE_adj_T(t3_adj_sin,v1,v3_sin,mesh,gradient);
     }
 
     if(v3_des_pair!=-1&& v3_des_pair==v2){
 
-        cout<<"v3_des is paired with v2"<<endl;
-         cout<<"t3_adj_des:"<<t3_adj_des<<endl;
+        // cout<<"v3_des is paired with v2"<<endl;
+        //  cout<<"t3_adj_des:"<<t3_adj_des<<endl;
      gradient.update_VE_adj_T(t3_adj_des,v3_des,v1,mesh,gradient);   
     }
     else if (v3_des_pair!=-1&& v3_des_pair==v1)
     {
-        cout<<"v3_des is paired with v1"<<endl;
-         cout<<"t3_des:"<<t3_des<<endl;
+        // cout<<"v3_des is paired with v1"<<endl;
+        //  cout<<"t3_des:"<<t3_des<<endl;
       //  gradient.update_VE_adj_T(t3,v3_des,v2,mesh);
      gradient.update_VE_adj_T(t3_des,v3_des,v2,mesh,gradient);
     }
     else if (v1_pair!=-1&&v1_pair==v3_des)
     {
-         cout<<"v1 is paired with v3_des"<<endl;
+        //  cout<<"v1 is paired with v3_des"<<endl;
 
-        cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
+        // cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
      gradient.update_VE_adj_T(t3_des,v2,v3_des,mesh,gradient);
     }
     else if(v1_pair==v2&&v2_pair==v3_des)
     {
-        cout<<"v2 is paired with v3_des"<<endl;
-        cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
+        // cout<<"v2 is paired with v3_des"<<endl;
+        // cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
         gradient.update_VE_adj_T(t3_adj_des,v1,v3_des,mesh,gradient);
     }
     return true;
