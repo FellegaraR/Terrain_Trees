@@ -182,13 +182,9 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                                                             edge_queue &edges, Mesh &mesh, contraction_parameters &params)
 {
     set<ivect> e_set; /// we insert the new edges first in this set to avoid duplicate insertions in the queue
-    if(e[1]==289){
-        cout<<difference.size()<<endl;
-    }
+
     if(params.is_QEM()){
         initialQuadric[e[0]]+=initialQuadric[e[1]];
-        if(e[1]==289)
-        cout<<"QEM updated."<<endl;
         set<ivect> v1_related_set;
         for(int i=0;i<vt.size();i++){
 
@@ -221,20 +217,20 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
               double error = compute_error((*it)[0],(*it)[1],mesh,new_vertex_pos);
           //    cout<<"[DEBUG] calculated error: "<<error<<endl;
               assert(new_vertex_pos!=-1);
-                if(new_vertex_pos==1)
-                {
-                    e={(*it)[1],(*it)[0]};
-                }
-                else
-                    e={(*it)[0],(*it)[1]};
+
             if(updated_edges.find(*it)!=updated_edges.end())
             updated_edges[*it]=error;
             else{
             pair<ivect,double> updated_edge(*it,error);
             updated_edges.insert(updated_edge);
             }
+            e={(*it)[0],(*it)[1]};
             if((error-params.get_maximum_limit()<Zero)&&n.indexes_vertex(e[1])){
-                    
+                if(new_vertex_pos==1)
+                {
+                    e={(*it)[1],(*it)[0]};
+                }
+
             //  cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                  edges.push(new Geom_Edge(e,error));
@@ -242,8 +238,7 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                  
     }
 
-        if(e[1]==289)
-        cout<<"edges updated."<<endl;
+
 
     }
 
@@ -258,11 +253,19 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
             // but in Terrain trees, we encode also the intersecting triangles, so it cannot work
             /// NOTA: there is one possible case.. as leaf block n already indexes the triangle in e[1]
             /// NOTA2: we have just to check that n and v_block are different (as if they are equal the edge is internal in n)
-            if(n.get_v_start() != v_block.get_v_start() && !v_block.index_triangle(*it))
+            
+            if(n.get_v_start() != v_block.get_v_start() ){
+            if(e[0]<e[1]&& !v_block.index_triangle(*it))
             {
 
                 v_block.add_triangle(*it);
             }
+            else if(e[0]>e[1]&& !n.index_triangle(*it))
+            {
+                n.add_triangle(*it);
+            }
+            }
+            
 
             /// then we update the triangle changing e[1] with e[0]
             int pos = t.vertex_index(e[1]);
@@ -313,21 +316,20 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
               double error = compute_error((*it)[0],(*it)[1],mesh,new_vertex_pos);
           //    cout<<"[DEBUG] calculated error: "<<error<<endl;
               assert(new_vertex_pos!=-1);
-                if(new_vertex_pos==1)
-                {
-                    e={(*it)[1],(*it)[0]};
-                }
-                else
-                    e={(*it)[0],(*it)[1]};
+
             if(updated_edges.find(*it)!=updated_edges.end())
             updated_edges[*it]=error;
             else{
             pair<ivect,double> updated_edge(*it,error);
             updated_edges.insert(updated_edge);
             }
+             e={(*it)[0],(*it)[1]};
             if((error-params.get_maximum_limit()<Zero)&&n.indexes_vertex(e[1])){
-
-
+                if(new_vertex_pos==1)
+                {
+                    e={(*it)[1],(*it)[0]};
+                }
+  
           //  cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                  edges.push(new Geom_Edge(e,error));
@@ -587,9 +589,9 @@ if(!n.indexes_vertices())
     }
 
 //update the cache if the vts have been stored already.
-if(cache.find(v_start) != cache.end()){
-    cache.update(v_start,local_vts);
-}
+// if(cache.find(v_start) != cache.end()){
+//     cache.update(v_start,local_vts);
+// }
 
 }
 
@@ -662,9 +664,16 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
     //cout<<"[NOTICE]get edge relation"<<endl;
     outer_v_block = NULL;
     /// inverted order as I only need the block indexing v1
+    if(e[1]>e[0]){
     vt1 = Contraction_Simplifier::get_VT(e[1],n,mesh,vts,cache,tree,outer_v_block,params);
     vt0 = Contraction_Simplifier::get_VT(e[0],n,mesh,vts,cache,tree,outer_v_block,params);
+    }
+    else{
 
+    vt0 = Contraction_Simplifier::get_VT(e[0],n,mesh,vts,cache,tree,outer_v_block,params);
+    vt1 = Contraction_Simplifier::get_VT(e[1],n,mesh,vts,cache,tree,outer_v_block,params);
+
+    }
 
 
     Contraction_Simplifier::get_ET(e,et,n,mesh,vts);
@@ -801,15 +810,17 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
               int new_vertex_pos=-1;
               double error = compute_error(e[0],e[1],mesh,new_vertex_pos);
               assert(new_vertex_pos!=-1);
+
+       
+                if(n.indexes_vertex(e[1]))// e (v1,v2) is a candidate edge if at least v2 is in n
+                {
+
                 if(new_vertex_pos==1)
                 {
                     int tmp=e[1];
                     e[1]=e[0];
                     e[0]=tmp;
                 }
-       
-                if(n.indexes_vertex(e[1]))// e (v1,v2) is a candidate edge if at least v2 is in n
-                {
                     map<ivect,coord_type>::iterator it = edge_map.find(e);
                    // cout<<e[0]<<" and "<<e[1]<<endl;
                     if(it == edge_map.end())

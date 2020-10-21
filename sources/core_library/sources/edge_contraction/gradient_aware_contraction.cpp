@@ -160,9 +160,9 @@ cout<<"Extracted VT and border edges"<<endl;
     // cout<<"Number of edges remaining:"<<edges.size()<<endl;
     }
 
-if(cache.find(v_start) != cache.end()){
-    cache.update(v_start,local_vts);
-}
+// if(cache.find(v_start) != cache.end()){
+//     cache.update(v_start,local_vts);
+// }
 
 }
 
@@ -540,9 +540,10 @@ void Gradient_Aware_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, V
     //cout<<"[NOTICE]get edge relation"<<endl;
     outer_v_block = NULL;
     /// inverted order as I only need the block indexing v1
+    if(e[1]>e[0]){
     vt1 = Contraction_Simplifier::get_VT(e[1],n,mesh,vts,cache,tree,outer_v_block,params);
     vt0 = Contraction_Simplifier::get_VT(e[0],n,mesh,vts,cache,tree,outer_v_block,params);
-
+   
     v2_is_border=is_border_edge[e[1]-n.get_v_start()];
     if(n.indexes_vertex(e[0])){
         v1_is_border=is_border_edge[e[0]-n.get_v_start()];
@@ -561,6 +562,37 @@ void Gradient_Aware_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, V
 
         }
     }
+   
+   
+    }
+    else{
+
+    vt0 = Contraction_Simplifier::get_VT(e[0],n,mesh,vts,cache,tree,outer_v_block,params);
+    vt1 = Contraction_Simplifier::get_VT(e[1],n,mesh,vts,cache,tree,outer_v_block,params);
+
+    v1_is_border=is_border_edge[e[0]-n.get_v_start()];
+    if(n.indexes_vertex(e[1])){
+        v2_is_border=is_border_edge[e[1]-n.get_v_start()];
+    }
+    else{
+        for(auto it=vt1->begin();it!=vt1->end();it++){
+            Triangle& t=mesh.get_triangle(*it);
+            int v_pos=t.vertex_index(e[1]);
+            for(int v1=1;v1<t.vertices_num();v1++){
+                if(t.is_border_edge((v1+v_pos)%t.vertices_num()))
+                {
+                    v2_is_border=true;
+                    break;
+                }
+            }
+
+        }
+    }
+
+
+    }
+
+   
     
 
     Contraction_Simplifier::get_ET(e,et,n,mesh,vts);
