@@ -67,7 +67,7 @@ public:
     inline void set(itype v1, itype v2, itype v3) { this->vertices = { v1, v2, v3 }; }
     ///A public method that returns the vertex at the pos-th position in the boundary array
     /*!
-     * we return abolute (positive) index value stored in the triangle.
+     * we return absolute (positive) index value stored in the triangle.
      * NOTA: a vertex index is make negative if the opposite edge is a an edge on the mesh borders
      *       (see Border_Checker class for additional informations)
      *

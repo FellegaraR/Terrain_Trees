@@ -282,7 +282,33 @@ public:
      * @param new_t_list an integer vector containing the updated array
      */
     void compress_triangle_array(ivect &new_t_list);
+
+    /////NOTE: this functions is supposed to be used for the simplification only. 
+
+    inline bool index_triangle(itype tid, Mesh &mesh, itype v_id=-1){
+        if(v_id !=-1) {
+            /// then extract the other (up to) two vertex ids in the boundary of tid
+            /// if one of such ids is in this (the leaf)
+            /// then return true
+            itype v1=-1,v2=-1;
+            Triangle t=mesh.get_triangle(tid);
+            itype v_pos=t.vertex_index(v_id);
+            v1=t.TV((v_pos+1)%3);
+            v2=t.TV((v_pos+2)%3);
+            if(this->indexes_vertex(v1)||this->indexes_vertex(v2))
+            return true;
     
+        }
+        ///otherwise iterate over the triangle list
+        for(RunIteratorPair itPair = make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+    {
+        RunIterator const& t_id = itPair.first;
+        if(*t_id==tid){
+            return true;
+        }
+    }
+        return false;
+    }
 protected:    
    ivect vertices;
 };

@@ -2,7 +2,6 @@
 
 void Gradient_Aware_Simplifier::gradient_aware_simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli,Forman_Gradient &gradient)   
 {
-    cerr<<"==Homology preserving simplification - weak-link condition=="<<endl;
 
     cerr<<"[NOTICED] Cache size: "<<cli.cache_size<<endl;
     LRU_Cache<int,leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VT relations
