@@ -30,7 +30,7 @@ typedef std::priority_queue<Geom_Edge*, std::vector<Geom_Edge*>, CompareEdge> ed
 class contraction_parameters
 {
 public: 
-  contraction_parameters(){checked_edges = 0;maximum_limit=0;simplification_counter=0;sum_edge_queue_sizes=0;QEM_based=false;}
+  contraction_parameters(){checked_edges = 0;maximum_limit=0;simplification_counter=0;sum_edge_queue_sizes=0;QEM_based=false;parallel=false;}
     inline void increment_contracted_edges_counter() { checked_edges++; }
     inline int get_contracted_edges_num() { return checked_edges; }
     inline void set_maximum_limit(double l){this->maximum_limit=l;}
@@ -42,6 +42,8 @@ public:
     inline void queue_criterion_QEM(){QEM_based=true;}
     inline void queue_criterion_length(){QEM_based=false;}
     inline bool is_QEM(){return QEM_based;}
+    inline bool is_parallel(){return parallel;}
+    inline void parallel_compute(){parallel=true;}
     inline void print_simplification_counters()
     {
         if(checked_edges >0)
@@ -53,6 +55,7 @@ protected:
   int simplification_counter; //number of deleted triangles
   int sum_edge_queue_sizes;
   bool QEM_based;
+  bool parallel;
 };
 
 #endif // SIMPLIFICATION_AUX_STRUCTURES_H

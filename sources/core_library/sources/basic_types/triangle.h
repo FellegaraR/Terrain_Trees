@@ -149,7 +149,7 @@ public:
     /// Bigger-index vertex getter
     inline itype maxindex() const { return max(max(vertices[0],vertices[1]),vertices[2]); }
 
-
+    inline bool is_removed() {return this->vertices[0]==0;}
     /**
      * @brief operator ==
      * @param p

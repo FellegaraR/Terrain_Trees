@@ -60,6 +60,9 @@ protected:
 
     void find_candidate_edges_QEM(Node_V &n, Mesh &mesh, leaf_VT &vts,edge_queue& edges, contraction_parameters &params);
     void find_candidate_edges(Node_V &n, Mesh &mesh, leaf_VT &vts,edge_queue& edges, contraction_parameters &params);
+    
+    void find_candidate_edges_parallel(Node_V &n, Mesh &mesh, leaf_VT &vts,edge_queue& edges, contraction_parameters &params);
+    
     /// the procedure updatess
     /// (1) the VTop relation of the surviving vertex
     /// (2) the top simplices for which we change the v2 with v1

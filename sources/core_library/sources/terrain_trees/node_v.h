@@ -105,15 +105,25 @@ public:
         return true;
     }
 
-//    inline bool indexes_simplex(const ivect &s)
-//    {
-//        if(!this->indexes_vertices())
-//            return false;
-//        for(ivect_citer it=s.begin(); it!=s.end(); ++it)
-//            if(this->indexes_vertex(*it))
-//                return true;
-//        return false;
-//    }
+    // inline bool completely_indexes_edge_vertices(Triangle &t)
+    // {
+    //     if(!this->indexes_vertices())
+    //         return false;
+    //     for(int i=0; i<t.vertices_num(); i++)
+    //         if(!this->indexes_vertex(t.TV(i)))
+    //             return false;
+    //     return true;
+    // }
+
+   inline bool completely_indexes_simplex(const ivect &s)
+   {
+       if(!this->indexes_vertices())
+           return false;
+       for(ivect_citer it=s.begin(); it!=s.end(); ++it)
+           if(!this->indexes_vertex(*it))
+               return false;
+       return true;
+   }
 
     /**
      * @brief operator <<

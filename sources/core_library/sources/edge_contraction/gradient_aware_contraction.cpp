@@ -19,7 +19,7 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify(PRT_Tree &tree, Mesh &me
     int round = 1;
     if(params.is_QEM()){
 
-         trianglePlane =vector<dvect>(mesh.get_triangles_num(),dvect(4,0));
+        trianglePlane =vector<dvect>(mesh.get_triangles_num(),dvect(4,0));
         initialQuadric = vector<Matrix>(mesh.get_vertices_num()+1,Matrix(0.0));
         cout<<"=========Calculate triangle plane========"<<endl;
         compute_triangle_plane(mesh,trianglePlane);
@@ -200,7 +200,6 @@ params.add_edge_queue_size(edges.size());
         edges.pop();
 
         if (mesh.is_vertex_removed(e[0])||mesh.is_vertex_removed(e[1])){
-
          //   cout<<"Vertex removed"<<endl;
         // cout<<"skip current edge"<<endl;
          delete current;
@@ -213,9 +212,10 @@ params.add_edge_queue_size(edges.size());
         ET et(-1,-1);
         VT *vt0=NULL,*vt1=NULL;
         Node_V *outer_v_block=NULL;
+        bool v1_is_border=false, v2_is_border=false;
         
-        Contraction_Simplifier::get_edge_relations(e,et,vt0,vt1,outer_v_block,n,mesh,local_vts,cache,params,tree);
-        if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)){
+        get_edge_relations(e,et,vt0,vt1,v1_is_border,v2_is_border,outer_v_block,n,mesh,local_vts,is_v_border,cache,params,tree);
+        if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)){
         contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params,gradient);
         edges_contracted_leaf++;
     // break;
@@ -234,9 +234,6 @@ void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1
     et_vec.push_back(et.first);
     if(et.second!=-1)
         et_vec.push_back(et.second);
-
-
-
 
     difference_of_vectors(vt0,et_vec); // vt0 now contains the difference VT0 - ET
     difference_of_vectors(vt1,et_vec); // vt1 now contains the difference VT1 - ET
@@ -261,13 +258,11 @@ void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1
 bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &vt1, VT &vt2,ET& et ,bool v1_is_border, bool v2_is_border, Forman_Gradient &gradient, Mesh &mesh){
 
     bool debug=false;
- 
-    //cout<<"[debug]checking edge "<<v1<<", "<<v2<<endl;
+    cout<<"[debug]checking edge "<<v1<<", "<<v2<<endl;
     if(v1_is_border||v2_is_border){
       //cout<<"border edge"<<endl;
     return false;}
     if(vt1.size()<4||vt2.size()<4){
-
        // cout<<"less than 4 triangles"<<endl;
         return false;
     }
@@ -312,14 +307,14 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
             break;
         }
     }
-
+    
     itype v3_sin_pair= (v3_sin_pair_id!=-1) ? mesh.get_triangle(t1).TV(v3_sin_pair_id):-1;
-    if(v3_sin_pair==v2)
-        {
-           // cout<<"v3_sin:"<<v3_sin<<" v2:"<<v2<<endl;
-          //  cout<<"v3 sin pair is v2"<<endl;  // why this case? 
-      //      return false;
-        }
+    // if(v3_sin_pair==v2)
+    //     {
+    //        // cout<<"v3_sin:"<<v3_sin<<" v2:"<<v2<<endl;
+    //       //  cout<<"v3 sin pair is v2"<<endl;  // why this case? 
+    //   //      return false;
+    //     }
 
     short v3_des_pair_id;
     for(int i=0; i<3; i++){
@@ -331,11 +326,7 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
         }
     }
     itype v3_des_pair= (v3_des_pair_id!=-1) ? mesh.get_triangle(t2).TV(v3_des_pair_id):-1;
-    if(v3_des_pair==v2)
-        {
-         //   cout<<"v3 des pair is v2"<<endl; // why this case? 
-           // return false;
-        }
+
     itype t3_des=-1;
     itype t3_sin=-1;
     bool v2_is_critical=true;
@@ -378,22 +369,25 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
         if(!gradient.is_vertex_critical(v2,vt2[i],mesh)) 
         v2_is_critical=false;
     }
-
+cout<<"breakpoint2"<<endl;
     if(v2_is_critical)
      {
        //  cout<<"v2 is critical"<<endl;
          return false;}
+
     for(auto it=ets.begin();it!=ets.end();it++){
         ivect e={it->first,v2};
         itype et1=it->second[0];
         itype et2=it->second[1];
+    
+        cout<<it->first<<": "<<et1<<", "<<et2<<endl;
         if(gradient.is_edge_critical(e,et1,mesh)&&gradient.is_edge_critical(e,et2,mesh))
         {
         //    cout<<"vv(v2) has critical edge"<<endl;
             return false;
         }
     }
-
+cout<<"breakpoint1"<<endl;
     ivect edge;
     edge={v1,v2};
     std::sort(edge.begin(),edge.end());
@@ -591,13 +585,6 @@ void Gradient_Aware_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, V
 
     }
 
-   
-    
-
     Contraction_Simplifier::get_ET(e,et,n,mesh,vts);
-
-
-
-
 
 }
