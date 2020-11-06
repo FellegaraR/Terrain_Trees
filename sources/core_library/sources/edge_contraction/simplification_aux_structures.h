@@ -44,6 +44,7 @@ public:
     inline bool is_QEM(){return QEM_based;}
     inline bool is_parallel(){return parallel;}
     inline void parallel_compute(){parallel=true;}
+    inline void sequential_compute(){parallel=false;}
     inline void print_simplification_counters()
     {
         if(checked_edges >0)

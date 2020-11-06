@@ -25,11 +25,12 @@ public:
     /// this procedure simplify the simplicial complex without considering any weight for the edges
     void simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
     void update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh,contraction_parameters &params);
-    
+    void simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
 
 protected:
     const double Zero =1e-7;
    void simplify_compute(Node_V &n,  Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,Spatial_Subdivision &division,  contraction_parameters &params,PRT_Tree &tree);
+   void simplify_compute_parallel(Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,Spatial_Subdivision &division,  contraction_parameters &params,PRT_Tree &tree);
     void simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree& tree);
     ///edge contraction based on QEM criterion 
     void simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree& tree);
@@ -51,6 +52,9 @@ protected:
     /// the VTop is always without removed top-simplices
      VT* get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int,leaf_VT> &cache,
                         PRT_Tree &tree, Node_V *& v_block, contraction_parameters &params);
+
+    leaf_VT & get_VTS(Node_V &n, Mesh &mesh, LRU_Cache<int,leaf_VT> &cache,
+                        PRT_Tree &tree, contraction_parameters &params);
      // Find two adjacent triangles of edge e.                   
     void get_ET(ivect &e, ET &et, Node_V &n, Mesh &mesh, leaf_VT &vts);
     ///

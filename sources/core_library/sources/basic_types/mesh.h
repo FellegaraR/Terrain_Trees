@@ -72,7 +72,8 @@ public:
      * \param id an itype argument, representing the position in the list
      * \return a Triangle&, the triangle at the id-th position in the list
      */
-    inline Triangle& get_triangle(itype id) { return this->triangles[id-1]; }
+    inline Triangle& get_triangle(itype id) {  
+        return this->triangles[id-1]; }
     ///A public method that returns the mesh domain
     /*!
      * \return a Box&, the mesh domain

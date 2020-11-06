@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <string>
 #include <sstream>
+#include <omp.h>
 
 #include "geometry/geometry_wrapper.h"
 #include "io/reader.h"

@@ -73,6 +73,20 @@ public:
     void update_tree(Node_V &n, ivect &new_v_positions,ivect &new_t_positions, bool all_deleted);
     void get_leaf_indexing_vertex(Node_V &n, int v_id, Node_V *&res);
 
+    void init_leaves_list(Node_V &n);
+        /**
+     * @brief A public method that returns the leaf block at i-th position in the leaves array
+     *
+     * @param i an integer argument representing the position index of the leaf
+     * @return Node_V* a pointer reference to the leaf block
+     */
+    inline Node_V* get_leaf(unsigned i) { return this->leaves[i]; }
+    /**
+     * @brief A public method that returns the number of leaf blocks in the tree
+     *
+     * @return unsigned
+     */
+    inline unsigned get_leaves_number() { return this->leaves.size(); }
 private:
     ///A private variable representing the maximum number of vertices admitted for a node
     int vertices_threshold;
@@ -158,7 +172,7 @@ private:
     */
     void add_vertex_from_cloud(Node_V& n, Box& domain, int level, Vertex& v, itype vertex_index, vertex_multifield &multifield);
 
-
+    vector<Node_V*> leaves;
 };
 
 #endif	/* P_TREE_H */

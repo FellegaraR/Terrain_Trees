@@ -262,3 +262,26 @@ void PRT_Tree::get_leaf_indexing_vertex(Node_V &n, int v_id, Node_V *&res)
         }
     }
 }
+
+void PRT_Tree::init_leaves_list(Node_V &n)
+{
+    if(!n.is_leaf())
+    {
+        for(Node_V::child_iterator it=n.begin(); it!=n.end(); ++it)
+        {
+            if(*it != NULL)
+            {
+                if((*it)->is_leaf())
+                {
+                    this->leaves.push_back(*it);
+                }
+                else
+                {
+                    this->init_leaves_list(**it);
+                }
+            }
+        }
+    }
+
+
+}

@@ -11,6 +11,7 @@ void Node_V::get_VT(leaf_VT &all_vt, Mesh &mesh)
 
     all_vt.assign(v_end-v_start,ivect());
 
+    
     for(RunIteratorPair itPair = make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
     {
         RunIterator const& t_id = itPair.first;

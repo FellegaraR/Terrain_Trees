@@ -90,16 +90,16 @@
         {   
             RunIterator const& t_id = itPair.first;
             
-            #pragma omp critical
-            {
+
             if(mesh.is_triangle_removed(*t_id)){
               //  cout<<"triangle removed"<<endl;
                 continue;
-            }
+
             
             }
             for(int i=0; i<3; i++)
             {
+                bool not_valid=false;
                 #pragma omp critical
                 {
                 if(!mesh.is_triangle_removed(*t_id)){
@@ -107,12 +107,13 @@
                     t.TE(i,e);
                     }
                 else
-                {
-                    continue;
-                }
+                not_valid=true;
                 
                 }
               
+                if(not_valid)
+                    continue;
+
                 if(n.completely_indexes_simplex(e))// e (v1,v2) is a candidate edge if at least v2 is in n
                 {
                     map<ivect,coord_type>::iterator it = lengths.find(e);
@@ -300,6 +301,7 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
         for(ivect_iter it=difference.begin(); it!=difference.end(); ++it)
         {
             int pos =-1;
+            bool not_valid=false;
             #pragma omp critical
             {
                 if(!mesh.is_triangle_removed(*it))
@@ -310,8 +312,10 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                     t.setTV_keep_border(pos,e[0]);
                     }
                 else 
-                    continue;
+                    not_valid=true;
             }
+            if(not_valid)
+                continue;
             
             /// before updating the triangle, we check
             /// if the leaf block indexing e[0] does not contain the current triangle we have to add it
@@ -423,12 +427,10 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
 {
     if(et.first!=-1)
     {
-    #pragma omp atomic    
     mesh.remove_triangle(et.first);
     params.increment_counter();
     }
    if(et.second!=-1){
-    #pragma omp atomic    
     mesh.remove_triangle(et.second);
     params.increment_counter();
    }
@@ -439,7 +441,8 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
 }
 
  bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1,ET& et,Mesh &mesh){
-
+ iset link_ab;
+   iset link_e;
 #pragma omp critical
 {
     iset vv0,vv1;
@@ -456,7 +459,7 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
         vv1.insert(t.TV((v1_id+2)%3));
     }
     int counter=0;
-    iset link_ab;
+   
   //  cout<<v1<<"'s VV size: "<<vv1.size()<<endl;
     for(iset_iter it=vv1.begin();it!=vv1.end();it++){
         if(vv0.find(*it)!=vv0.end()){
@@ -465,7 +468,7 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
         }
     }   
    
-    iset link_e;
+  
     if(et.first!=-1){
         Triangle t1= mesh.get_triangle(et.first);
         for(int i=0;i<3;i++){
@@ -480,9 +483,10 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
              link_e.insert(t2.TV(i));
         }
     }
-   
+}
 return link_e.size()==link_ab.size();
- }
+    
+
 }
 
 
@@ -491,7 +495,55 @@ void Contraction_Simplifier::update_new(const ivect &e, VT& vt, VT& difference, 
     
             }
 
-            
+
+void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli){
+    cerr<<"[NOTICED] Cache size: "<<cli.cache_size<<endl;
+    LRU_Cache<int,leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VT relations
+    contraction_parameters params;
+    params.set_maximum_limit(cli.maximum_limit);
+
+    params.queue_criterion_length();
+    params.parallel_compute();
+    Timer time;
+    int simplification_round;
+    int round = 1;
+
+    time.start();
+        while(1)
+    {
+        simplification_round = params.get_contracted_edges_num();  //checked edges
+        /// HERE YOU NEED TO DEFINE A PROCEDURE FOR SIMPLIFY THE TIN BY USING THE SPATIAL INDEX
+        this->simplify_compute_parallel(mesh,cache,tree.get_subdivision(),params,tree);
+
+        cout<<"Num of edges enqueued:"<<params.get_sum_edge_queue_sizes()<<endl;
+        // PARTIAL SIMPLIFICATION STATS
+        cerr<<"=== end-of-round "<<round<<") --> contracted edges: ";
+        cerr<<params.get_contracted_edges_num()-simplification_round<<endl;
+        round++;
+
+        if(cli.debug_mode)
+        {
+            time.stop();
+            time.print_elapsed_time("   [TIME] executing a simplification round: ");
+            time.start();
+          //  cerr << "   [RAM] peak for executing a simplification round: " << to_string(MemoryUsage().getValue_in_MB(false)) << " Mbs" << std::endl;
+        }
+        if(simplification_round == params.get_contracted_edges_num())
+            break;
+
+        cache.reset();
+
+    }
+    time.stop();
+    if(!cli.debug_mode)
+        time.print_elapsed_time("[TIME] Edge contraction simplification: ");
+    //else
+        //params.print_simplification_partial_timings();
+    //params.print_simplification_counters();
+    /// finally we have to update/compress the mesh and the tree
+    Contraction_Simplifier::update_mesh_and_tree(tree,mesh,params);
+}
+
 void Contraction_Simplifier::simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli)
 {   
 
@@ -563,7 +615,7 @@ void Contraction_Simplifier::simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters
     Contraction_Simplifier::update_mesh_and_tree(tree,mesh,params);
 }
 
-  void Contraction_Simplifier::simplify_compute(Node_V &n,  Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,Spatial_Subdivision &division,  contraction_parameters &params, PRT_Tree &tree)
+void Contraction_Simplifier::simplify_compute(Node_V &n,  Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,Spatial_Subdivision &division,  contraction_parameters &params, PRT_Tree &tree)
 {
       if (n.is_leaf())
     {
@@ -585,6 +637,19 @@ void Contraction_Simplifier::simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters
 
 }
 
+
+void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,Spatial_Subdivision &division,  contraction_parameters &params, PRT_Tree &tree)
+{
+#pragma omp parallel for
+    for(unsigned i=0; i<tree.get_leaves_number(); i++)
+    {
+        Node_V* leaf = tree.get_leaf(i);
+
+        simplify_leaf(*leaf,mesh,cache,params,tree);
+    }
+}
+
+
 void Contraction_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,PRT_Tree& tree){
 
 if(!n.indexes_vertices())
@@ -596,9 +661,10 @@ if(!n.indexes_vertices())
 
 
     //cout<<"Simplification in leaf."<<endl;
-    leaf_VT local_vts(v_range,VT());
+    // leaf_VT local_vts(v_range,VT());
 
-    n.get_VT(local_vts,mesh);
+    // n.get_VT(local_vts,mesh);
+    leaf_VT& local_vts=get_VTS(n,mesh,cache,tree,params);
     // Create a priority queue of candidate edges
     edge_queue edges;
     find_candidate_edges_QEM(n,mesh,local_vts,edges,params);
@@ -675,11 +741,17 @@ if(!n.indexes_vertices())
 
 
 //cout<<"Simplification in leaf."<<endl;
-leaf_VT local_vts(v_range,VT());
-n.get_VT(local_vts,mesh);
+// leaf_VT local_vts(v_range,VT());
+// n.get_VT(local_vts,mesh);
+
+leaf_VT& local_vts=get_VTS(n,mesh,cache,tree,params);
 // Create a priority quue of candidate edges
 edge_queue edges;
-find_candidate_edges(n,mesh,local_vts,edges,params);
+if(params.is_parallel()){
+    find_candidate_edges_parallel(n,mesh,local_vts,edges,params);
+}
+else
+    find_candidate_edges(n,mesh,local_vts,edges,params);
 int edge_num=edges.size();
 int edges_contracted_leaf=0;
 //cout<<"Edge number:"<<edges.size()<<endl;
@@ -720,8 +792,6 @@ params.add_edge_queue_size(edges.size());
 
 // leaf_VV vvs;
 // n.get_VV(vvs,mesh);
-// for()
-
 
 }
 
@@ -749,11 +819,13 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
 
 }
 
+
+
  VT* Contraction_Simplifier::get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int,leaf_VT> &cache,
                         PRT_Tree &tree, Node_V *& v_block, contraction_parameters &params)
 {
     int local_index;
-    bool debug=true;
+    bool debug=false;
     if(n.indexes_vertex(v_id))
     {
         if(debug)
@@ -804,6 +876,40 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
         return &(it_c->second)[local_index];
     }
 }
+
+leaf_VT & Contraction_Simplifier::get_VTS(Node_V &n, Mesh &mesh,  LRU_Cache<int,leaf_VT> &cache,
+                        PRT_Tree &tree, contraction_parameters &params)
+{
+    int local_index;
+    bool debug=true;
+
+
+        LRU_Cache<int,leaf_VT>::mapIt it_c = cache.find(n.get_v_start()); //First check in the cache
+        if(it_c == cache.end())   //if not in the cache
+        {
+            if(debug)
+                cout<<"    -> LEAF BLOCK OUTSIDE CACHE - REGEN "<<n<<endl;
+            leaf_VT local_vts;
+            n.get_VT(local_vts,mesh);
+            it_c = cache.insert(n.get_v_start(),local_vts);
+            
+        }
+        else
+        {
+            if(debug)
+            {
+                cout<<"    -> LEAF BLOCK IN CACHE - CLEAN "<<n<<endl;
+            }
+            
+            // if(debug/* || v_id ==2355*/)
+            //     cout<<"num_elem_in_vt: "<<get_num_elements_in_container_of_containers((it_c->second)[local_index])<<endl;
+//                print_container_of_containers_content("VTop(2355) ",(it_c->second)[local_index]);
+        }
+ 
+        return (it_c->second);
+    
+}
+
 
 
 void Contraction_Simplifier::update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh, contraction_parameters &params)
@@ -864,11 +970,16 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
         for(RunIteratorPair itPair = n.make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
         {   
             RunIterator const& t_id = itPair.first;
+            bool not_valid=false;
+            #pragma omp critical
+            {
             if(mesh.is_triangle_removed(*t_id)){
               //  cout<<"triangle removed"<<endl;
-                continue;
-
+                not_valid=true;
             }
+            }
+            if(not_valid)
+            continue;
             t_count++;
             Triangle& t = mesh.get_triangle(*t_id);
             
