@@ -28,6 +28,7 @@
 #include <set>
 #include <queue>
 #include <map>
+#include <omp.h>
 
 #ifdef LONG_TYPES
 typedef size_t utype;

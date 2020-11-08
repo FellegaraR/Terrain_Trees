@@ -282,6 +282,9 @@ void PRT_Tree::init_leaves_list(Node_V &n)
             }
         }
     }
+    else{
+        this->leaves.push_back(&n);
+    }
 
 
 }
