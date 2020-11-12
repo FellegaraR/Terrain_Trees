@@ -90,25 +90,51 @@
                 continue;
             }
             bool not_valid=false;
+
+
+
+             Triangle& t = mesh.get_triangle(*t_id);
+            if(!n.completely_indexes_triangle_vertices(t)){
+                #pragma omp critical
+                {
+                if(!mesh.is_triangle_removed(*t_id)){                  
+                for(int i=0; i<3; i++)
+                 {
+                    t.TE(i,e);
+                if(n.completely_indexes_simplex(e))// e (v1,v2) is a candidate edge if at least v2 is in n
+                {
+                    map<ivect,coord_type>::iterator it = lengths.find(e);
+                    if(it == lengths.end())
+                    {
+                    coord_type   length;
+                    Vertex &v1=mesh.get_vertex(e[0]);
+                    Vertex &v2=mesh.get_vertex(e[1]);
+                    dvect dif = {v1.get_x()-v2.get_x(),v1.get_y()-v2.get_y(),v1.get_z()-v2.get_z()};
+                  //  cout<<dif[0]<<", "<<dif[1]<<", "<<dif[2]<<endl;
+                    length = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
+                    lengths[e] = length;
+
+                   if(length-params.get_maximum_limit()<Zero){
+                       // cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<length<<endl;
+                    edges.push(new Geom_Edge(e,length));
+                   //     cout<<"ENQUEUE"<<endl;
+                    }
+                    }
+                }
+                }
+                }
+
+                }             
+
+            }
+            else{
+
             for(int i=0; i<3; i++)
             {
            
                 Triangle& t = mesh.get_triangle(*t_id);
-                if(!n.completely_indexes_triangle_vertices(t)){
-               // #pragma omp critical
-                {
-                if(!mesh.is_triangle_removed(*t_id)){                  
-                    t.TE(i,e);
-                    }
-                else
-                not_valid=true;
-                }             
-                if(not_valid)
-                    break;
-                }
-                else{
-                     t.TE(i,e);
-                }
+                t.TE(i,e);
+                
                 if(n.completely_indexes_simplex(e))// e (v1,v2) is a candidate edge if at least v2 is in n
                 {
                     map<ivect,coord_type>::iterator it = lengths.find(e);
@@ -133,7 +159,9 @@
                 }
 
             }   
+            }
         }
+        
       //  cout<<"= =====NEXT NODE======"<<endl;
 }
 
@@ -279,18 +307,18 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
                  
     }
     }
-
+      //  #pragma omp critical
+        {
         for(ivect_iter it=difference.begin(); it!=difference.end(); ++it)
         {
             int pos =-1;
             bool not_valid=false;
             Triangle &t = mesh.get_triangle(*it);
              if(!n.completely_indexes_triangle_vertices(t)){
-           // #pragma omp critical
+            #pragma omp critical
             {
                 if(!mesh.is_triangle_removed(*it))
                     {
-                   // Triangle &t = mesh.get_triangle(*it);
                      /// then we update the triangle changing e[1] with e[0]
                     pos = t.vertex_index(e[1]);
                     t.setTV_keep_border(pos,e[0]);
@@ -339,15 +367,14 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
             /// we have to add the new edges in the queue
             ivect new_e; new_e.assign(2,0);
            if(!n.completely_indexes_triangle_vertices(mesh.get_triangle(*it))){
+            #pragma omp critical
+            {
             for(int i=0; i<3; i++)
             {
                 if(i!=pos)
                 {
-                  //  #pragma omp critical
-                    {
                     if(!mesh.get_triangle(*it).is_removed())
                      {mesh.get_triangle(*it).TE(i,new_e);  //t.TE(new_e,pos,i); need to check
-               //     if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed 
                         e_set.insert(new_e);
                      }
                     }
@@ -358,15 +385,13 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
             for(int i=0; i<3; i++)
             {
                 if(i!=pos)
-                {
-                  
+                {                 
                 mesh.get_triangle(*it).TE(i,new_e);  //t.TE(new_e,pos,i); need to check
-                e_set.insert(new_e);
-                     
-                    
+                e_set.insert(new_e);    
                 }
             }
            }
+        }
         }
         }
 
@@ -460,6 +485,11 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
  bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1,ET& et,Mesh &mesh){
  iset link_ab;
    iset link_e;
+   //Update: Considering that the edge to be contracted should not be boundary edge
+   //We can simplify the link condition check while checking if e is boundary edge
+if(et.first==-1||et.second==-1)
+    return false;
+    int counter=0;
 //#pragma omp critical
 {
     iset vv0,vv1;
@@ -472,7 +502,7 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
     vv0.insert(t.TV((v0_id+2)%3));
      
     }
-}
+    }
     for (int i=0;i<vt1.size();i++){
         if(!mesh.is_triangle_removed(vt1[i])){
         Triangle t=mesh.get_triangle(vt1[i]);
@@ -483,37 +513,36 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
         
     }
     }
-    int counter=0;
+
    
   //  cout<<v1<<"'s VV size: "<<vv1.size()<<endl;
     for(iset_iter it=vv1.begin();it!=vv1.end();it++){
         if(vv0.find(*it)!=vv0.end()){
-            link_ab.insert(*it);
+         //   link_ab.insert(*it);
             counter++;
         }
     }   
    
-  
-    if(et.first!=-1){
-        if(!mesh.is_triangle_removed(et.first)){
-        Triangle t1= mesh.get_triangle(et.first);
-        for(int i=0;i<3;i++){
-            if(t1.TV(i)!=v0&&t1.TV(i)!=v1)
-             link_e.insert(t1.TV(i));
-        }
-        }
-    }
-    if(et.second!=-1){
-         if(!mesh.is_triangle_removed(et.second)){
-        Triangle t2= mesh.get_triangle(et.second);
-        for(int i=0;i<3;i++){
-            if(t2.TV(i)!=v0&&t2.TV(i)!=v1)
-             link_e.insert(t2.TV(i));
-        }
-    }
-    }
+    // if(et.first!=-1){
+    //     if(!mesh.is_triangle_removed(et.first)){
+    //     Triangle t1= mesh.get_triangle(et.first);
+    //     for(int i=0;i<3;i++){
+    //         if(t1.TV(i)!=v0&&t1.TV(i)!=v1)
+    //          link_e.insert(t1.TV(i));
+    //     }
+    //     }
+    // }
+    // if(et.second!=-1){
+    //      if(!mesh.is_triangle_removed(et.second)){
+    //     Triangle t2= mesh.get_triangle(et.second);
+    //     for(int i=0;i<3;i++){
+    //         if(t2.TV(i)!=v0&&t2.TV(i)!=v1)
+    //          link_e.insert(t2.TV(i));
+    //     }
+    // }
+    // }
 }
-return link_e.size()==link_ab.size();
+return counter<=2;
     
 
 }
@@ -671,7 +700,7 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh, LRU_Cache<int
 {
 
 
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic,1)
     for(unsigned i=0; i<tree.get_leaves_number(); i++)
     {
         cout<<"Number of threads used: "<<omp_get_num_threads()<<endl;
@@ -777,7 +806,15 @@ if(!n.indexes_vertices())
 // leaf_VT local_vts(v_range,VT());
 // n.get_VT(local_vts,mesh);
 
-leaf_VT& local_vts=get_VTS(n,mesh,cache,tree,params);
+////// THIS method should be used when cache is used in parallel computing
+//leaf_VT& local_vts=get_VTS(n,mesh,cache,tree,params);
+//// Here we use the simple get_VT to check if that is the cause of slow computing.
+
+
+leaf_VT local_vts(v_range,VT());
+n.get_VT(local_vts,mesh);
+
+
 // Create a priority quue of candidate edges
 edge_queue edges;
 if(params.is_parallel()){
@@ -916,8 +953,10 @@ leaf_VT & Contraction_Simplifier::get_VTS(Node_V &n, Mesh &mesh,  LRU_Cache<int,
     int local_index;
     bool debug=true;
 
-
-        LRU_Cache<int,leaf_VT>::mapIt it_c = cache.find(n.get_v_start()); //First check in the cache
+        LRU_Cache<int,leaf_VT>::mapIt it_c =cache.end();
+        #pragma omp critical
+        {
+        it_c= cache.find(n.get_v_start()); //First check in the cache
         if(it_c == cache.end())   //if not in the cache
         {
             if(debug)
@@ -934,11 +973,8 @@ leaf_VT & Contraction_Simplifier::get_VTS(Node_V &n, Mesh &mesh,  LRU_Cache<int,
                 cout<<"    -> LEAF BLOCK IN CACHE - CLEAN "<<n<<endl;
             }
             
-            // if(debug/* || v_id ==2355*/)
-            //     cout<<"num_elem_in_vt: "<<get_num_elements_in_container_of_containers((it_c->second)[local_index])<<endl;
-//                print_container_of_containers_content("VTop(2355) ",(it_c->second)[local_index]);
         }
- 
+        }
         return (it_c->second);
     
 }
