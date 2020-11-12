@@ -169,7 +169,7 @@
 void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  Node_V &outer_v_block, edge_queue &edges,
                                            Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params)
 {
-    cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
+   // cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
    // cout<<"[NOTICE] Contract Edge"<<endl;
     ivect et_vec;
     et_vec.push_back(et.first);
@@ -451,7 +451,7 @@ void Contraction_Simplifier::update(const ivect &e, VT& vt, VT& difference, Node
             value = sqrt(dif[0]*dif[0]+dif[1]*dif[1]+dif[2]*dif[2]);
             e={(*it)[0],(*it)[1]};
             if((value-params.get_maximum_limit()<Zero)){
-              cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<value<<endl;
+         //     cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<value<<endl;
               edges.push(new Geom_Edge(e,value));
             }  
         }
@@ -490,7 +490,7 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v,  ET &et, Mesh &me
 if(et.first==-1||et.second==-1)
     return false;
     int counter=0;
-//#pragma omp critical
+#pragma omp critical
 {
     iset vv0,vv1;
     for (int i=0;i<vt0.size();i++){
@@ -700,11 +700,11 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh, LRU_Cache<int
 {
 
 
-    #pragma omp parallel for schedule(dynamic,1)
+   #pragma omp parallel for schedule(dynamic,1)
     for(unsigned i=0; i<tree.get_leaves_number(); i++)
     {
-        cout<<"Number of threads used: "<<omp_get_num_threads()<<endl;
-        cout<<"Current thread id: "<<omp_get_thread_num()<<endl;
+     //   cout<<"Number of threads used: "<<omp_get_num_threads()<<endl;
+     //   cout<<"Current thread id: "<<omp_get_thread_num()<<endl;
         Node_V* leaf = tree.get_leaf(i);
 
         simplify_leaf(*leaf,mesh,cache,params,tree);
@@ -824,9 +824,9 @@ else
     find_candidate_edges(n,mesh,local_vts,edges,params);
 int edge_num=edges.size();
 int edges_contracted_leaf=0;
-cout<<"Edge number:"<<edges.size()<<endl;
-cout<<"Number of threads used: "<<omp_get_num_threads()<<endl;
-cout<<"Current thread id: "<<omp_get_thread_num()<<endl;
+// cout<<"Edge number:"<<edges.size()<<endl;
+// cout<<"Number of threads used: "<<omp_get_num_threads()<<endl;
+// cout<<"Current thread id: "<<omp_get_thread_num()<<endl;
 
 params.add_edge_queue_size(edges.size());
     while(!edges.empty())
@@ -951,7 +951,7 @@ leaf_VT & Contraction_Simplifier::get_VTS(Node_V &n, Mesh &mesh,  LRU_Cache<int,
                         PRT_Tree &tree, contraction_parameters &params)
 {
     int local_index;
-    bool debug=true;
+    bool debug=false;
 
         LRU_Cache<int,leaf_VT>::mapIt it_c =cache.end();
         #pragma omp critical
