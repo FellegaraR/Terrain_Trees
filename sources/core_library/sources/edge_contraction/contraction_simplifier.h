@@ -97,6 +97,7 @@ result += 2*q[6]*y*z ;result += 2*q[7]*y; result +=q[10]*z*z ;result += 2*q[11]*
       vector<Matrix> initialQuadric;
       vector<dvect> trianglePlane;
       map<vector<int>,double> updated_edges;
+      vector<omp_lock_t> t_locks;
 };
 
 
