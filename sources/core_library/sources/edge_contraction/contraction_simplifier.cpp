@@ -96,7 +96,6 @@
 
              Triangle& t = mesh.get_triangle(*t_id);
             if(!n.completely_indexes_triangle_vertices(t)){
-            //    #pragma omp critical
                 {
                 omp_set_lock(&(t_locks[*t_id-1])); 
                 if(!mesh.is_triangle_removed(*t_id)){                  
@@ -848,12 +847,12 @@ if(!n.indexes_vertices())
 // n.get_VT(local_vts,mesh);
 
 ////// THIS method should be used when cache is used in parallel computing
-//leaf_VT& local_vts=get_VTS(n,mesh,cache,tree,params);
+leaf_VT& local_vts=get_VTS(n,mesh,cache,tree,params);
 //// Here we use the simple get_VT to check if that is the cause of slow computing.
 
 
-leaf_VT local_vts(v_range,VT());
-n.get_VT(local_vts,mesh);
+// leaf_VT local_vts(v_range,VT());
+// n.get_VT(local_vts,mesh);
 
 
 // Create a priority quue of candidate edges
@@ -956,7 +955,10 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
         tree.get_leaf_indexing_vertex(tree.get_root(),v_id,v_block);
         local_index = v_id - v_block->get_v_start();
 
-        LRU_Cache<int,leaf_VT>::mapIt it_c = cache.find(v_block->get_v_start()); //First check in the cache
+        LRU_Cache<int,leaf_VT>::mapIt it_c = cache.end();
+        #pragma omp critical
+        {
+        it_c = cache.find(v_block->get_v_start()); //First check in the cache
         if(it_c == cache.end())   //if not in the cache
         {
             if(debug)
@@ -978,12 +980,11 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
 //                print_container_of_containers_content("VTop(2355) ",(it_c->second)[local_index]);
         }
             Contraction_Simplifier::clean_coboundary((it_c->second)[local_index],mesh);
+         
             if(debug)
             cout<<"[NOTICE]cleaned coboundary"<<endl;
-            // if(debug/* || v_id ==2355*/)
-            //     cout<<"num_elem_in_vt: "<<get_num_elements_in_container_of_containers((it_c->second)[local_index])<<endl;
-//                print_container_of_containers_content("CleanedVTop(2355) ",(it_c->second)[local_index]);
-        
+        }
+   
         return &(it_c->second)[local_index];
     }
 }
@@ -995,7 +996,7 @@ leaf_VT & Contraction_Simplifier::get_VTS(Node_V &n, Mesh &mesh,  LRU_Cache<int,
     bool debug=false;
 
         LRU_Cache<int,leaf_VT>::mapIt it_c =cache.end();
-        //#pragma omp critical
+        #pragma omp critical
         {
         it_c= cache.find(n.get_v_start()); //First check in the cache
         if(it_c == cache.end())   //if not in the cache
