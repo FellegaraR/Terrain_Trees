@@ -85,6 +85,7 @@ void load_tree(PRT_Tree& tree, cli_parameters &cli)
     stats.get_index_statistics(tree,cli.reindex);
 
     Contraction_Simplifier simplifier;
+    simplifier.generate_conflict_leafs(tree,tree.get_mesh(),cli);
     simplifier.simplify_parallel(tree,tree.get_mesh(),cli);
 
     cout<<"number of remaining triangles: "<<tree.get_mesh().get_triangles_num()<<endl;

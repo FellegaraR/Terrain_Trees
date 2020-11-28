@@ -72,10 +72,12 @@ typedef dset::const_iterator dset_citer;
 typedef std::map<itype,dset> vertex_multifield;
 
 typedef ivect VT;
+typedef iset leaf_ids;
 typedef iset VV;
 typedef ivect VV_vec;
 
 typedef std::vector<VT> leaf_VT;
+typedef std::vector<leaf_ids> lists_leafs;
 typedef std::vector<VV> leaf_VV;
 typedef std::vector<VV_vec> leaf_VV_vec;
 

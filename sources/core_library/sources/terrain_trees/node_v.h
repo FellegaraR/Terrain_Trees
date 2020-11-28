@@ -105,6 +105,18 @@ public:
         return true;
     }
 
+    inline bool partial_indexes_triangle_vertices(Triangle &t)
+    {
+        if(!this->indexes_vertices())
+            return false;
+        bool first=this->indexes_vertex(t.TV(0));
+        for(int i=1; i<t.vertices_num(); i++)
+            if(this->indexes_vertex(t.TV(i))!=first)
+                return true;
+        return false;
+    }
+
+
     // inline bool completely_indexes_edge_vertices(Triangle &t)
     // {
     //     if(!this->indexes_vertices())

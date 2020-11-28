@@ -994,15 +994,45 @@ void Contraction_Simplifier::simplify_compute(Node_V &n, Mesh &mesh, LRU_Cache<i
 void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, Spatial_Subdivision &division, contraction_parameters &params, PRT_Tree &tree)
 {
 
+//First part for internal edges
 #pragma omp parallel for // schedule(dynamic,1)
     for (unsigned i = 0; i < tree.get_leaves_number(); i++)
     {
-        //   cout<<"Number of threads used: "<<omp_get_num_threads()<<endl;
-        //   cout<<"Current thread id: "<<omp_get_thread_num()<<endl;
+  
         Node_V *leaf = tree.get_leaf(i);
 
         simplify_leaf(*leaf, mesh, cache, params, tree);
+
     }
+//Second part for cross edges
+/*
+ivect nodes_list;
+for(int i=0;i< tree.get_leaves_number();i++)
+    nodes_list.push_back(i);
+//boost::dynamic_bitset<> conflict_nodes(tree.get_leaves_number());
+ivect nodes_status(tree.get_leaves_number());
+while(!nodes_list.empty()){
+#pragma omp parallel for // schedule(dynamic,1)
+    for (unsigned i = 0; i < nodes_list.size(); i++)
+    {
+        //check the array of conlict_nodes
+        // if nodes_status[i]==1, then continue
+        // else we set the conflict nodes of leaf[i] to be 1 in nodes_status
+        Node_V *leaf = tree.get_leaf(nodes_list[i]);
+    
+        simplify_leaf(*leaf, mesh, cache, params, tree);
+        //set nodes_status[i]=-1 after processing
+        nodes_status[i]=-1;
+    }
+nodes_list.clear();
+#pragma omp parallel for
+for(unsigned int i=0;i<tree.get_leaves_number();i++){
+    if(nodes_status[i]!=-1)
+        nodes_list.push_back(i);
+}
+    
+}
+*/
 }
 
 void Contraction_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree)
@@ -1490,4 +1520,39 @@ double Contraction_Simplifier::compute_error(int v1, int v2, Mesh &mesh, int &ne
     if (min_error < Zero)
         min_error = 0;
     return min_error;
+}
+
+void Contraction_Simplifier::generate_conflict_leafs(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli){
+//////TODO: add a timer here. 
+    conflict_leafs.assign(tree.get_leaves_number(),iset());
+    map<int,ivect> nodes_of_t;
+    for(int i=0;i<tree.get_leaves_number();i++){
+        Node_V * n=tree.get_leaf(i);
+        for (RunIteratorPair itPair = n->make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first){
+
+            RunIterator const &t_id = itPair.first;
+            if(n->partial_indexes_triangle_vertices(mesh.get_triangle(*t_id))){
+                nodes_of_t[*t_id].push_back(i);
+            }   
+        }
+    }
+
+    for(auto it=nodes_of_t.begin();it!=nodes_of_t.end();it++){
+        for(int i=0;i<it->second.size();i++){
+            for(int j=i+1;j<it->second.size();j++){
+               conflict_leafs[it->second[i]].insert(it->second[j]); 
+               conflict_leafs[it->second[j]].insert(it->second[i]); 
+            }
+        }
+    }
+
+    // cout<<"[DEBUG] print the conflict list"<<endl;
+    // for(int i=0;i<conflict_leafs.size();i++){
+    //     cout<<"The conflict list of node "<<i<<" :";
+    //     for(iset_iter it=conflict_leafs[i].begin();it!=conflict_leafs[i].end();it++){
+    //         cout<<*it<<", ";
+    //     }
+    //     cout<<endl;
+    // }
+
 }

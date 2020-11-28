@@ -20,11 +20,11 @@ public:
     Contraction_Simplifier() {}
     /// this procedure simplify the simplicial complex without considering any weight for the edges
     void simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
-    void update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh, contraction_parameters &params);
     void simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
-
+    void generate_conflict_leafs(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
 protected:
     const double Zero = 1e-7;
+    void update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh, contraction_parameters &params);
     void simplify_compute(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, Spatial_Subdivision &division, contraction_parameters &params, PRT_Tree &tree);
     void simplify_compute_parallel(Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, Spatial_Subdivision &division, contraction_parameters &params, PRT_Tree &tree);
     void simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree);
@@ -103,6 +103,7 @@ protected:
     map<vector<int>, double> updated_edges;
     vector<omp_lock_t> t_locks;
     vector<omp_lock_t> v_locks;
+    lists_leafs conflict_leafs;
 };
 
 #endif // CONTRACTION_SIMPLIFIER_H
