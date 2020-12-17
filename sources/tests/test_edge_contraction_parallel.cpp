@@ -93,5 +93,5 @@ void load_tree(PRT_Tree& tree, cli_parameters &cli)
     
     cout<<output_name<<endl;
     Writer::write_mesh_VTK(output_name,tree.get_mesh());  
-
+    Writer::write_mesh(output_name,"simplified",tree.get_mesh(),false); 
 }
