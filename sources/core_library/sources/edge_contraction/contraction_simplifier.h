@@ -21,13 +21,15 @@ public:
     /// this procedure simplify the simplicial complex without considering any weight for the edges
     void simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
     void simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
-    void generate_conflict_leafs(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
+    //Generate conflict leaf list and vertex in leaf list
+    void preprocess(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
 protected:
     const double Zero = 1e-7;
     void update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh, contraction_parameters &params);
     void simplify_compute(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, Spatial_Subdivision &division, contraction_parameters &params, PRT_Tree &tree);
     void simplify_compute_parallel(Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, Spatial_Subdivision &division, contraction_parameters &params, PRT_Tree &tree);
     void simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree);
+    void simplify_leaf_cross(Node_V &n,int n_id, Mesh &mesh, contraction_parameters &params, PRT_Tree &tree);
     ///edge contraction based on QEM criterion
     void simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree);
     /// skips an edge that has one of the two extreme deleted
@@ -38,16 +40,24 @@ protected:
 
     ///
     void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
-                       Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params);
+                       Node_V &n, Mesh &mesh, contraction_parameters &params);
     /// initializes the VTop and ETop of the edge and its two vertices
     /// plus saves the second leaf block if we are processing a cross-edge
     void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *&outer_v_block,
                             Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree);
+    
+    void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *&outer_v_block,
+                            Node_V &n, Mesh &mesh, leaf_VT &vts, map<int, leaf_VT>&cache, contraction_parameters &params, PRT_Tree &tree);
+  
 
     void update_cached_VT(int v_id, LRU_Cache<int, leaf_VT> &cache);
     /// the VTop is always without removed top-simplices
     VT *get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int, leaf_VT> &cache,
                PRT_Tree &tree, Node_V *&v_block, contraction_parameters &params);
+
+    VT * get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts, map<int, leaf_VT>&cache,
+               PRT_Tree &tree, Node_V *&v_block, contraction_parameters &params);
+
 
     leaf_VT &get_VTS(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,
                      PRT_Tree &tree, contraction_parameters &params);
@@ -61,7 +71,7 @@ protected:
     void find_candidate_edges_QEM(Node_V &n, Mesh &mesh, leaf_VT &vts, edge_queue &edges, contraction_parameters &params);
     void find_candidate_edges(Node_V &n, Mesh &mesh, leaf_VT &vts, edge_queue &edges, contraction_parameters &params);
 
-    void find_candidate_edges_parallel(Node_V &n, Mesh &mesh, leaf_VT &vts, edge_queue &edges, contraction_parameters &params);
+    void find_candidate_edges_parallel(Node_V &n, Mesh &mesh, leaf_VT &vts, edge_queue &edges, contraction_parameters &params, bool is_cross);
 
     /// the procedure updatess
     /// (1) the VTop relation of the surviving vertex
@@ -73,6 +83,8 @@ protected:
     void remove_from_mesh(int to_delete_v, ET &et, Mesh &mesh, contraction_parameters &params);
     bool link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et, Mesh &mesh);
     bool link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et,Node_V &n,VV& vv_locks, Mesh &mesh);
+    bool link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et,Node_V &n, Node_V &v_block, VV& vv_locks, Mesh &mesh);
+
     void update_parallel(const ivect &e, VT &vt, VT &difference, Node_V &n, Node_V &v_block, edge_queue &edges,
                 Mesh &mesh, contraction_parameters &params);
     void compute_initial_QEM(Mesh &mesh, vector<dvect> &planes);
@@ -98,12 +110,20 @@ protected:
         return result;
     }
 
+    // update conflict_leafs based on the vertices in the VV(v0) & VV(v1) that are not contained by n or outer_v_block
+    void update_conflict_nodes(VV & vv_locks,int n_id, PRT_Tree &tree);
+
+    void generate_v_in_leaf(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
+
     vector<Matrix> initialQuadric;
     vector<dvect> trianglePlane;
     map<vector<int>, double> updated_edges;
     vector<omp_lock_t> t_locks;
     vector<omp_lock_t> v_locks;
+    vector<omp_lock_t> l_locks;
     lists_leafs conflict_leafs;
+    vector<int> v_in_leaf;
+
 };
 
 #endif // CONTRACTION_SIMPLIFIER_H

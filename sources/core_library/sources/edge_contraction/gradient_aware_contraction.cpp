@@ -153,7 +153,7 @@ n.get_VT_and_border(local_vts,is_v_border,mesh);
         get_edge_relations(e,et,vt0,vt1,v1_is_border,v2_is_border,outer_v_block,n,mesh,local_vts,is_v_border,cache,params,tree);
         //DISABLED GRADIENT CHECK FOR NOW TO CHECK THE CORRECTNESS OF PARALLEL COMPUTATION
         if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)/*&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)*/){
-        contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params,gradient);
+        contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,params,gradient);
         edges_contracted_leaf++;
     // break;
         }
@@ -217,7 +217,7 @@ params.add_edge_queue_size(edges.size());
         
         get_edge_relations(e,et,vt0,vt1,v1_is_border,v2_is_border,outer_v_block,n,mesh,local_vts,is_v_border,cache,params,tree);
         if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)/*&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)*/){
-        contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params,gradient);
+        contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,params,gradient);
         edges_contracted_leaf++;
     // break;
         }
@@ -227,7 +227,7 @@ params.add_edge_queue_size(edges.size());
 }
 
 void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  Node_V &outer_v_block, edge_queue &edges,
-                                           Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,Forman_Gradient &gradient)
+                                           Node_V &n, Mesh &mesh, contraction_parameters &params,Forman_Gradient &gradient)
 {
     cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
    // cout<<"[NOTICE] Contract Edge"<<endl;

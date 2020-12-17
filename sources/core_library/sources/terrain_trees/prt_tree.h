@@ -73,6 +73,7 @@ public:
     void update_tree(Node_V &n, ivect &new_v_positions,ivect &new_t_positions, bool all_deleted);
     void get_leaf_indexing_vertex(Node_V &n, int v_id, Node_V *&res);
 
+
     void init_leaves_list(Node_V &n);
         /**
      * @brief A public method that returns the leaf block at i-th position in the leaves array

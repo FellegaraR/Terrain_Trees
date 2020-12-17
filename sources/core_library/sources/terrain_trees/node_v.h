@@ -109,6 +109,7 @@ public:
     {
         if(!this->indexes_vertices())
             return false;
+        // We can use the counter here instead.    
         bool first=this->indexes_vertex(t.TV(0));
         for(int i=1; i<t.vertices_num(); i++)
             if(this->indexes_vertex(t.TV(i))!=first)

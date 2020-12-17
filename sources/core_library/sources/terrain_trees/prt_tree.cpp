@@ -263,6 +263,9 @@ void PRT_Tree::get_leaf_indexing_vertex(Node_V &n, int v_id, Node_V *&res)
     }
 }
 
+
+
+
 void PRT_Tree::init_leaves_list(Node_V &n)
 {
     if(!n.is_leaf())
