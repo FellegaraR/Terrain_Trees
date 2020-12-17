@@ -1190,73 +1190,87 @@ do{
          }
         // else we set the conflict nodes of leaf[i] to be 1 in nodes_status
         else{
-       // omp_unset_lock(&(l_locks[i]));    
+        omp_unset_lock(&(l_locks[i]));    
         iset conflicts=conflict_leafs[i];
         // Check if the conflict nodes were set to 1 already
         bool shared_conflicts = false;
         for(iset_iter it=conflicts.begin();it!=conflicts.end();it++){
-            cout<<"set leaf node:"<<*it<<" on thread "<<omp_get_thread_num()<<endl;  
-            //omp_set_lock(&(l_locks[*it]));// leafs should be locked when being checked and updated.
+          //  cout<<"set leaf node:"<<*it<<" on thread "<<omp_get_thread_num()<<endl;  
+            omp_set_lock(&(l_locks[*it]));// leafs should be locked when being checked and updated.
             int status= 0;
-             #pragma omp atomic read
+          //   #pragma omp atomic read
                 status = nodes_status[*it];
             if(status==1) //it is conflicted with another node being processed
             {
-                cout<<"conflict node id:"<<*it<<" with "<<i<<" on thread "<<omp_get_thread_num()<<endl;
-               
-                //it++;
-                // for(iset_iter it2 = conflicts.begin(); it2!=it; it2++){
+               // cout<<"conflict node id:"<<*it<<" with "<<i<<" on thread "<<omp_get_thread_num()<<endl;
+               omp_unset_lock(&(l_locks[*it]));
+               //it++; No need, the current one should not be change to 0
+                 for(iset_iter it2 = conflicts.begin(); it2!=it; it2++){
                 //     cout<<"unset leaf node:"<<*it2<<" on thread "<<omp_get_thread_num()<<endl;
-                // omp_unset_lock(&(l_locks[*it2]));
-                // }  
+                 omp_set_lock(&(l_locks[*it2]));
+                  if(nodes_status[*it2]==1)
+                    nodes_status[*it2]=0;
+                 omp_unset_lock(&(l_locks[*it2]));
+
+                 }  
                 //omp_unset_lock(&(l_locks[*it]));
                  // unset the locks that have been set
                 shared_conflicts = true;
-                cout<<"neighbor conflict"<<endl;
+                //cout<<"neighbor conflict"<<endl;
+                
                 break;    
             } 
-        //omp_unset_lock(&(l_locks[*it]));
+            else if(status == 0)
+            {
+                nodes_status[*it] = 1;
+            }
+        omp_unset_lock(&(l_locks[*it]));
         }
         if(shared_conflicts==true)
         {
             // cout<<"unset leaf node:"<<i<<" on thread "<<omp_get_thread_num()<<endl;  
-             omp_unset_lock(&(l_locks[i]));
+           //  omp_unset_lock(&(l_locks[i]));
             continue;
         }
-        // Set the status of conflict nodes to 1
-        for(iset_iter it=conflicts.begin();it!=conflicts.end();it++){
-            if(nodes_status[*it]!=-1)
-                nodes_status[*it]=1;
-            // cout<<"unset leaf node:"<<*it<<" on thread "<<omp_get_thread_num()<<endl;      
-            // omp_unset_lock(&(l_locks[*it]));
-        }
+        // // Set the status of conflict nodes to 1
+        // for(iset_iter it=conflicts.begin();it!=conflicts.end();it++){
+        //     omp_set_lock(&(l_locks[*it]));
+        //     if(nodes_status[*it]!=-1)
+        //         nodes_status[*it]=1;
+        //     // cout<<"unset leaf node:"<<*it<<" on thread "<<omp_get_thread_num()<<endl;      
+        //      omp_unset_lock(&(l_locks[*it]));
+        // }
         Node_V *leaf = tree.get_leaf(i);
        //  cout<<"Node "<<i<<" will be processed."<<endl;
-       // omp_set_lock(&(l_locks[i]));
+        omp_set_lock(&(l_locks[i]));
         // set nodes_status[i]=2 when node is being processed
         nodes_status[i]=2;
+        omp_unset_lock(&(l_locks[i]));
+
         processed=true;
         cout<<"Start simplification"<<endl;
         simplify_leaf_cross(*leaf,i, mesh,  params, tree);
         cout<<"Finish simplification"<<endl;
         //set nodes_status[i]=-1 after processing
-        
+
+        omp_set_lock(&(l_locks[i]));
         nodes_status[i]=-1;
-        cout<<"unset leaf node:"<<i<<" on thread "<<omp_get_thread_num()<<endl;  
         omp_unset_lock(&(l_locks[i]));
+        //cout<<"unset leaf node:"<<i<<" on thread "<<omp_get_thread_num()<<endl;  
+        
      
         for(iset_iter it=conflicts.begin();it!=conflicts.end();it++){
         //  cout<<" set leaf lock "<<*it<<" on thread "<<omp_get_thread_num()<<endl;
-             //omp_set_lock(&(l_locks[*it]));
+             omp_set_lock(&(l_locks[*it]));
              int status = 0;
-            #pragma omp atomic read
+         //   #pragma omp atomic read
                 status=nodes_status[*it];
              if(status==1){
-                #pragma omp atomic write
+            //    #pragma omp atomic write
                 nodes_status[*it]=0;
                 }
             //cout<<"unset leaf node:"<<*it<<" on thread "<<omp_get_thread_num()<<endl;  
-           // omp_unset_lock(&(l_locks[*it]));
+            omp_unset_lock(&(l_locks[*it]));
         }
 
 
