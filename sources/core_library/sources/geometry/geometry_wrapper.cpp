@@ -110,3 +110,17 @@ bool Geometry_Wrapper::triangle_in_box(int t_id, Box& box, Mesh& mesh)
 
     return ret;
 }
+bool Geometry_Wrapper::same_side_of_edge(int v1,int v2, int e1, int e2, Mesh&mesh){
+
+    Vertex va= mesh.get_vertex(e1);
+    Vertex vb= mesh.get_vertex(e2);   
+    int turn_v1=Geometry::PointTurn2D(mesh.get_vertex(v1).get_x(),mesh.get_vertex(v1).get_y(),va.get_x(),va.get_y(),vb.get_x(),vb.get_y());
+    int turn_v2=Geometry::PointTurn2D(mesh.get_vertex(v2).get_x(),mesh.get_vertex(v2).get_y(),va.get_x(),va.get_y(),vb.get_x(),vb.get_y());
+    if(turn_v1*turn_v2==1)
+     return true;  // Do not return true if v1/v2 is on the edge. 
+    else
+     {
+         return false;
+     }
+
+}

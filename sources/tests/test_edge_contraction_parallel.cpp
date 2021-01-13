@@ -18,6 +18,7 @@ int main(int argc, char** argv)
     cli.crit_type = "pr";
     cli.v_per_leaf = atoi(argv[2]);
     cli.maximum_limit=atof(argv[4]);
+    cli.debug_mode = false;
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cerr<<"[GENERATION] PR-T tree"<<endl;
     if(strcmp(argv[3],"-q")==0)
@@ -84,6 +85,10 @@ void load_tree(PRT_Tree& tree, cli_parameters &cli)
     Statistics stats;
     stats.get_index_statistics(tree,cli.reindex);
 
+    cout<<"[NOTA]Border checking"<<endl;
+    Border_Checker border_checker=Border_Checker();
+    border_checker.compute_borders(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
+
     Contraction_Simplifier simplifier;
     simplifier.preprocess(tree,tree.get_mesh(),cli);
     simplifier.simplify_parallel(tree,tree.get_mesh(),cli);
@@ -93,5 +98,5 @@ void load_tree(PRT_Tree& tree, cli_parameters &cli)
     
     cout<<output_name<<endl;
     Writer::write_mesh_VTK(output_name,tree.get_mesh());  
-    Writer::write_mesh(output_name,"simplified",tree.get_mesh(),false); 
+    Writer::write_mesh(output_name,"parallel",tree.get_mesh(),false); 
 }

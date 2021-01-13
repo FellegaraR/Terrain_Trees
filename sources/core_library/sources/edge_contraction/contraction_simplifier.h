@@ -46,8 +46,8 @@ protected:
     void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *&outer_v_block,
                             Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree);
     
-    void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *&outer_v_block,
-                            Node_V &n, Mesh &mesh, leaf_VT &vts, map<int, leaf_VT>&cache, contraction_parameters &params, PRT_Tree &tree);
+    void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1,bool& v1_is_border, bool& v2_is_border, Node_V *&outer_v_block,
+                            Node_V &n, Mesh &mesh, leaf_VT &vts, boost::dynamic_bitset<>is_border_edge, map<int, leaf_VT>&cache, contraction_parameters &params, PRT_Tree &tree);
   
 
     void update_cached_VT(int v_id, LRU_Cache<int, leaf_VT> &cache);
@@ -91,6 +91,10 @@ protected:
     void compute_triangle_plane(Mesh &mesh, vector<dvect> &trPl);
     // new_vertex is the pos of the remaining vertex in the edge to be contracted. 0 refers to e[0], 1 refers to e[1]
     double compute_error(int v1, int v2, Mesh &mesh, int &new_vertex_pos);
+
+    bool valid_boundary_condition(int v1,int v2,VT &vt1, VT &vt2,ET& et, bool v1_is_border, bool v2_is_border, Mesh &mesh);
+    bool not_fold_over(int v1,int v2,VT &vt1, VT &vt2,ET& et, Mesh &mesh);
+
     inline double vertex_error(Matrix q, double x, double y, double z)
     {
 

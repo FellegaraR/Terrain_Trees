@@ -72,6 +72,7 @@ public:
      * @return true if exists a real intersection between t_id and box, false otherwise
      */
     static bool triangle_in_box(int t_id, Box& box, Mesh& mesh);
+    static bool same_side_of_edge(int v1,int v2, int e1, int e2, Mesh&mesh);
 };
 
 #endif // GEOMETRY_WRAPPER_H

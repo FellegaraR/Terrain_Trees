@@ -79,7 +79,7 @@ void Contraction_Simplifier::find_candidate_edges_parallel(Node_V &n, Mesh &mesh
 {
     map<ivect, coord_type> lengths;
     ivect e;
-    if (!is_cross)
+   /* if (!is_cross)
     {
         for (RunIteratorPair itPair = n.make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
         {
@@ -164,7 +164,7 @@ void Contraction_Simplifier::find_candidate_edges_parallel(Node_V &n, Mesh &mesh
         }
     }
     else
-    {
+    { */
         for (RunIteratorPair itPair = n.make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
         {
             RunIterator const &t_id = itPair.first;
@@ -207,7 +207,7 @@ void Contraction_Simplifier::find_candidate_edges_parallel(Node_V &n, Mesh &mesh
                 }
             }
         }
-    }
+    //}
 
     //  cout<<"= =====NEXT NODE======"<<endl;
 }
@@ -545,16 +545,16 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v, ET &et, Mesh &mes
 {
     if (et.first != -1)
     {
-        omp_set_lock(&(t_locks[et.first - 1]));
+        //omp_set_lock(&(t_locks[et.first - 1]));
         mesh.remove_triangle(et.first);
-        omp_unset_lock(&(t_locks[et.first - 1]));
+      //  omp_unset_lock(&(t_locks[et.first - 1]));
         params.increment_counter();
     }
     if (et.second != -1)
     {
-        omp_set_lock(&(t_locks[et.second - 1]));
+       // omp_set_lock(&(t_locks[et.second - 1]));
         mesh.remove_triangle(et.second);
-        omp_unset_lock(&(t_locks[et.second - 1]));
+      //  omp_unset_lock(&(t_locks[et.second - 1]));
         params.increment_counter();
     }
 
@@ -664,10 +664,10 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
         //vts.insert(vts.end(),vt0.begin(),vt0.end());
         VT vts = vt0;
         unify_vectors(vts, vt1);
-        for (int i = 0; i < vts.size(); i++)
-        {
-            omp_set_lock(&(t_locks[vts[i] - 1]));
-        }
+        // for (int i = 0; i < vts.size(); i++)
+        // {
+        //     omp_set_lock(&(t_locks[vts[i] - 1]));
+        // }
 
         for (int i = 0; i < vt0.size(); i++)
         {
@@ -715,10 +715,10 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
             }
         }
 
-        for (int i = 0; i < vts.size(); i++)
-        {
-            omp_unset_lock(&(t_locks[vts[i] - 1]));
-        }
+        // for (int i = 0; i < vts.size(); i++)
+        // {
+        //     omp_unset_lock(&(t_locks[vts[i] - 1]));
+        // }
 
         for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
         {
@@ -925,14 +925,14 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
     const int v_num = mesh.get_vertices_num();
     const int l_num = tree.get_leaves_number();
     // omp_lock_t lock[t_num];
-    t_locks.resize(t_num);
+  //  t_locks.resize(t_num);
     v_locks.resize(v_num);
     l_locks.resize(l_num);
 
-#pragma omp parallel for
-    for (int i = 0; i < t_num; i++)
-        omp_init_lock(&(t_locks[i]));
-    cout << "Initialize t_locks" << endl;
+// #pragma omp parallel for
+//     for (int i = 0; i < t_num; i++)
+//         omp_init_lock(&(t_locks[i]));
+//     cout << "Initialize t_locks" << endl;
 #pragma omp parallel for
     for (int i = 0; i < v_num; i++)
         omp_init_lock(&(v_locks[i]));
@@ -968,9 +968,9 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
         cache.reset();
     }
 
-#pragma omp parallel for
-    for (int i = 0; i < t_num; i++)
-        omp_destroy_lock(&(t_locks[i]));
+// #pragma omp parallel for
+//     for (int i = 0; i < t_num; i++)
+//         omp_destroy_lock(&(t_locks[i]));
 
 #pragma omp parallel for
     for (int i = 0; i < v_num; i++)
@@ -1300,7 +1300,7 @@ void Contraction_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int,
     //cout<<"Simplification in leaf."<<endl;
     // leaf_VT local_vts(v_range,VT());
     // n.get_VT(local_vts,mesh);
-
+    boost::dynamic_bitset<> is_v_border(v_end-v_start);
     ////// THIS method should be used when cache is used in parallel computing
     leaf_VT &local_vts = get_VTS(n, mesh, cache, tree, params);
     //// Here we use the simple get_VT to check if that is the cause of slow computing.
@@ -1391,9 +1391,9 @@ void Contraction_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &mesh
     //cout<<"Simplification in leaf."<<endl;
     // leaf_VT local_vts(v_range,VT());
     // n.get_VT(local_vts,mesh);
-
+    boost::dynamic_bitset<> is_v_border(v_end-v_start);
     leaf_VT local_vts(v_range, VT());
-    n.get_VT(local_vts, mesh);
+    n.get_VT_and_border(local_vts,is_v_border, mesh);
 
     // Create a priority queue of candidate edges
     edge_queue edges;
@@ -1431,12 +1431,12 @@ void Contraction_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &mesh
         ET et(-1, -1);
         VT *vt0 = NULL, *vt1 = NULL;
         Node_V *outer_v_block = NULL;
-
-        get_edge_relations(e, et, vt0, vt1, outer_v_block, n, mesh, local_vts, local_cache, params, tree);
+        bool v1_is_border=false, v2_is_border=false;
+        get_edge_relations(e, et, vt0, vt1,v1_is_border,v2_is_border, outer_v_block, n, mesh, local_vts, is_v_border, local_cache, params, tree);
 
         // if(params.is_parallel()){
         VV vv_locks;
-        if (link_condition(e[0], e[1], *vt0, *vt1, et, n, *outer_v_block, vv_locks, mesh))
+        if (link_condition(e[0], e[1], *vt0, *vt1, et, n, *outer_v_block, vv_locks, mesh)&&valid_boundary_condition(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,mesh)&&not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh))
         {
             contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params);
             edges_contracted_leaf++;
@@ -1490,7 +1490,7 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
 }
 
 //A new version of get_edge_relations for parallel computing without global cache
-void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *&outer_v_block, Node_V &n, Mesh &mesh, leaf_VT &vts, map<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree)
+void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1,bool& v1_is_border, bool& v2_is_border,  Node_V *&outer_v_block, Node_V &n, Mesh &mesh, leaf_VT &vts, boost::dynamic_bitset<>is_border_edge, map<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree)
 {
 
     //cout<<"[NOTICE]get edge relation"<<endl;
@@ -1500,6 +1500,24 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
 
     vt1 = Contraction_Simplifier::get_VT(e[1], n, mesh, vts, cache, tree, outer_v_block, params);
     vt0 = Contraction_Simplifier::get_VT(e[0], n, mesh, vts, cache, tree, outer_v_block, params);
+    v2_is_border=is_border_edge[e[1]-n.get_v_start()];
+    if(n.indexes_vertex(e[0])){
+        v1_is_border=is_border_edge[e[0]-n.get_v_start()];
+    }
+    else{
+        for(auto it=vt0->begin();it!=vt0->end();it++){
+            Triangle& t=mesh.get_triangle(*it);
+            int v_pos=t.vertex_index(e[0]);
+            for(int v1=1;v1<t.vertices_num();v1++){
+                if(t.is_border_edge((v1+v_pos)%t.vertices_num()))
+                {
+                    v1_is_border=true;
+                    break;
+                }
+            }
+
+        }
+    }
 
     Contraction_Simplifier::get_ET(e, et, n, mesh, vts);
 }
@@ -1942,4 +1960,37 @@ void Contraction_Simplifier::generate_v_in_leaf(PRT_Tree &tree, Mesh &mesh, cli_
             v_in_leaf[*it] = i;
         }
     }
+}
+
+bool Contraction_Simplifier::valid_boundary_condition(int v1,int v2,VT &vt1, VT &vt2,ET& et, bool v1_is_border, bool v2_is_border, Mesh &mesh){
+
+  if(v1_is_border||v2_is_border){
+      //cout<<"border edge"<<endl;
+    return false;}
+    if(vt1.size()<4||vt2.size()<4){
+       // cout<<"less than 4 triangles"<<endl;
+        return false;
+    }
+
+
+return true;
+}
+
+bool Contraction_Simplifier::not_fold_over(int v1,int v2,VT &vt1, VT &vt2,ET& et, Mesh &mesh){
+VT vt2_sub_et=vt2;
+    ivect et_vec;
+    et_vec.push_back(et.first);
+    if (et.second != -1)
+        et_vec.push_back(et.second);
+difference_of_vectors(vt2_sub_et,et_vec);
+for (int i=0; i<vt2_sub_et.size();i++){
+    Triangle t= mesh.get_triangle(vt2_sub_et[i]);
+    int v2_pos = t.vertex_index(v2);
+    ivect e;
+    t.TE(v2_pos,e);
+    bool same_side = Geometry_Wrapper::same_side_of_edge(v1,v2,e[0],e[1],mesh);
+    if (!same_side)
+        return false;
+}
+return true;
 }
