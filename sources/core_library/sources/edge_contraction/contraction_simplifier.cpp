@@ -908,8 +908,8 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
 
 void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli)
 {
-    cerr << "[NOTICED] Cache size: " << cli.cache_size << endl;
-    LRU_Cache<int, leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VT relations
+   // cerr << "[NOTICED] Cache size: " << cli.cache_size << endl;
+   // LRU_Cache<int, leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VT relations
     contraction_parameters params;
     params.set_maximum_limit(cli.maximum_limit);
 
@@ -921,7 +921,7 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
 
     time.start();
 
-    const int t_num = mesh.get_triangles_num();
+  //  const int t_num = mesh.get_triangles_num();
     const int v_num = mesh.get_vertices_num();
     const int l_num = tree.get_leaves_number();
     // omp_lock_t lock[t_num];
@@ -947,7 +947,7 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
     {
         simplification_round = params.get_contracted_edges_num(); //checked edges
         /// HERE YOU NEED TO DEFINE A PROCEDURE FOR SIMPLIFY THE TIN BY USING THE SPATIAL INDEX
-        this->simplify_compute_parallel(mesh, cache, tree.get_subdivision(), params, tree);
+        this->simplify_compute_parallel(mesh,  tree.get_subdivision(), params, tree);
 
         cout << "Num of edges enqueued:" << params.get_sum_edge_queue_sizes() << endl;
         // PARTIAL SIMPLIFICATION STATS
@@ -965,7 +965,7 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
         if (simplification_round == params.get_contracted_edges_num())
             break;
 
-        cache.reset();
+
     }
 
 // #pragma omp parallel for
@@ -1082,7 +1082,7 @@ void Contraction_Simplifier::simplify_compute(Node_V &n, Mesh &mesh, LRU_Cache<i
     }
 }
 
-void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, Spatial_Subdivision &division, contraction_parameters &params, PRT_Tree &tree)
+void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_Subdivision &division, contraction_parameters &params, PRT_Tree &tree)
 {
 
     //First part for internal edges

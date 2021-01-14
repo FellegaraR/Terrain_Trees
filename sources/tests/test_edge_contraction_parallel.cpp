@@ -86,13 +86,21 @@ void load_tree(PRT_Tree& tree, cli_parameters &cli)
     stats.get_index_statistics(tree,cli.reindex);
 
     cout<<"[NOTA]Border checking"<<endl;
+    time.start();
     Border_Checker border_checker=Border_Checker();
     border_checker.compute_borders(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
 
+    time.stop();
+    time.print_elapsed_time("[TIME] Border Checking ");
+    time.start();
     Contraction_Simplifier simplifier;
     simplifier.preprocess(tree,tree.get_mesh(),cli);
+    time.stop();
+    time.print_elapsed_time("[TIME] Preporcessing");
+    time.start();
     simplifier.simplify_parallel(tree,tree.get_mesh(),cli);
-
+    time.stop();
+    time.print_elapsed_time("[TIME] Complete edge contraction process ");
     cout<<"number of remaining triangles: "<<tree.get_mesh().get_triangles_num()<<endl;
 
     
