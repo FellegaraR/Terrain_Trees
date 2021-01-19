@@ -18,6 +18,7 @@ void Mesh_Updater::clean_vertices_array(Mesh &mesh, ivect &new_v_positions, ivec
     }
 
     old_list.clear();
+    //vector<Vertex>().swap(old_list);
 }
 
  bool Mesh_Updater::update_and_clean_triangles_arrays(Mesh &mesh, ivect &new_v_positions, ivect &new_top_positions,

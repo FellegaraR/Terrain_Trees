@@ -920,7 +920,7 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
     int round = 1;
 
     time.start();
-
+    cout<<"Number of threads used in the simplification:"<omp_get_num_threads()<<endl;
   //  const int t_num = mesh.get_triangles_num();
     const int v_num = mesh.get_vertices_num();
     const int l_num = tree.get_leaves_number();
@@ -981,13 +981,26 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
         omp_destroy_lock(&(l_locks[i]));
 
     time.stop();
+
+    ///// Clear all the auxiliary data structures.
+    //v_locks.clear();
+    vector<omp_lock_t>().swap(v_locks);
+    vector<omp_lock_t>().swap(l_locks);
+    vector<int>().swap(v_in_leaf);
+    lists_leafs().swap(conflict_leafs);
+   // l_locks.clear();
+
+
     if (!cli.debug_mode)
         time.print_elapsed_time("[TIME] Edge contraction simplification: ");
+    cerr << "[MEMORY] peak for Simplification: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
     //else
     //params.print_simplification_partial_timings();
     //params.print_simplification_counters();
     /// finally we have to update/compress the mesh and the tree
     Contraction_Simplifier::update_mesh_and_tree(tree, mesh, params);
+    cerr << "[MEMORY] peak for mesh and tree updating: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+
 }
 
 void Contraction_Simplifier::simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli)
