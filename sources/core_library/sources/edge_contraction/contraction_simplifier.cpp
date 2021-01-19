@@ -920,7 +920,7 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
     int round = 1;
 
     time.start();
-    cout<<"Number of threads used in the simplification:"<omp_get_num_threads()<<endl;
+    cout<<"Number of threads used in the simplification:"<<omp_get_num_threads()<<endl;
   //  const int t_num = mesh.get_triangles_num();
     const int v_num = mesh.get_vertices_num();
     const int l_num = tree.get_leaves_number();
