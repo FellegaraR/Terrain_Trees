@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 		
     cerr<<"[NOTA] all the generated files are saved in the 'data' folder"<<endl;
 	
-	cli.division_type = QUAD;
+	  cli.division_type = QUAD;
     cli.crit_type = "pr";
     cli.v_per_leaf = atoi(argv[2]);
     cli.maximum_limit=atof(argv[4]);

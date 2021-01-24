@@ -30,6 +30,7 @@ protected:
     void simplify_compute_parallel(Mesh &mesh,  Spatial_Subdivision &division, contraction_parameters &params, PRT_Tree &tree);
     void simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree);
     void simplify_leaf_cross(Node_V &n,int n_id, Mesh &mesh, contraction_parameters &params, PRT_Tree &tree);
+    void simplify_leaf_cross_QEM(Node_V &n,int n_id, Mesh &mesh, contraction_parameters &params, PRT_Tree &tree);
     ///edge contraction based on QEM criterion
     void simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree);
     /// skips an edge that has one of the two extreme deleted
@@ -41,6 +42,8 @@ protected:
     ///
     void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
                        Node_V &n, Mesh &mesh, contraction_parameters &params);
+  // void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
+  //                     Node_V &n, Mesh &mesh, contraction_parameters &params);
     /// initializes the VTop and ETop of the edge and its two vertices
     /// plus saves the second leaf block if we are processing a cross-edge
     void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *&outer_v_block,
@@ -72,6 +75,7 @@ protected:
     void find_candidate_edges(Node_V &n, Mesh &mesh, leaf_VT &vts, edge_queue &edges, contraction_parameters &params);
 
     void find_candidate_edges_parallel(Node_V &n, Mesh &mesh, leaf_VT &vts, edge_queue &edges, contraction_parameters &params, bool is_cross);
+    //void find_candidate_edges_parallel_QEM(Node_V &n, Mesh &mesh, leaf_VT &vts, edge_queue &edges, contraction_parameters &params, bool is_cross);
 
     /// the procedure updatess
     /// (1) the VTop relation of the surviving vertex
