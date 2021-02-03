@@ -5,16 +5,21 @@
 #include "morse/forman_gradient.h"
 #include "morse/forman_gradient_topological_relations.h"
 
-class Gradient_Aware_Simplifier: Contraction_Simplifier{
+class Gradient_Aware_Simplifier: public Contraction_Simplifier{
 
 
 public:
     Gradient_Aware_Simplifier(){}
     void gradient_aware_simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli,Forman_Gradient &gradient);
+    void gradient_aware_simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli,Forman_Gradient &gradient);
 protected:
     void simplify_compute(Node_V &n,  Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,Spatial_Subdivision &division,  contraction_parameters &params,PRT_Tree &tree,Forman_Gradient &gradient);
+    void simplify_compute_parallel( Mesh &mesh, Spatial_Subdivision &division,  contraction_parameters &params,PRT_Tree &tree,Forman_Gradient &gradient);
     void simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree& tree,Forman_Gradient &gradient); 
     void simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree& tree,Forman_Gradient &gradient);
+    void simplify_leaf_cross(Node_V &n,int n_id, Mesh &mesh, contraction_parameters &params, PRT_Tree &tree,Forman_Gradient &gradient); 
+    void simplify_leaf_cross_QEM(Node_V &n,int n_id, Mesh &mesh, contraction_parameters &params,PRT_Tree &tree, Forman_Gradient &gradient);
+
     void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
                               Node_V &n, Mesh &mesh,  contraction_parameters &params,Forman_Gradient &gradient);
     // void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *& outer_v_block, 
