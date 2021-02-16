@@ -41,6 +41,14 @@ void Mesh_Updater::clean_vertices_array(Mesh &mesh, ivect &new_v_positions, ivec
     }
     cout<<"Finished reordering"<<endl;
 
+    v_counter=1;
+    for(ivect_iter it=surviving_vertices.begin(); it!=surviving_vertices.end(); ++it)
+    {
+        // mesh.add_vertex(old_list[*it-1]);
+        new_v_positions[*it-1] = v_counter;
+        v_counter++;
+    }
+
     mesh.resize_vertex_array(v_counter-1);
     cout<<"Cleaned vertex array"<<endl;
 
