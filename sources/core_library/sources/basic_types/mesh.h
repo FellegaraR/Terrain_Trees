@@ -244,6 +244,13 @@ public:
      */
     inline void resize_triangle_array(int new_size) {
         cout<<new_size<<endl;this->triangles.resize(new_size);}
+    /**
+     * @brief A public method that resizes the top d-cells array.
+     * If new_size is smaller than the current size of the array, the position encoded after size are effectively deleted from the array.
+     * @param new_size an integer representing the new size of the array
+     */
+    inline void resize_vertex_array(int new_size) {
+        cout<<new_size<<endl;this->vertices.resize(new_size);}
 
     inline std::vector<Triangle>::iterator get_t_array_begin(){return this->triangles.begin();}
     inline std::vector<Triangle>::iterator get_t_array_end(){return this->triangles.end();}

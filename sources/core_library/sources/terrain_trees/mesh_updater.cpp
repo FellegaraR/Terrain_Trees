@@ -6,18 +6,45 @@ void Mesh_Updater::clean_vertices_array(Mesh &mesh, ivect &new_v_positions, ivec
     int v_counter = 1; // v_counter keeps the new vertex indexing while v is needed to set the new index
     new_v_positions.assign(mesh.get_vertices_num(),-1);
 
-    vector<Vertex> old_list = mesh.get_vertices_array();
-    mesh.reset_vertices();
-    mesh.reserve_vertices_space(surviving_vertices.size());
+    // vector<Vertex> old_list = mesh.get_vertices_array();
+    // mesh.reset_vertices();
+    // mesh.reserve_vertices_space(surviving_vertices.size());
 
     for(ivect_iter it=surviving_vertices.begin(); it!=surviving_vertices.end(); ++it)
     {
-        mesh.add_vertex(old_list[*it-1]);
+        // mesh.add_vertex(old_list[*it-1]);
         new_v_positions[*it-1] = v_counter;
         v_counter++;
     }
 
-    old_list.clear();
+    for(int i=1; i<=mesh.get_vertices_num(); i++)
+    {
+        int j = i -1; // -1 is needed to avoid array lookup error
+
+        if(new_v_positions[j] == i || new_v_positions[j] < 0)
+        {
+            // mark the last entry visited...
+            new_v_positions[j] = -1;
+            continue;
+        }
+
+        while(new_v_positions[j] != i && new_v_positions[j] > 0)
+        {
+            mesh.vertices_swap(i,new_v_positions[j]);
+            int j_prime = new_v_positions[j] -1; // -1 is needed to avoid array lookup error
+            new_v_positions[j] = -1;
+            j = j_prime;
+        }
+
+        // mark the last entry visited...
+        new_v_positions[j] = -1;
+    }
+    cout<<"Finished reordering"<<endl;
+
+    mesh.resize_vertex_array(v_counter-1);
+    cout<<"Cleaned vertex array"<<endl;
+
+    // old_list.clear();
     //vector<Vertex>().swap(old_list);
 }
 
