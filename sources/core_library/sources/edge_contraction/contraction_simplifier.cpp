@@ -1941,6 +1941,7 @@ void Contraction_Simplifier::update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh, co
     tree.compact_vertices_lists(tree.get_root(), mesh, surviving_vertices);
     time.stop();
     time.print_elapsed_time("[TIME] Compact tree vertices lists: ");
+    cerr << "[MEMORY] peak for compacting tree vertices lists: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
     //    print_container_content("surviving vertices: ",surviving_vertices);
     //    mesh.print_mesh(cout);
@@ -1956,6 +1957,7 @@ void Contraction_Simplifier::update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh, co
     bool all_deleted = mu.update_and_clean_triangles_arrays(mesh, new_v_positions, new_t_positions, params.get_counter());
     time.stop();
     time.print_elapsed_time("[TIME] Compact and update mesh: ");
+    cerr << "[MEMORY] peak for compacting and updating the mesh: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
     // cerr<<"[STAT] mesh "<<endl;
     // cerr<<"------------"<<endl;
@@ -1969,6 +1971,7 @@ void Contraction_Simplifier::update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh, co
     tree.update_tree(tree.get_root(), new_v_positions, new_t_positions, all_deleted);
     time.stop();
     time.print_elapsed_time("[TIME] Update tree (top-simplices): ");
+    cerr << "[MEMORY] peak for updating the tree (top-simplices): " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
     //    Reindexer r;
     //    r.reorganize_index_and_mesh(tree,mesh,false);
