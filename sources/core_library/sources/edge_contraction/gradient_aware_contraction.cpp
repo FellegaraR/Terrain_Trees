@@ -755,8 +755,9 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
                     else if (status == 0)
                     {
                         nodes_status[*it] = 1;
+                        omp_unset_lock(&(l_locks[*it]));
                     }
-                    omp_unset_lock(&(l_locks[*it]));
+                    
                 }
                 if (shared_conflicts == true)
                 {

@@ -162,6 +162,7 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh(),tree.get_subdivision());
     time.stop();
     time.print_elapsed_time("[TIME] computing gradient vector field ");
+ cerr << "[MEMORY] peak for computing gradient vector field: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
     stringstream out2;
     out2 << base.str();

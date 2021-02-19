@@ -72,7 +72,7 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
 
         if (!Reader::read_tree(tree, tree.get_root(), cli.tree_path))
         {
-            cerr << "[ERROR] Loading .tree file." << endl;
+            cerr << "[NOTICE] Cannot find existed .tree file." << endl;
             cerr << "[GENERATION] tree from triangle mesh" << endl;
             time.start();
             tree.build_tree();
