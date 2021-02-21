@@ -705,7 +705,7 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
     do
     {
         processed = false;
-//#pragma omp parallel for // schedule(dynamic,1)
+#pragma omp parallel for // schedule(dynamic,1)
         for (unsigned i = 0; i < tree.get_leaves_number(); i++)
         {
             //check the array of conflict_nodes
