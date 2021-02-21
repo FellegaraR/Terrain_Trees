@@ -1262,9 +1262,9 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_Subd
 #pragma omp parallel for // schedule(dynamic,1)
         for (unsigned i = 0; i < tree.get_leaves_number(); i++)
         {
-            //check the array of conflict_nodes
+             //check the array of conflict_nodes
             // if nodes_status[i]==1, then continue
-          //  cout << "Current leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
+        //   cout << "Current leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
             omp_set_lock(&(l_locks[i]));
             if (nodes_status[i] != 0)
             {
@@ -1275,10 +1275,12 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_Subd
             // else we set the conflict nodes of leaf[i] to be 1 in nodes_status
             else
             {
+                nodes_status[i]=2;
                 omp_unset_lock(&(l_locks[i]));
                 iset conflicts = conflict_leafs[i];
                 // Check if the conflict nodes were set to 1 already
-                bool shared_conflicts = false;
+               // bool shared_conflicts = false;
+               bool cannot_process = false;
                 for (iset_iter it = conflicts.begin(); it != conflicts.end(); it++)
                 {
                     //  cout<<"set leaf node:"<<*it<<" on thread "<<omp_get_thread_num()<<endl;
@@ -1286,7 +1288,7 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_Subd
                     int status = 0;
                     //   #pragma omp atomic read
                     status = nodes_status[*it];
-                    if (status == 1) //it is conflicted with another node being processed
+                    if (status == 1||status==2) //it is conflicted with another node being processed
                     {
                         // cout<<"conflict node id:"<<*it<<" with "<<i<<" on thread "<<omp_get_thread_num()<<endl;
                         omp_unset_lock(&(l_locks[*it]));
@@ -1301,7 +1303,7 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_Subd
                         }
                         //omp_unset_lock(&(l_locks[*it]));
                         // unset the locks that have been set
-                        shared_conflicts = true;
+                        cannot_process = true;
                         //cout<<"neighbor conflict"<<endl;
 
                         break;
@@ -1312,17 +1314,20 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_Subd
                     }
                     omp_unset_lock(&(l_locks[*it]));
                 }
-                if (shared_conflicts == true)
+                if (cannot_process == true)
                 {
+                    omp_set_lock(&(l_locks[i]));
+                    nodes_status[i]=0;
+                    omp_unset_lock(&(l_locks[i]));
                     continue;
                 }
   
                 Node_V *leaf = tree.get_leaf(i);
                 //  cout<<"Node "<<i<<" will be processed."<<endl;
-                omp_set_lock(&(l_locks[i]));
-                // set nodes_status[i]=2 when node is being processed
-                nodes_status[i] = 2;
-                omp_unset_lock(&(l_locks[i]));
+                // omp_set_lock(&(l_locks[i]));
+                // // set nodes_status[i]=2 when node is being processed
+                // nodes_status[i] = 2;
+                // omp_unset_lock(&(l_locks[i]));
 
                 processed = true;
                // cout << "Start simplification" << endl;

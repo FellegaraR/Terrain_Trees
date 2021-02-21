@@ -74,12 +74,8 @@ void load_tree_lite(PRT_Tree& tree, cli_parameters &cli)
 
         stringstream out;
         out << base.str() << "_" << SpatialDecType2string(cli.division_type) << "_" << cli.crit_type;
-        if (cli.crit_type == "pr")
-            out << "_v_" << cli.v_per_leaf << "_.tree";
-        else if (cli.crit_type == "pm")
-            out << "_v_" << cli.v_per_leaf << "_t_" << cli.t_per_leaf << "_.tree";
-        else if (cli.crit_type == "pmr")
-            out << "_t_" << cli.t_per_leaf << "_.tree";
+        out << "_v_" << cli.v_per_leaf << "_.tree";
+ 
         cli.tree_path=out.str();
 
         if (!Reader::read_tree(tree, tree.get_root(), cli.tree_path))
@@ -90,7 +86,7 @@ void load_tree_lite(PRT_Tree& tree, cli_parameters &cli)
             tree.build_tree();
             time.stop();
             time.print_elapsed_time(tree_info.str());
-         //   Writer::write_tree(out.str(), tree.get_root(), tree.get_subdivision());
+            Writer::write_tree(out.str(), tree.get_root(), tree.get_subdivision());
         }
         else
             cout << "[NOTICE] Found corresponding .tree file. Loaded tree from file successfully"<<endl;
@@ -111,13 +107,12 @@ void load_tree_lite(PRT_Tree& tree, cli_parameters &cli)
         //        if((cli.query_type == MORSE_ANALYSIS || cli.query_type == LOCAL_MORSE_SIMPLIFICATION || cli.query_type == GLOBAL_MORSE_SIMPLIFICATION)
         //                && cli.app_debug == OUTPUT)
         cli.original_vertex_indices.assign(tree.get_mesh().get_vertices_num(),-1);
-        if(cli.query_type == MORSE_ANALYSIS && cli.app_debug == OUTPUT)
-            cli.original_triangle_indices.assign(tree.get_mesh().get_triangles_num(),-1);
+
 
         time.start();
         Reindexer reindexer = Reindexer();
-        reindexer.reindex_tree_and_mesh(tree,(cli.original_vertex_indices.size() == tree.get_mesh().get_vertices_num()),cli.original_vertex_indices,
-                                        (cli.original_triangle_indices.size() == tree.get_mesh().get_triangles_num()),cli.original_triangle_indices);
+        reindexer.reindex_tree_and_mesh(tree,true,cli.original_vertex_indices,
+                                        false,cli.original_triangle_indices);
         time.stop();
         time.print_elapsed_time("[TIME] Index and Mesh Reindexing ");
     }

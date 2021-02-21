@@ -711,7 +711,7 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
             //check the array of conflict_nodes
             // if nodes_status[i]==1, then continue
           //  cout << "Current leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
-            omp_set_lock(&(l_locks[i]));
+    omp_set_lock(&(l_locks[i]));
             if (nodes_status[i] != 0)
             {
                 omp_unset_lock(&(l_locks[i]));
@@ -721,10 +721,12 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
             // else we set the conflict nodes of leaf[i] to be 1 in nodes_status
             else
             {
+                nodes_status[i]=2;
                 omp_unset_lock(&(l_locks[i]));
                 iset conflicts = conflict_leafs[i];
                 // Check if the conflict nodes were set to 1 already
-                bool shared_conflicts = false;
+               // bool shared_conflicts = false;
+               bool cannot_process = false;
                 for (iset_iter it = conflicts.begin(); it != conflicts.end(); it++)
                 {
                     //  cout<<"set leaf node:"<<*it<<" on thread "<<omp_get_thread_num()<<endl;
@@ -732,7 +734,7 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
                     int status = 0;
                     //   #pragma omp atomic read
                     status = nodes_status[*it];
-                    if (status == 1) //it is conflicted with another node being processed
+                    if (status == 1||status==2) //it is conflicted with another node being processed
                     {
                         // cout<<"conflict node id:"<<*it<<" with "<<i<<" on thread "<<omp_get_thread_num()<<endl;
                         omp_unset_lock(&(l_locks[*it]));
@@ -747,7 +749,7 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
                         }
                         //omp_unset_lock(&(l_locks[*it]));
                         // unset the locks that have been set
-                        shared_conflicts = true;
+                        cannot_process = true;
                         //cout<<"neighbor conflict"<<endl;
 
                         break;
@@ -755,30 +757,32 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
                     else if (status == 0)
                     {
                         nodes_status[*it] = 1;
-                        omp_unset_lock(&(l_locks[*it]));
                     }
-                    
+                    omp_unset_lock(&(l_locks[*it]));
                 }
-                if (shared_conflicts == true)
+                if (cannot_process == true)
                 {
+                    omp_set_lock(&(l_locks[i]));
+                    nodes_status[i]=0;
+                    omp_unset_lock(&(l_locks[i]));
                     continue;
                 }
   
                 Node_V *leaf = tree.get_leaf(i);
                 //  cout<<"Node "<<i<<" will be processed."<<endl;
-                omp_set_lock(&(l_locks[i]));
-                // set nodes_status[i]=2 when node is being processed
-                nodes_status[i] = 2;
-                omp_unset_lock(&(l_locks[i]));
+                // omp_set_lock(&(l_locks[i]));
+                // // set nodes_status[i]=2 when node is being processed
+                // nodes_status[i] = 2;
+                // omp_unset_lock(&(l_locks[i]));
 
                 processed = true;
-           //     cout << "Start simplification" << endl;
+              // cout << "Start simplification" << endl;
                if(params.is_QEM()==true)
                 simplify_leaf_cross_QEM(*leaf, i, mesh, params, tree,gradient);
                else
                 simplify_leaf_cross(*leaf, i, mesh, params, tree,gradient);
 
-               // cout << "Finish simplification" << endl;
+              //  cout << "Finish simplification" << endl;
                 //set nodes_status[i]=-1 after processing
 
                 omp_set_lock(&(l_locks[i]));
@@ -816,7 +820,7 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &m
 
     itype v_start = n.get_v_start();
     itype v_end = n.get_v_end();
-    itype v_range = v_end - v_start;
+    itype v_range = v_end - v_start; 
 
     //cout<<"Simplification in leaf."<<endl;
     // leaf_VT local_vts(v_range,VT());

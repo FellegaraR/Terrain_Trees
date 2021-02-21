@@ -47,14 +47,7 @@ void load_tree(PRT_Tree &tree, cli_parameters &cli)
   cerr << "[INFO] Generating a Terrain tree: " << cli.v_per_leaf << " " << cli.t_per_leaf << " " << cli.crit_type << " ";
   stringstream tree_info;
   tree_info << base_info.str() << "[TIME] Building ";
-  time.start();
-  tree.build_tree();
-  time.stop();
-  time.print_elapsed_time(tree_info.str());
 
-  cout << "number of triangles: " << tree.get_mesh().get_triangles_num() << endl;
-  cout << "number of vertices: " << tree.get_mesh().get_vertices_num() << endl;
- 
     stringstream out;
 
     out << base.str() << "_" << SpatialDecType2string(cli.division_type) << "_" << cli.crit_type;
@@ -74,6 +67,9 @@ void load_tree(PRT_Tree &tree, cli_parameters &cli)
   else
     cout << "[NOTICE] Found corresponding .tree file. Loaded tree from file successfully" << endl;
 
+  cout << "number of triangles: " << tree.get_mesh().get_triangles_num() << endl;
+  cout << "number of vertices: " << tree.get_mesh().get_vertices_num() << endl;
+ 
   stringstream out2;
   out2 << base.str();
   out2 << "_" << SpatialDecType2string(cli.division_type) << "_" << cli.crit_type << "_v_" << cli.v_per_leaf << "_tree.vtk";
@@ -89,7 +85,7 @@ void load_tree(PRT_Tree &tree, cli_parameters &cli)
   }
   Writer::write_tree_VTK(out2.str(), tree.get_root(), tree.get_subdivision(), tree.get_mesh());
   // Writer::write_mesh_VTK(base.str(),tree.get_mesh());
-
+  
   time.start();
   Reindexer reindexer = Reindexer();
   reindexer.reindex_tree_and_mesh(tree, false, cli.original_vertex_indices,
