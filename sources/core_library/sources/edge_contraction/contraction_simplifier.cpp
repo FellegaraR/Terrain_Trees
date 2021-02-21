@@ -1361,6 +1361,7 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_Subd
             }
         }
        // cout << "finished one for loop" << endl;
+ cerr << "[MEMORY] peak for a simplification round: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
     } while (processed == true);
 }
@@ -1434,6 +1435,8 @@ void Contraction_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<
             // break;
         }
       //  cout << "Number of edges remaining:" << edges.size() << endl;
+delete current;
+    
     }
 
     //update the cache if the vts have been stored already.

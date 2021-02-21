@@ -705,7 +705,7 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
     do
     {
         processed = false;
-#pragma omp parallel for // schedule(dynamic,1)
+//#pragma omp parallel for // schedule(dynamic,1)
         for (unsigned i = 0; i < tree.get_leaves_number(); i++)
         {
             //check the array of conflict_nodes
@@ -807,6 +807,7 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
             }
         }
        // cout << "finished one for loop" << endl;
+ cerr << "[MEMORY] peak for a simplification round:" << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
     } while (processed == true);
 }
@@ -981,7 +982,7 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mes
         {
             omp_unset_lock(&(v_locks[*it - 1]));
         }
-
+    delete current;
     }
 
     // leaf_VV vvs;
