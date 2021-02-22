@@ -1435,8 +1435,8 @@ void Contraction_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<
             // break;
         }
       //  cout << "Number of edges remaining:" << edges.size() << endl;
-delete current;
-    
+    delete current;
+
     }
 
     //update the cache if the vts have been stored already.
@@ -1619,6 +1619,7 @@ void Contraction_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &mesh
         //     // break;
         // }
         // }
+        delete current;
     }
 
     // leaf_VV vvs;
@@ -1705,7 +1706,7 @@ void Contraction_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mesh &
         {
             omp_unset_lock(&(v_locks[*it - 1]));
         }
-
+    delete current;
     }
 
     // leaf_VV vvs;

@@ -896,10 +896,12 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &m
         //     // break;
         // }
         // }
+        delete current;
     }
 
     // leaf_VV vvs;
     // n.get_VV(vvs,mesh);
+
 }
 
 void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mesh &mesh, contraction_parameters &params, PRT_Tree &tree,Forman_Gradient &gradient)
