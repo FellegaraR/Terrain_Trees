@@ -69,7 +69,8 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
 {
     contraction_parameters params;
     params.set_maximum_limit(cli.maximum_limit);
-
+    omp_set_num_threads(cli.num_of_threads);
+    
     if(cli.QEM_based)
         params.queue_criterion_QEM();
     else

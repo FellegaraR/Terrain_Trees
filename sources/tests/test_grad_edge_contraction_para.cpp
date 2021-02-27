@@ -20,6 +20,7 @@ int main(int argc, char** argv)
     cli.crit_type = "pr";
     cli.v_per_leaf = atoi(argv[2]);
     cli.maximum_limit=atof(argv[4]);
+    cli.num_of_threads =atoi(argv[5]);
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cli.app_debug=OUTPUT;
     cerr<<"[GENERATION] PR-T tree"<<endl;
@@ -157,7 +158,7 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh(),tree.get_subdivision());
     time.stop();
     time.print_elapsed_time("[TIME] computing gradient vector field ");
- cerr << "[MEMORY] peak for computing gradient vector field: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+    cerr << "[MEMORY] peak for computing gradient vector field: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
     stringstream out2;
     out2 << base.str();

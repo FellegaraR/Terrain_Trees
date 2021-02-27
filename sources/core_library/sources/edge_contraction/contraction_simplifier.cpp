@@ -1039,6 +1039,7 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
    // LRU_Cache<int, leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VT relations
     contraction_parameters params;
     params.set_maximum_limit(cli.maximum_limit);
+    omp_set_num_threads(cli.num_of_threads);
     // Set edge selection criteria 
     if (cli.QEM_based)
         params.queue_criterion_QEM();
@@ -1132,8 +1133,9 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
     vector<int>().swap(v_in_leaf);
     lists_leafs().swap(conflict_leafs);
    // l_locks.clear();
-
-
+   // vector<Matrix>().swap(initialQuadric);
+    // vector<dvect>().swap(trianglePlane);
+   // map<vector<int>, double>().swap(updated_edges); 
     if (!cli.debug_mode)
         time.print_elapsed_time("[TIME] Edge contraction simplification: ");
     cerr << "[MEMORY] peak for Simplification: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;

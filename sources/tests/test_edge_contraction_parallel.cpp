@@ -18,6 +18,7 @@ int main(int argc, char **argv)
   cli.crit_type = "pr";
   cli.v_per_leaf = atoi(argv[2]);
   cli.maximum_limit = atof(argv[4]);
+  cli.num_of_threads =atoi(argv[5]);
   cli.debug_mode = false;
   PRT_Tree ptree = PRT_Tree(cli.v_per_leaf, cli.division_type);
   cerr << "[GENERATION] PR-T tree" << endl;

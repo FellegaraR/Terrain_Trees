@@ -62,6 +62,7 @@ struct cli_parameters
     bool debug_prints_mode;
     bool QEM_based;
     double maximum_limit; //for simplification
+    int num_of_threads;
 
     int num_input_entries;
     coord_type ratio;
@@ -105,6 +106,8 @@ struct cli_parameters
         debug_mode = true;
         debug_prints_mode = false;
         QEM_based = false;
+
+        num_of_threads = 1;
     }
 
      inline bool exec_weighted_simplification() { return weights_file != DEFAULT; }
