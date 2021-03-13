@@ -180,6 +180,9 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     cout<<"[NOTA]Border checking"<<endl;
     Border_Checker border_checker=Border_Checker();
     border_checker.compute_borders(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
+    time.stop();
+    time.print_elapsed_time("[TIME] Border Checking ");
+    time.start();
     Gradient_Aware_Simplifier simplifier;
     simplifier.preprocess(tree,tree.get_mesh(),cli);
     time.stop();

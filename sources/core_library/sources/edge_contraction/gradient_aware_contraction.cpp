@@ -334,7 +334,7 @@ params.add_edge_queue_size(edges.size());
 void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  Node_V &outer_v_block, edge_queue &edges,
                                            Node_V &n, Mesh &mesh, contraction_parameters &params,Forman_Gradient &gradient)
 {
-//    cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
+    //cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
    // cout<<"[NOTICE] Contract Edge"<<endl;
     ivect et_vec;
     et_vec.push_back(et.first);
@@ -351,7 +351,15 @@ void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1
     /// (1) the corresponding vt0 relation (by adding the triangles in vt1-et to vt0)
     /// (2) then the outer_v_block (if e is a cross edge)
     /// (3) and, finally, we add the new edges crossing b to the edge queue
-    Contraction_Simplifier::update(e,vt0,vt1,n,outer_v_block,edges,mesh,params);
+    //Contraction_Simplifier::update(e,vt0,vt1,n,outer_v_block,edges,mesh,params);
+
+    if (!params.is_parallel())
+        Contraction_Simplifier::update(e, vt0, vt1, n, outer_v_block, edges, mesh, params);
+    else
+    {
+
+        Contraction_Simplifier::update_parallel(e, vt0, vt1, n, outer_v_block, edges, mesh, params);
+    }
 
     // we remove v2 and the triangles in et
     Contraction_Simplifier::remove_from_mesh(e[1],et,mesh,params); 
@@ -364,12 +372,16 @@ void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1
 bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &vt1, VT &vt2,ET& et ,bool v1_is_border, bool v2_is_border, Forman_Gradient &gradient, Mesh &mesh){
 
     bool debug=false;
+//    if(v1==336&&v2==335)
+//        debug =true;
   //  cout<<"[debug]checking edge "<<v1<<", "<<v2<<endl;
     if(v1_is_border||v2_is_border){
-      //cout<<"border edge"<<endl;
+        if(debug)
+      cout<<"border edge"<<endl;
     return false;}
     if(vt1.size()<4||vt2.size()<4){
-       // cout<<"less than 4 triangles"<<endl;
+       if(debug)
+        cout<<"less than 4 triangles"<<endl;
         return false;
     }
     
@@ -377,7 +389,8 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     int t2=et.second;
     if(gradient.is_triangle_critical(t1)||gradient.is_triangle_critical(t2))
     {
-     //   cout<<"t1 or t2 is critical"<<endl;
+        if(debug)
+        cout<<"t1 or t2 is critical"<<endl;
         return false;
     }
     int v3_sin, v3_des;
@@ -468,8 +481,8 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
         }
 
         if(gradient.is_triangle_critical(vt2[i])) {
-
-        //     cout<<"vt2 is critical"<<endl;
+        if(debug)
+            cout<<"vt2 is critical"<<endl;
             return false;}
         //Instead of searching for vtstar, we check all the triangles here
         if(!gradient.is_vertex_critical(v2,vt2[i],mesh)) 
@@ -478,7 +491,8 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
 
     if(v2_is_critical)
      {
-       //  cout<<"v2 is critical"<<endl;
+         if(debug)
+        cout<<"v2 is critical"<<endl;
          return false;}
 
     for(auto it=ets.begin();it!=ets.end();it++){
@@ -489,7 +503,8 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
       //  cout<<it->first<<": "<<et1<<", "<<et2<<endl;
         if(gradient.is_edge_critical(e,et1,mesh)&&gradient.is_edge_critical(e,et2,mesh))
         {
-        //    cout<<"vv(v2) has critical edge"<<endl;
+            if(debug)
+            cout<<"vv(v2) has critical edge"<<endl;
             return false;
         }
     }
@@ -505,7 +520,8 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     bool edge2_critical=true;
     for(int i=0; i<vt1.size(); i++){
         if(gradient.is_triangle_critical(vt1[i])){
-            //cout<<"vt1 is critical"<<endl;
+            if(debug)
+            cout<<"vt1 is critical"<<endl;
          return false;}
         for(int j=0; j<3; j++){
             int vid=mesh.get_triangle(vt1[i]).TV(j);
@@ -532,7 +548,8 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     }
     if(edge1_critical||edge2_critical)
      {
-      //   cout<<"edge is critical"<<endl;
+         if(debug)
+         cout<<"edge is critical"<<endl;
          return false;}
     //Check if v1 is point to v3_sin
     itype v1_pair=-1;
@@ -567,7 +584,8 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
  //   cout<<"v1: "<<v1<<" v1_pair:"<<v1_pair<<endl;
   //  cout<<"v2: "<<v2<<" v2_pair:"<<v2_pair<<endl;
     if(v1_pair!=v2&&v2_pair!=v1){
-  //      cout<<"edge is not paired with v1 or v2"<<endl;
+        if(debug)
+       cout<<"edge is not paired with v1 or v2"<<endl;
 
         return false;
     }
@@ -623,6 +641,9 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
         // cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
         gradient.update_VE_adj_T(t3_adj_des,v1,v3_des,mesh,gradient);
     }
+
+       if(debug)
+    cout<<"valid gradient condition"<<endl;
     return true;
     //Triangle 
 
@@ -872,7 +893,7 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &m
 
         // if(params.is_parallel()){
         VV vv_locks;
-        if (link_condition(e[0], e[1], *vt0, *vt1, et, n, *outer_v_block, vv_locks, mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)&&not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh))
+        if (link_condition(e[0], e[1], *vt0, *vt1, et, n, *outer_v_block, vv_locks, mesh)&&not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh))
         {
             contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params,gradient);
             edges_contracted_leaf++;
@@ -966,11 +987,13 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mes
         Node_V *outer_v_block = NULL;
         bool v1_is_border=false, v2_is_border=false;
    
+        if(e[0]==336&&e[1]==335)
+        cout<<"problematic edge"<<endl;
         Contraction_Simplifier::get_edge_relations(e, et, vt0, vt1,v1_is_border,v2_is_border, outer_v_block, n, mesh, local_vts, is_v_border, local_cache, params, tree);
      
         // if(params.is_parallel()){
         VV vv_locks;
-        if (link_condition(e[0], e[1], *vt0, *vt1, et, n, *outer_v_block, vv_locks, mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)&&not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh))
+        if (link_condition(e[0], e[1], *vt0, *vt1, et, n, *outer_v_block, vv_locks, mesh)&&not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh))
         {
             contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params,gradient);
             edges_contracted_leaf++;

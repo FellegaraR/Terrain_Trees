@@ -24,6 +24,11 @@ protected:
                               Node_V &n, Mesh &mesh,  contraction_parameters &params,Forman_Gradient &gradient);
     // void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, Node_V *& outer_v_block, 
     //                                Node_V &n, Mesh &mesh, leaf_VT &vts, LRU_Cache<int,leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree);
+    
+    // valid_gradient_configuration should always be the last condition to be checked for a candidate edge
+    // because in this function, if an edge satisfies the gradient condition, the gradient field will be modified. 
+    // if later another condition delines the edge contraction, then the modification on the gradient field will be wrong. 
+ 
     bool valid_gradient_configuration(int v1,int v2,VT &vt1, VT &vt2,ET& et, bool v1_is_border, bool v2_is_border, Forman_Gradient &gradient, Mesh &mesh);
     // void update(const ivect &e, VT& vt, VT& difference, Node_V &n, Node_V &v_block, edge_queue &edges,
     //                                       Mesh &mesh, contraction_parameters &params);
