@@ -17,6 +17,10 @@ int main(int argc, char **argv)
   cli.division_type = QUAD;
   cli.crit_type = "pr";
   cli.v_per_leaf = atoi(argv[2]);
+      if(atof(argv[4])==-1){
+        cli.contract_all_edges = true;
+    }
+
   cli.maximum_limit = atof(argv[4]);
   cli.num_of_threads =atoi(argv[5]);
   cli.debug_mode = false;

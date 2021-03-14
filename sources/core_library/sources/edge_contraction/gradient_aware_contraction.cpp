@@ -6,6 +6,8 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify(PRT_Tree &tree, Mesh &me
     cerr<<"[NOTICED] Cache size: "<<cli.cache_size<<endl;
     LRU_Cache<int,leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VT relations
     contraction_parameters params;
+    if(cli.contract_all_edges==true)
+       params.contract_all_possible_edges();
     params.set_maximum_limit(cli.maximum_limit);
     if(cli.QEM_based)
         params.queue_criterion_QEM();
@@ -68,6 +70,8 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify(PRT_Tree &tree, Mesh &me
 void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli,Forman_Gradient &gradient)   
 {
     contraction_parameters params;
+    if(cli.contract_all_edges==true)
+       params.contract_all_possible_edges();
     params.set_maximum_limit(cli.maximum_limit);
     omp_set_num_threads(cli.num_of_threads);
     

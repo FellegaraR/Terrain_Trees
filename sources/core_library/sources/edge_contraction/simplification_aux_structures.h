@@ -30,7 +30,7 @@ typedef std::priority_queue<Geom_Edge*, std::vector<Geom_Edge*>, CompareEdge> ed
 class contraction_parameters
 {
 public: 
-  contraction_parameters(){checked_edges = 0;maximum_limit=0;simplification_counter=0;sum_edge_queue_sizes=0;QEM_based=false;parallel=false;}
+  contraction_parameters(){checked_edges = 0;maximum_limit=0;simplification_counter=0;sum_edge_queue_sizes=0;QEM_based=false;parallel=false;all_edges=false;}
     inline void increment_contracted_edges_counter() { checked_edges++; }
     inline int get_contracted_edges_num() { return checked_edges; }
     inline void set_maximum_limit(double l){this->maximum_limit=l;}
@@ -43,8 +43,10 @@ public:
     inline void queue_criterion_length(){QEM_based=false;}
     inline bool is_QEM(){return QEM_based;}
     inline bool is_parallel(){return parallel;}
+    inline bool no_limit(){return all_edges;}
     inline void parallel_compute(){parallel=true;}
     inline void sequential_compute(){parallel=false;}
+    inline void contract_all_possible_edges(){all_edges=true;}
     inline void print_simplification_counters()
     {
         if(checked_edges >0)
@@ -57,6 +59,7 @@ protected:
   int sum_edge_queue_sizes;
   bool QEM_based;
   bool parallel;
+  bool all_edges;
 };
 
 #endif // SIMPLIFICATION_AUX_STRUCTURES_H

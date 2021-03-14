@@ -62,11 +62,16 @@ void Contraction_Simplifier::find_candidate_edges(Node_V &n, Mesh &mesh, leaf_VT
                     //  Edge e((*it)[0],(*it)[1]);
                     lengths[e] = length;
                     //Edge edge_obj(e[0],e[1]);
+                    if(params.no_limit()){
+                        edges.push(new Geom_Edge(e, length));
+                    }
+                    else{
                     if (length - params.get_maximum_limit() < Zero)
                     {
                         // cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<length<<endl;
                         edges.push(new Geom_Edge(e, length));
                         //     cout<<"ENQUEUE"<<endl;
+                    }
                     }
                 }
             }
@@ -197,11 +202,16 @@ void Contraction_Simplifier::find_candidate_edges_parallel(Node_V &n, Mesh &mesh
                     //  Edge e((*it)[0],(*it)[1]);
                     lengths[e] = length;
                     //Edge edge_obj(e[0],e[1]);
+                     if(params.no_limit()){
+                         edges.push(new Geom_Edge(e, length));
+                     }
+                     else{
                     if (length - params.get_maximum_limit() < Zero)
                     {
                         // cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<length<<endl;
                         edges.push(new Geom_Edge(e, length));
                         //     cout<<"ENQUEUE"<<endl;
+                    }
                     }
                 }
             }
@@ -918,7 +928,13 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
             }
 
             e = {(*it)[0], (*it)[1]};
-            if ((error - params.get_maximum_limit() < Zero) && n.indexes_vertex(e[1]))
+            bool error_condition;
+            if(params.no_limit())
+            error_condition = true;
+            else
+            error_condition = (error - params.get_maximum_limit() < Zero);
+
+            if (error_condition && n.indexes_vertex(e[1]))
             {
                 if (new_vertex_pos == 1)
                 {
@@ -996,7 +1012,12 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
                 updated_edges.insert(updated_edge);
             }
             e = {(*it)[0], (*it)[1]};
-            if ((error - params.get_maximum_limit() < Zero) && n.indexes_vertex(e[1]))
+            bool error_condition;
+            if(params.no_limit())
+            error_condition = true;
+            else
+            error_condition =(error - params.get_maximum_limit() < Zero);
+            if ( error_condition&& n.indexes_vertex(e[1]))
             {
                 if (new_vertex_pos == 1)
                 {
@@ -1015,7 +1036,13 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
             dvect dif = {v1.get_x() - v2.get_x(), v1.get_y() - v2.get_y(), v1.get_z() - v2.get_z()};
             value = sqrt(dif[0] * dif[0] + dif[1] * dif[1] + dif[2] * dif[2]);
             e = {(*it)[0], (*it)[1]};
-            if ((value - params.get_maximum_limit() < Zero) && n.indexes_vertex(e[1]))
+            bool error_condition;
+            if(params.no_limit())
+            error_condition = true;
+            else
+            error_condition = (value - params.get_maximum_limit() < Zero);
+
+            if ( error_condition&& n.indexes_vertex(e[1]))
             {
                 //     cout<<"["<<e[0]<<","<<e[1]<<"]  Edge length: "<<value<<endl;
                 edges.push(new Geom_Edge(e, value));
@@ -1034,6 +1061,8 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
     // cerr << "[NOTICED] Cache size: " << cli.cache_size << endl;
     // LRU_Cache<int, leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VT relations
     contraction_parameters params;
+    if(cli.contract_all_edges==true)
+       params.contract_all_possible_edges();
     params.set_maximum_limit(cli.maximum_limit);
     omp_set_num_threads(cli.num_of_threads);
     // Set edge selection criteria
@@ -1149,6 +1178,8 @@ void Contraction_Simplifier::simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters
     cerr << "[NOTICED] Cache size: " << cli.cache_size << endl;
     LRU_Cache<int, leaf_VT> cache(cli.cache_size); // the key is v_start while the value are the VT relations
     contraction_parameters params;
+    if(cli.contract_all_edges==true)
+       params.contract_all_possible_edges();
     params.set_maximum_limit(cli.maximum_limit);
     if (cli.QEM_based)
         params.queue_criterion_QEM();
@@ -2029,11 +2060,16 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
                     //  Edge e((*it)[0],(*it)[1]);
                     edge_map[e] = error;
                     //Edge edge_obj(e[0],e[1]);
+                   if(params.no_limit()){
+                        edges.push(new Geom_Edge(e, error));
+                    }
+                    else{
                     if (error - params.get_maximum_limit() < Zero)
                     {
                      //      cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
                         edges.push(new Geom_Edge(e, error));
                         //     cout<<"ENQUEUE"<<endl;
+                    }
                     }
                 }
             }
