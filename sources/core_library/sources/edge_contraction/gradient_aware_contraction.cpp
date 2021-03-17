@@ -737,12 +737,12 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
         for (unsigned i = 0; i < tree.get_leaves_number(); i++)
         {
             Node_V *leaf = tree.get_leaf(i);
-        // if (!leaf->indexes_vertices())
-        //  {
-        //    processed_node++;
-           
-        //     continue;
-        //   }
+        if (!leaf->indexes_vertices())
+         {
+           processed_node++;
+           nodes_status[i] =-1;
+            continue;
+          }
             //check the array of conflict_nodes
             // if nodes_status[i]==1, then continue
           //  cout << "Current leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
