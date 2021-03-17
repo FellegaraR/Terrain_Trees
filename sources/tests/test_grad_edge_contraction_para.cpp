@@ -184,6 +184,7 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     tree.init_leaves_list(tree.get_root()); 
 
     cout<<"[NOTA]Border checking"<<endl;
+    time.start();
     Border_Checker border_checker=Border_Checker();
     border_checker.compute_borders(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
     time.stop();

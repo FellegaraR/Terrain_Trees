@@ -2182,8 +2182,9 @@ void Contraction_Simplifier::preprocess(PRT_Tree &tree, Mesh &mesh, cli_paramete
 {
 
     conflict_leafs.assign(tree.get_leaves_number(), iset());
-    map<int, ivect> nodes_of_t;
+    //map<int, ivect> nodes_of_t;
     v_in_leaf.assign(mesh.get_vertices_num(), -1);
+    vector<ivect> cross_triangles(tree.get_leaves_number(), ivect());
     // Can be parallel
     cout<<"preprocessing"<<endl;
     #pragma omp parallel for
@@ -2212,9 +2213,10 @@ void Contraction_Simplifier::preprocess(PRT_Tree &tree, Mesh &mesh, cli_paramete
                    }
             }
             if(num_v_indexed>0&&num_v_indexed<3){
+                cross_triangles[i].push_back(*t_id);
          //    omp_set_lock(&(t_locks[*t_id - 1]));
-         #pragma omp critical
-             nodes_of_t[*t_id].push_back(i);
+        //  #pragma omp critical
+        //      nodes_of_t[*t_id].push_back(i);
            //  omp_unset_lock(&(t_locks[*t_id - 1]));
              }
 
@@ -2229,19 +2231,39 @@ void Contraction_Simplifier::preprocess(PRT_Tree &tree, Mesh &mesh, cli_paramete
         //     v_in_leaf[*it] = i;
         // }
     }
-    cout<<"preprocessing finished"<<endl;
 
-    for (auto it = nodes_of_t.begin(); it != nodes_of_t.end(); it++)
+    #pragma omp parallel for
+    for (int i = 0; i < tree.get_leaves_number(); i++)
     {
-        for (int i = 0; i < it->second.size(); i++)
-        {
-            for (int j = i + 1; j < it->second.size(); j++)
+        Node_V *n = tree.get_leaf(i);
+        if (!n->indexes_vertices())
+             continue;
+        for(auto it=cross_triangles[i].begin();it!=cross_triangles[i].end();it++){
+            Triangle t= mesh.get_triangle(*it);
+            for (int j = 0; j < t.vertices_num(); j++)
             {
-                conflict_leafs[it->second[i]].insert(it->second[j]);
-                conflict_leafs[it->second[j]].insert(it->second[i]);
+                if (!n->indexes_vertex(t.TV(j)))
+                   { 
+                    conflict_leafs[i].insert(v_in_leaf[t.TV(j)]);
+                  //  cout<<t.TV(j)<<endl;
+                   
+                   }
             }
         }
     }
+    // cout<<"preprocessing finished"<<endl;
+
+    // for (auto it = nodes_of_t.begin(); it != nodes_of_t.end(); it++)
+    // {
+    //     for (int i = 0; i < it->second.size(); i++)
+    //     {
+    //         for (int j = i + 1; j < it->second.size(); j++)
+    //         {
+    //             conflict_leafs[it->second[i]].insert(it->second[j]);
+    //             conflict_leafs[it->second[j]].insert(it->second[i]);
+    //         }
+    //     }
+    // }
 
 
     // cout<<"[DEBUG] print the conflict list"<<endl;
