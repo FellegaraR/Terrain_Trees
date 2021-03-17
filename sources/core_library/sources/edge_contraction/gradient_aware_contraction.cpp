@@ -737,6 +737,8 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
         for (unsigned i = 0; i < tree.get_leaves_number(); i++)
         {
             Node_V *leaf = tree.get_leaf(i);
+            if(nodes_status[i]==-1)
+               continue;
         if (!leaf->indexes_vertices())
          {
            processed_node++;
