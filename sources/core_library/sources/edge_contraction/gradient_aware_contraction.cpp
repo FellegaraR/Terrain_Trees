@@ -727,13 +727,22 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
 
     //boost::dynamic_bitset<> conflict_nodes(tree.get_leaves_number());
     ivect nodes_status(tree.get_leaves_number(), 0);
+    int processed_node = 0;
     bool processed = false;
     do
     {
         processed = false;
-#pragma omp parallel for // schedule(dynamic,1)
+        
+#pragma omp parallel for reduction(+:processed_node)// schedule(dynamic,1)
         for (unsigned i = 0; i < tree.get_leaves_number(); i++)
         {
+            Node_V *leaf = tree.get_leaf(i);
+        // if (!leaf->indexes_vertices())
+        //  {
+        //    processed_node++;
+           
+        //     continue;
+        //   }
             //check the array of conflict_nodes
             // if nodes_status[i]==1, then continue
           //  cout << "Current leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
@@ -794,13 +803,13 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
                     continue;
                 }
   
-                Node_V *leaf = tree.get_leaf(i);
+                
                 //  cout<<"Node "<<i<<" will be processed."<<endl;
                 // omp_set_lock(&(l_locks[i]));
                 // // set nodes_status[i]=2 when node is being processed
                 // nodes_status[i] = 2;
                 // omp_unset_lock(&(l_locks[i]));
-
+                processed_node=processed_node+1;
                 processed = true;
               // cout << "Start simplification" << endl;
                if(params.is_QEM()==true)
@@ -834,8 +843,9 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
         }
        // cout << "finished one for loop" << endl;
  cerr << "[MEMORY] peak for a simplification round:" << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
-
-    } while (processed == true);
+cerr<<"Number of processed nodes:"<<processed_node<<endl;
+    //} while (processed == true);
+    } while (processed_node!=tree.get_leaves_number());
 }
 
 

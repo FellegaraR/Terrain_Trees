@@ -1282,10 +1282,12 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh, Spatial_Subdi
     //boost::dynamic_bitset<> conflict_nodes(tree.get_leaves_number());
     ivect nodes_status(tree.get_leaves_number(), 0);
     bool processed = false;
+    int processed_node = 0;
     do
     {
         processed = false;
-#pragma omp parallel for // schedule(dynamic,1)
+        
+#pragma omp parallel for reduction(+:processed_node) // schedule(dynamic,1)
         for (unsigned i = 0; i < tree.get_leaves_number(); i++)
         {
             //check the array of conflict_nodes
@@ -1356,6 +1358,7 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh, Spatial_Subdi
                 // omp_unset_lock(&(l_locks[i]));
 
                 processed = true;
+                processed_node=processed_node+1;
                 // cout << "Start simplification" << endl;
                 if (params.is_QEM() == true)
                     simplify_leaf_cross_QEM(*leaf, i, mesh, params, tree);
@@ -1388,8 +1391,9 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh, Spatial_Subdi
         }
         // cout << "finished one for loop" << endl;
         cerr << "[MEMORY] peak for a simplification round: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
-
-    } while (processed == true);
+    cerr<<"Number of processed nodes:"<<processed_node<<endl;
+    //} while (processed == true);
+    } while (processed_node!=tree.get_leaves_number());
 }
 
 void Contraction_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree)
@@ -2183,7 +2187,7 @@ void Contraction_Simplifier::preprocess(PRT_Tree &tree, Mesh &mesh, cli_paramete
 
     conflict_leafs.assign(tree.get_leaves_number(), iset());
     //map<int, ivect> nodes_of_t;
-    v_in_leaf.assign(mesh.get_vertices_num(), -1);
+    v_in_leaf.assign(mesh.get_vertices_num()+1, -1);
     vector<ivect> cross_triangles(tree.get_leaves_number(), ivect());
     // Can be parallel
     cout<<"preprocessing"<<endl;
@@ -2251,6 +2255,20 @@ void Contraction_Simplifier::preprocess(PRT_Tree &tree, Mesh &mesh, cli_paramete
             }
         }
     }
+    // cout<<"[DEBUG] conflict node lists:"<<endl;
+
+    // for (int i = 0; i < tree.get_leaves_number(); i++)
+    // {
+    //     Node_V *n = tree.get_leaf(i);
+    //     if (!n->indexes_vertices())
+    //          continue;
+    //          cout<<"Node "<<i<<endl;
+    //    for(auto it=conflict_leafs[i].begin();it!=conflict_leafs[i].end();it++){
+    //         cout<<*it<<", ";
+    //    }
+    //    cout<<endl;
+        
+    // }
     // cout<<"preprocessing finished"<<endl;
 
     // for (auto it = nodes_of_t.begin(); it != nodes_of_t.end(); it++)
