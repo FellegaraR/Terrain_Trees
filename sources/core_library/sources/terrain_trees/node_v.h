@@ -148,10 +148,12 @@ public:
     {
         if(p.is_leaf())
         {
-            if(p.get_v_array_size() == 2) // it should be reindexed
+            if(p.get_v_array_size() == 2) // it should be reindexed //it has been reindexed
                 out <<"Leaf["<< p.get_v_start() << " " << p.get_v_end()<<"]";
-            else
+            else   //should be reindexed
             {
+
+                  out <<"Leaf["<< p.get_v_start() << " " << p.get_v_end()<<"]";
                 out << "Leaf[v->"<< p.get_real_v_array_size() << " t->"<< p.get_real_t_array_size() <<"]";
    
             }
@@ -333,6 +335,15 @@ public:
     }
         return false;
     }
+
+////ONLY FOR DEBUG, SHOULD REMOVE BEFORE MERGING
+// inline void print_vertices(){
+//     cout<<"V list:";
+//     for(auto it = vertices.begin();it!=vertices.end();it++)
+//     cout<<*it<<", ";
+//     cout<<endl;
+// }
+
 protected:    
    ivect vertices;
 };

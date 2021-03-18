@@ -27,6 +27,7 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify(PRT_Tree &tree, Mesh &me
         compute_triangle_plane(mesh,trianglePlane);
         cout<<"=========Calculate initial QEM========"<<endl;
         compute_initial_QEM(mesh,trianglePlane);
+        vector<dvect>().swap(trianglePlane);
 
         }
     time.start();
@@ -135,10 +136,11 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
             time.start();
           //  cerr << "   [RAM] peak for executing a simplification round: " << to_string(MemoryUsage().getValue_in_MB(false)) << " Mbs" << std::endl;
         }
-    count_round++;
+    //count_round++;
         ///UPDATE: update data structure and conflict nodes lists after each round
     vector<int>().swap(v_in_leaf);
     lists_leafs().swap(conflict_leafs);
+
     Contraction_Simplifier::preprocess(tree,mesh,cli);
     
     cout<<"number of remaining triangles: "<<tree.get_mesh().get_triangles_num()<<endl;
@@ -184,6 +186,8 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
   //  cerr << "[RAM peak] for contracting a simplicial complex: " << to_string(MemoryUsage().getValue_in_MB(false)) << " Mbs" << std::endl;
 
     /// finally we have to update/compress the mesh and the tree
+    // Gradient_Aware_Simplifier::update_mesh_and_tree(tree,mesh,params,gradient);
+    // cerr << "[MEMORY] peak for mesh and tree updating: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
     Gradient_Aware_Simplifier::update_mesh_and_tree(tree,mesh,params,gradient);
     cerr << "[MEMORY] peak for mesh and tree updating: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
  
@@ -393,7 +397,8 @@ void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1
 bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &vt1, VT &vt2,ET& et ,bool v1_is_border, bool v2_is_border, Forman_Gradient &gradient, Mesh &mesh){
 
     bool debug=false;
-    // if(count_round>0)
+     if(count_round>0)
+     cout<<"Checking gradient"<<endl;
     // debug=true;
 //    if(v1==336&&v2==335)
 //        debug =true;
@@ -766,6 +771,7 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
             Node_V *leaf = tree.get_leaf(i);
             if(nodes_status[i]==-1)
                continue;
+            //cout<<*leaf<<endl;
         if (!leaf->indexes_vertices())
          {
            processed_node++;
@@ -902,11 +908,12 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &m
     //     find_candidate_edges_parallel(n, mesh, local_vts, edges, params, true);
     // }
     // else
+    
     find_candidate_edges(n, mesh, local_vts, edges, params);
 
     int edge_num = edges.size();
     int edges_contracted_leaf = 0;
-   // cout << "Edge number:" << edges.size() << endl;
+    
     // cout<<"Number of threads used: "<<omp_get_num_threads()<<endl;
     // cout<<"Current thread id: "<<omp_get_thread_num()<<endl;
 
@@ -916,9 +923,10 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &m
     {
         Geom_Edge *current = edges.top();
         ivect e = current->edge;
-        //    cout<<"Start contraction."<<endl;
+            //cout<<"Start contraction."<<endl;
         //  cout<<"Edge Length:"<<current->val<<endl;
-
+          if(count_round>0)
+     cout<<"Start contraction"<<endl;
         edges.pop();
 
         if (mesh.is_vertex_removed(e[0]) || mesh.is_vertex_removed(e[1]))
@@ -932,6 +940,8 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &m
         VT *vt0 = NULL, *vt1 = NULL;
         Node_V *outer_v_block = NULL;
         bool v1_is_border=false, v2_is_border=false;
+                  if(count_round>0)
+     cout<<"get edge relation"<<endl;
         Contraction_Simplifier::get_edge_relations(e, et, vt0, vt1,v1_is_border,v2_is_border, outer_v_block, n, mesh, local_vts, is_v_border, local_cache, params, tree);
 
         // if(params.is_parallel()){
@@ -1029,9 +1039,7 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mes
         VT *vt0 = NULL, *vt1 = NULL;
         Node_V *outer_v_block = NULL;
         bool v1_is_border=false, v2_is_border=false;
-   
-        if(e[0]==336&&e[1]==335)
-        cout<<"problematic edge"<<endl;
+
         Contraction_Simplifier::get_edge_relations(e, et, vt0, vt1,v1_is_border,v2_is_border, outer_v_block, n, mesh, local_vts, is_v_border, local_cache, params, tree);
      
         // if(params.is_parallel()){
@@ -1041,7 +1049,8 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mes
             contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params,gradient);
             edges_contracted_leaf++;
             // break;
-
+     if(count_round>0)
+     cout<<"Contracted an edge"<<endl;
             // A new step for cross edge case
             // Check possible new conflict nodes by checking the vv_locks
             // vv_locks stores all the vertices in the VV(v0) & VV(v1) that are not contained by n or outer_v_block
@@ -1087,12 +1096,17 @@ void Gradient_Aware_Simplifier::update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh,
     //cout << "number of deleted triangles:" << params.get_counter() << endl;
 
     gradient.reorder_forman_gradient(mesh);
+    if(params.is_QEM()){
+        update_QEM(surviving_vertices,mesh);
+    }
 
     /// NEW: the update_and_compact procedure check internally if we have removed all the top d-simplices
     bool all_deleted = mu.update_and_clean_triangles_arrays(mesh, new_v_positions, new_t_positions, params.get_counter());
     time.stop();
     time.print_elapsed_time("[TIME] Compact and update mesh: ");
     cerr << "[MEMORY] peak for compacting and updating the mesh: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+
+
 
     // cerr<<"[STAT] mesh "<<endl;
     // cerr<<"------------"<<endl;
@@ -1110,6 +1124,18 @@ void Gradient_Aware_Simplifier::update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh,
 
     //    Reindexer r;
     //    r.reorganize_index_and_mesh(tree,mesh,false);
+// for(int i = 0; i<tree.get_leaves_number();i++)
+// {
+//     Node_V * l = tree.get_leaf(i);
+//     cout<<"Leaf "<<i<<endl;
+//     cout<<*l<<endl;
+//     for(auto it = l->v_array_begin_iterator();it!=l->v_array_end_iterator();it++)
+//     cout<<*it<<", ";
+//     cout<<endl;
+
+// }
+
+
 
     //cerr << "[RAM peak] for updating the mesh and the tree: " << to_string(MemoryUsage().getValue_in_MB(false)) << " Mbs" << std::endl;
 }

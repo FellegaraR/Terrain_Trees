@@ -807,7 +807,8 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
 
 bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et, Node_V &n, Node_V &v_block, VV &vv_locks, Mesh &mesh)
 {
-
+     if(count_round>0)
+     cout<<"Checking link condition"<<endl;
     //Update: Considering that the edge to be contracted should not be boundary edge
     //We can simplify the link condition check while checking if e is boundary edge
     if (et.first == -1 || et.second == -1)
@@ -878,8 +879,8 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
             omp_set_lock(&(v_locks[*it - 1]));
         }
     }
-    if(v0==336&&v1==335)
-       cout<<"counter is "<<counter<<endl;
+     if(count_round>0)
+     cout<<"Checked link condition"<<endl;
     return counter <= 2;
 }
 
@@ -1789,9 +1790,16 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
     // Using local cache
     if (e[1] > e[0])
     {
+                  if(count_round>0)
+     {cout<<"case 1"<<endl;
+     cout<<e[0]<<", "<<e[1]<<", "<<n.get_v_start()<<endl;
+     }
         vt1 = Contraction_Simplifier::get_VT(e[1], n, mesh, vts, cache, tree, outer_v_block, params);
         vt0 = Contraction_Simplifier::get_VT(e[0], n, mesh, vts, cache, tree, outer_v_block, params);
         v2_is_border = is_border_edge[e[1] - n.get_v_start()];
+                          if(count_round>0)
+     {cout<<v2_is_border<<endl;
+     }
         if (n.indexes_vertex(e[0]))
         {
             v1_is_border = is_border_edge[e[0] - n.get_v_start()];
@@ -1815,7 +1823,8 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
     }
     else
     {
-
+          if(count_round>0)
+     cout<<"case 2"<<endl;
         vt0 = get_VT(e[0], n, mesh, vts, cache, tree, outer_v_block, params);
         vt1 = get_VT(e[1], n, mesh, vts, cache, tree, outer_v_block, params);
 
@@ -1909,6 +1918,9 @@ VT *Contraction_Simplifier::get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts
 {
     int local_index;
     bool debug = false;
+                              if(count_round>0)
+     {debug = true;
+     }
     if (n.indexes_vertex(v_id))
     {
         if (debug)
@@ -1925,8 +1937,10 @@ VT *Contraction_Simplifier::get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts
         if (debug) // if v is external
             cout << "[get_VT] " << v_id << " -> EXTERNAL VERTEX " << n << endl;
 
-        tree.get_leaf_indexing_vertex(tree.get_root(), v_id, v_block); // the vertex should be protected by a lock in the future
-        local_index = v_id - v_block->get_v_start();
+        //UPDATE: we can use v_in_leaf array to directly locate the node containing it
+        //tree.get_leaf_indexing_vertex(tree.get_root(), v_id, v_block); // the vertex should be protected by a lock in the future
+        int n_index = v_in_leaf[v_id];
+        v_block = tree.get_leaf(n_index);        local_index = v_id - v_block->get_v_start();
         //LRU_Cache<int, leaf_VT>::mapIt it_c = cache.end();
         map<int, leaf_VT>::iterator it_c = cache.end();
         VT *vt = NULL;
@@ -2368,6 +2382,8 @@ bool Contraction_Simplifier::valid_boundary_condition(int v1, int v2, VT &vt1, V
 
 bool Contraction_Simplifier::not_fold_over(int v1, int v2, VT &vt1, VT &vt2, ET &et, Mesh &mesh)
 {
+         if(count_round>0)
+     cout<<"Checking if folder over"<<endl;
     VT vt2_sub_et = vt2;
     ivect et_vec;
     et_vec.push_back(et.first);
@@ -2381,8 +2397,28 @@ bool Contraction_Simplifier::not_fold_over(int v1, int v2, VT &vt1, VT &vt2, ET 
         ivect e;
         t.TE(v2_pos, e);
         bool same_side = Geometry_Wrapper::same_side_of_edge(v1, v2, e[0], e[1], mesh);
-        if (!same_side)
+   
+        if (!same_side){
+        if(count_round>0)
+     cout<<"Checked false"<<endl;
             return false;
+            }
     }
+     if(count_round>0)
+     cout<<"Checked"<<endl;
     return true;
+}
+
+void Contraction_Simplifier::update_QEM(ivect& surviving_vertices, Mesh &mesh){
+    vector<Matrix> newQuadric(surviving_vertices.size()+1,Matrix(0.0));
+    int v_counter = 1;
+    for(ivect_iter it=surviving_vertices.begin(); it!=surviving_vertices.end(); ++it)
+    {
+        // mesh.add_vertex(old_list[*it-1]);
+       newQuadric[v_counter]=initialQuadric[*it];
+        v_counter++;
+    }    
+    initialQuadric = newQuadric;
+    vector<Matrix>().swap(newQuadric);
+
 }
