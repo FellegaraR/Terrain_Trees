@@ -20,7 +20,7 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify(PRT_Tree &tree, Mesh &me
     int simplification_round;
     int round = 1;
     if(params.is_QEM()){
-
+time.start();
         trianglePlane =vector<dvect>(mesh.get_triangles_num(),dvect(4,0));
         initialQuadric = vector<Matrix>(mesh.get_vertices_num()+1,Matrix(0.0));
         cout<<"=========Calculate triangle plane========"<<endl;
@@ -28,7 +28,8 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify(PRT_Tree &tree, Mesh &me
         cout<<"=========Calculate initial QEM========"<<endl;
         compute_initial_QEM(mesh,trianglePlane);
         vector<dvect>().swap(trianglePlane);
-
+    time.stop();
+    time.print_elapsed_time("[TIME] Calculating initial QEM: ");
         }
     time.start();
     while(1)
@@ -87,17 +88,8 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
     Timer time;
     int simplification_round;
     int round = 1;
-    if(params.is_QEM()){
 
-        trianglePlane =vector<dvect>(mesh.get_triangles_num(),dvect(4,0));
-        initialQuadric = vector<Matrix>(mesh.get_vertices_num()+1,Matrix(0.0));
-        cout<<"=========Calculate triangle plane========"<<endl;
-        compute_triangle_plane(mesh,trianglePlane);
-        cout<<"=========Calculate initial QEM========"<<endl;
-        compute_initial_QEM(mesh,trianglePlane);
-
-        }
-    time.start();
+ time.start();
     cout<<"Number of threads used in the simplification:"<<omp_get_max_threads()<<endl;
   //  const int t_num = mesh.get_triangles_num();
     const int v_num = mesh.get_vertices_num();
@@ -116,6 +108,25 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
     for (int i = 0; i < l_num; i++)
         omp_init_lock(&(l_locks[i]));
     cout << "Initialize l_locks" << endl;
+    time.stop();
+      time.print_elapsed_time("[TIME] Initialization of locks:  ");
+
+
+
+    if(params.is_QEM()){
+time.start();
+        trianglePlane =vector<dvect>(mesh.get_triangles_num(),dvect(4,0));
+        initialQuadric = vector<Matrix>(mesh.get_vertices_num()+1,Matrix(0.0));
+        cout<<"=========Calculate triangle plane========"<<endl;
+        compute_triangle_plane(mesh,trianglePlane);
+        cout<<"=========Calculate initial QEM========"<<endl;
+        compute_initial_QEM(mesh,trianglePlane);
+        vector<dvect>().swap(trianglePlane);
+        time.stop();
+        time.print_elapsed_time("[TIME] Calculating initial QEM: ");
+
+        }
+   time.start();
     while(1)
     {
         simplification_round = params.get_contracted_edges_num();  //checked edges

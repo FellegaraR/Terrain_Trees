@@ -115,7 +115,7 @@ protected:
         result += q[15];
 
         //   cout<<"calculated result: "<<result<<endl;
-        result = round(result * 100000) / 100000.0;
+        //result = round(result * 100000) / 100000.0;
         return result;
     }
 

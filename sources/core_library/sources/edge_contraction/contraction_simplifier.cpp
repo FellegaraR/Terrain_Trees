@@ -1084,17 +1084,6 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
     Timer time;
     int simplification_round;
     int round = 1;
-    if (params.is_QEM())
-    {
-
-        trianglePlane = vector<dvect>(mesh.get_triangles_num(), dvect(4, 0));
-        initialQuadric = vector<Matrix>(mesh.get_vertices_num() + 1, Matrix(0.0));
-        cout << "=========Calculate triangle plane========" << endl;
-        compute_triangle_plane(mesh, trianglePlane);
-        cout << "=========Calculate initial QEM========" << endl;
-        compute_initial_QEM(mesh, trianglePlane);
-    }
-
     time.start();
     cout << "Number of threads used in the simplification:" << omp_get_max_threads() << endl;
     //  const int t_num = mesh.get_triangles_num();
@@ -1119,6 +1108,24 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
         omp_init_lock(&(l_locks[i]));
     cout << "Initialize l_locks" << endl;
 
+time.stop();
+time.print_elapsed_time("[TIME] Initialization of locks: ");
+
+    if (params.is_QEM())
+    {
+time.start();
+        trianglePlane = vector<dvect>(mesh.get_triangles_num(), dvect(4, 0));
+        initialQuadric = vector<Matrix>(mesh.get_vertices_num() + 1, Matrix(0.0));
+        cout << "=========Calculate triangle plane========" << endl;
+        compute_triangle_plane(mesh, trianglePlane);
+        cout << "=========Calculate initial QEM========" << endl;
+        compute_initial_QEM(mesh, trianglePlane);
+            time.stop();
+    time.print_elapsed_time("[TIME] Calculating initial QEM: ");
+    }
+
+
+time.start();
     while (1)
     {
         simplification_round = params.get_contracted_edges_num(); //checked edges
@@ -1200,13 +1207,15 @@ void Contraction_Simplifier::simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters
     int round = 1;
     if (params.is_QEM())
     {
-
+ time.start();
         trianglePlane = vector<dvect>(mesh.get_triangles_num(), dvect(4, 0));
         initialQuadric = vector<Matrix>(mesh.get_vertices_num() + 1, Matrix(0.0));
         cout << "=========Calculate triangle plane========" << endl;
         compute_triangle_plane(mesh, trianglePlane);
         cout << "=========Calculate initial QEM========" << endl;
         compute_initial_QEM(mesh, trianglePlane);
+    time.stop();
+    time.print_elapsed_time("[TIME] Calculating initial QEM: ");
     }
     time.start();
     while (1)
@@ -2116,14 +2125,17 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
 
 void Contraction_Simplifier::compute_initial_QEM(Mesh &mesh, vector<dvect> &planes)
 {
-
+    
     for (int i = 1; i <= mesh.get_triangles_num(); i++)
     {
         /* faces are triangles */
+      //  #pragma omp parallel for
         for (int j = 0; j < 3; j++)
         {
             double *a = &(planes[i - 1][0]);
+         //   omp_set_lock(&(v_locks[mesh.get_triangle(i).TV(j)-1]));
             initialQuadric[mesh.get_triangle(i).TV(j)] += Matrix(a);
+          //  omp_unset_lock(&(v_locks[mesh.get_triangle(i).TV(j)-1]));
         }
     }
 }
@@ -2131,6 +2143,7 @@ void Contraction_Simplifier::compute_initial_QEM(Mesh &mesh, vector<dvect> &plan
 void Contraction_Simplifier::compute_triangle_plane(Mesh &mesh, vector<dvect> &trPl)
 {
     double coords[3][3];
+    #pragma omp parallel for
     for (int i = 1; i <= mesh.get_triangles_num(); i++)
     {
 
@@ -2157,10 +2170,10 @@ void Contraction_Simplifier::compute_triangle_plane(Mesh &mesh, vector<dvect> &t
         b = b / m;
         c = c / m;
 
-        trPl[i - 1][0] = round(a * 1000000) / 1000000.0;
-        trPl[i - 1][1] = round(b * 1000000) / 1000000.0;
-        trPl[i - 1][2] = round(c * 1000000) / 1000000.0;
-        trPl[i - 1][3] = -1 * round((a * coords[0][0] + b * coords[1][0] + c * coords[2][0]) * 1000000) / 1000000.0;
+        trPl[i - 1][0] = a  ;
+        trPl[i - 1][1] = b ;
+        trPl[i - 1][2] = c;
+        trPl[i - 1][3] = -1 * (a * coords[0][0] + b * coords[1][0] + c * coords[2][0] );
     }
 }
 
