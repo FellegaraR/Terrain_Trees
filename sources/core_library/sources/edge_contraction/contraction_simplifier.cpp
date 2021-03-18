@@ -2142,11 +2142,11 @@ void Contraction_Simplifier::compute_initial_QEM(Mesh &mesh, vector<dvect> &plan
 
 void Contraction_Simplifier::compute_triangle_plane(Mesh &mesh, vector<dvect> &trPl)
 {
-    double coords[3][3];
+   
     #pragma omp parallel for
     for (int i = 1; i <= mesh.get_triangles_num(); i++)
     {
-
+    double coords[3][3];
         for (int v = 0; v < 3; v++)
         {
             Vertex v1 = mesh.get_vertex(mesh.get_triangle(i).TV(v));

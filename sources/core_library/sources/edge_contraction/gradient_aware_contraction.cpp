@@ -121,10 +121,10 @@ time.start();
         compute_triangle_plane(mesh,trianglePlane);
         cout<<"=========Calculate initial QEM========"<<endl;
         compute_initial_QEM(mesh,trianglePlane);
-        vector<dvect>().swap(trianglePlane);
+       
         time.stop();
         time.print_elapsed_time("[TIME] Calculating initial QEM: ");
-
+        vector<dvect>().swap(trianglePlane);
         }
    time.start();
     while(1)
