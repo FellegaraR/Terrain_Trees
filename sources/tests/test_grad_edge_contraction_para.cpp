@@ -201,9 +201,7 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     time.stop();
     time.print_elapsed_time("[TIME] Gradient-aware simplification ");
 
-    cout<<"number of remaining triangles: "<<tree.get_mesh().get_triangles_num()<<endl;
 
-    
     // cout<<output_name<<endl;
     // Writer::write_mesh_VTK(output_name,tree.get_mesh()); 
     // Writer::write_mesh(output_name,"grad",tree.get_mesh(),false); 

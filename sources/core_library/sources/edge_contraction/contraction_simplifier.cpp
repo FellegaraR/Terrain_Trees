@@ -325,7 +325,13 @@ void Contraction_Simplifier::get_ET(ivect &e, ET &et, Node_V &n, Mesh &mesh, lea
 
             Triangle &t = mesh.get_triangle(vt[i]);
             if (t.has_vertex(other_v) && (!mesh.is_triangle_removed(vt[i])))
-                et_tmp.push_back(vt[i]);
+                {et_tmp.push_back(vt[i]);
+                
+                // if(count_round>0){
+                //     cout<<"et: "<<t<<endl;
+                //     cout<<vt[i]<<endl;
+                // }
+                }
         }
     }
 
@@ -597,14 +603,14 @@ void Contraction_Simplifier::remove_from_mesh(int to_delete_v, ET &et, Mesh &mes
         //omp_set_lock(&(t_locks[et.first - 1]));
         mesh.remove_triangle(et.first);
         //  omp_unset_lock(&(t_locks[et.first - 1]));
-        params.increment_counter();
+        //params.increment_counter();
     }
     if (et.second != -1)
     {
         // omp_set_lock(&(t_locks[et.second - 1]));
         mesh.remove_triangle(et.second);
         //  omp_unset_lock(&(t_locks[et.second - 1]));
-        params.increment_counter();
+      //  params.increment_counter();
     }
 
     mesh.remove_vertex(to_delete_v);
@@ -1285,11 +1291,20 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh, Spatial_Subdi
     int processed_node = 0;
     do
     {
-        processed = false;
+      //  processed = false;
         
 #pragma omp parallel for reduction(+:processed_node) // schedule(dynamic,1)
         for (unsigned i = 0; i < tree.get_leaves_number(); i++)
         {
+             Node_V *leaf = tree.get_leaf(i);
+                        if(nodes_status[i]==-1)
+               continue;
+        if (!leaf->indexes_vertices())
+         {
+           processed_node++;
+           nodes_status[i] =-1;
+            continue;
+          }
             //check the array of conflict_nodes
             // if nodes_status[i]==1, then continue
             //   cout << "Current leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
@@ -1350,14 +1365,14 @@ void Contraction_Simplifier::simplify_compute_parallel(Mesh &mesh, Spatial_Subdi
                     continue;
                 }
 
-                Node_V *leaf = tree.get_leaf(i);
+               // Node_V *leaf = tree.get_leaf(i);
                 //  cout<<"Node "<<i<<" will be processed."<<endl;
                 // omp_set_lock(&(l_locks[i]));
                 // // set nodes_status[i]=2 when node is being processed
                 // nodes_status[i] = 2;
                 // omp_unset_lock(&(l_locks[i]));
 
-                processed = true;
+             //   processed = true;
                 processed_node=processed_node+1;
                 // cout << "Start simplification" << endl;
                 if (params.is_QEM() == true)
@@ -2205,7 +2220,11 @@ void Contraction_Simplifier::preprocess(PRT_Tree &tree, Mesh &mesh, cli_paramete
         for (RunIteratorPair itPair = n->make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
         {
             RunIterator const &t_id = itPair.first;
+            
+            if(mesh.is_triangle_removed(*t_id))
+               continue;
             Triangle t = mesh.get_triangle(*t_id);
+            
             int num_v_indexed =0;
             for (int j = 0; j < t.vertices_num(); j++)
             {

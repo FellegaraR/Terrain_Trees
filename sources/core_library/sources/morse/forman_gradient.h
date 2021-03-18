@@ -69,6 +69,8 @@ public:
     inline bool is_edge_critical(const ivect &e, const pair<itype,itype> &et, Mesh &mesh)
     {
         Triangle& t = mesh.get_triangle(et.first);
+        if(t.vertex_index(e[0])==-1)
+        cout<<et.first<<endl;
         if(!convert_compressed_to_expand(et.first).is_edge_unpaired(t.vertex_index(e[0]),t.vertex_index(e[1])))
             return false;
         if(et.second!=-1)
@@ -130,6 +132,25 @@ public:
     
     /// for debug only
     vector<ushort>& get_gradient() { return forman_gradient; }
+
+    inline void reorder_forman_gradient(Mesh &mesh){
+        vector<ushort> new_forman_gradient;
+        // int t=0;
+        for(int t=0;t<mesh.get_triangles_num();t++){
+            if(!mesh.is_triangle_removed( t+1))
+        {
+ 
+          //   cout<<"Add a new one"<<endl;
+        //  cout<<"triangle "<<t+1<<" is not removed"<<endl;
+            new_forman_gradient.push_back(forman_gradient[t]);
+        }
+ 
+        }
+        // cout<<"Old number of triangles:"<<forman_gradient.size()<<endl;
+        forman_gradient = new_forman_gradient;
+        cout<<"Forman gradient updated"<<endl;
+        // cout<<"number of triangles:"<<forman_gradient.size()<<endl;
+    }
 
 private: /// --- PRIVATE VARIABLES --- ///    
     vector<ushort> forman_gradient;

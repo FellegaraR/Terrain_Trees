@@ -153,6 +153,7 @@ public:
             else
             {
                 out << "Leaf[v->"<< p.get_real_v_array_size() << " t->"<< p.get_real_t_array_size() <<"]";
+   
             }
         }
         else

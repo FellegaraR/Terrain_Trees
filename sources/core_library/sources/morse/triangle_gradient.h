@@ -221,14 +221,15 @@ public:
 
     inline bool is_edge_unpaired(short index1, short index2){
         assert(index1 != index2);
-
+        if(index1==-1)
+         cerr << index1<<", "<<index2<< endl;
         switch( edgeIndex(index1, index2) )
         {
         case 1:		return !testArrow(CONTAINS_E01);
         case 2:		return !testArrow(CONTAINS_E02);
         case 12:	return !testArrow(CONTAINS_E12);
         default:
-            cerr << "ERROR, DEFAULT eunp" << endl;
+            cerr << "ERROR, DEFAULT eunp" <<index1<<", "<<index2<< endl;
             return -1;
         }
     }

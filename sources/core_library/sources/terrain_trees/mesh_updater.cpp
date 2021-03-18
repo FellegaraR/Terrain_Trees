@@ -104,7 +104,8 @@ bool Mesh_Updater::update_and_clean_triangles_array(Mesh &mesh, ivect &new_v_pos
         {
           //   cout<<"Add a new one"<<endl;
             new_triangle_positions[t] = t_counter;
-           
+        //    if(t_counter<20)
+        //    cout<<"Old: "<<t<<", New: "<<t_counter-1<<endl;
             t_counter++;
         }
        // cout<<"Removed"<<endl;
@@ -117,7 +118,7 @@ bool Mesh_Updater::update_and_clean_triangles_array(Mesh &mesh, ivect &new_v_pos
     cout<<"delete the positions from t_counter to the end of the array"<<endl;
     cout<<"New size:"<<t_counter-1<<endl;
     cout<<"Old size:"<<mesh.get_triangles_num()<<endl;
-    cout<<"[DEBUG]"<<endl;
+    //cout<<"[DEBUG]"<<endl;
     // for(auto it=mesh.get_t_array_begin();it!=mesh.get_t_array_end();it++){
 
     //     cout<<"Triangle id:"<<it-mesh.get_t_array_begin()<<endl;
@@ -144,7 +145,7 @@ void Mesh_Updater::update_triangles_boundary(Mesh &mesh, ivect &new_v_positions)
                    // cout<<t_id<<" "<<*it<<endl;
                     int a; cin>>a;
                 }
-                it->setTV(v, new_v_positions[abs(it->TV(v))-1]);
+                it->setTV_keep_border(v, new_v_positions[abs(it->TV(v))-1]);
             }
         }
         else

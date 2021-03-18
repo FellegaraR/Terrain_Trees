@@ -131,7 +131,7 @@ protected:
     vector<omp_lock_t> l_locks;
     lists_leafs conflict_leafs;
     vector<int> v_in_leaf;
-
+    int count_round=0;
 };
 
 #endif // CONTRACTION_SIMPLIFIER_H
