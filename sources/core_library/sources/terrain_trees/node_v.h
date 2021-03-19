@@ -271,7 +271,7 @@ public:
      * NOTA: the SRE encoding is not valid any more. A reindexing operation is needed after calling this procedure on all the leaf blocks
      */
   
-    void update_vertex_indices(ivect &new_v_indices);
+    void update_vertex_indices(ivect &new_v_indices, itype &index_counter);
     /**
      * @brief A public method that updates the top cells list of the leaf block after a simplification process.
 

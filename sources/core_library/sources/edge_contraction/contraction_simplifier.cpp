@@ -2050,7 +2050,7 @@ void Contraction_Simplifier::update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh, co
     //    cerr<<"[TREE] update indices in the tree"<<endl;
     ///TODO: Check triangle intersection before updating the tree.
 
-    tree.update_tree(tree.get_root(), new_v_positions, new_t_positions, all_deleted);
+    tree.update_tree(tree.get_root(), new_v_positions, new_t_positions, all_deleted, 1);
     time.stop();
     time.print_elapsed_time("[TIME] Update tree (top-simplices): ");
     cerr << "[MEMORY] peak for updating the tree (top-simplices): " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;

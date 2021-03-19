@@ -213,22 +213,24 @@ void Node_V::get_ET(leaf_ET &ets,  Mesh &mesh)
 
 
 
-void Node_V::update_vertex_indices(ivect &new_v_indices){
+void Node_V::update_vertex_indices(ivect &new_v_indices, itype &index_counter, itype &index_counter){
 
         ivect new_v_list;
     for(RunIteratorPair itPair = make_v_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
     {
         RunIterator const& v_id = itPair.first;
         if(new_v_indices[*v_id-1] != -1){
+            assert(index_counter == new_v_indices[*v_id-1]);
             new_v_list.push_back(new_v_indices[*v_id-1]);
+            index_counter++;            
            // cout<<new_v_indices[*v_id-1]<<endl;
             }
     }
     this->clear_v_array();
-    if(new_v_list.size()>0){
-    
+
+    if(new_v_list.size()>0){    
     // this->add_vertex(*i)
-    this->set_v_range(*new_v_list.begin(),*(new_v_list.end()-1)+1);
+        this->set_v_range(*new_v_list.begin(),*(new_v_list.end()-1)+1);    
    // cout<<*new_v_list.begin()<<", "<<*(new_v_list.end()-1)+1<<endl;
     }// for(ivect_iter i=new_v_list.begin();i!=new_v_list.end();i++){
     //     this->add_vertex(*i);

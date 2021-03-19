@@ -70,7 +70,7 @@ public:
 
     void compact_vertices_lists(Node_V &n, Mesh &mesh, ivect &surviving_vertices);
 
-    void update_tree(Node_V &n, ivect &new_v_positions,ivect &new_t_positions, bool all_deleted);
+    void update_tree(Node_V &n, ivect &new_v_positions,ivect &new_t_positions, bool all_deleted, itype &index_counter);
     void get_leaf_indexing_vertex(Node_V &n, int v_id, Node_V *&res);
 
 
