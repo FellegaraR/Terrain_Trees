@@ -120,7 +120,7 @@ time.start();
         cout<<"=========Calculate triangle plane========"<<endl;
         compute_triangle_plane(mesh,trianglePlane);
         cout<<"=========Calculate initial QEM========"<<endl;
-        compute_initial_QEM(mesh,trianglePlane);
+       compute_initial_QEM_parallel(tree,mesh,trianglePlane);
        
         time.stop();
         time.print_elapsed_time("[TIME] Calculating initial QEM: ");
@@ -1004,6 +1004,8 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mes
     boost::dynamic_bitset<> is_v_border(v_end-v_start);
     leaf_VT local_vts(v_range, VT());
     n.get_VT_and_border(local_vts,is_v_border, mesh);
+
+
 
     // Create a priority queue of candidate edges
     edge_queue edges;

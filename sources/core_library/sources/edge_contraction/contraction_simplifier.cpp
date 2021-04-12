@@ -1119,7 +1119,7 @@ time.start();
         cout << "=========Calculate triangle plane========" << endl;
         compute_triangle_plane(mesh, trianglePlane);
         cout << "=========Calculate initial QEM========" << endl;
-        compute_initial_QEM(mesh, trianglePlane);
+        compute_initial_QEM_parallel(tree,mesh, trianglePlane);
             time.stop();
     time.print_elapsed_time("[TIME] Calculating initial QEM: ");
     }
@@ -1212,8 +1212,8 @@ void Contraction_Simplifier::simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters
         initialQuadric = vector<Matrix>(mesh.get_vertices_num() + 1, Matrix(0.0));
         cout << "=========Calculate triangle plane========" << endl;
         compute_triangle_plane(mesh, trianglePlane);
-        // cout << "=========Calculate initial QEM========" << endl;
-        // compute_initial_QEM(mesh, trianglePlane);
+        cout << "=========Calculate initial QEM========" << endl;
+        compute_initial_QEM(mesh, trianglePlane);
     time.stop();
     time.print_elapsed_time("[TIME] Calculating initial QEM: ");
     }
@@ -1695,8 +1695,7 @@ void Contraction_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mesh &
     leaf_VT local_vts(v_range, VT());
     n.get_VT_and_border(local_vts, is_v_border, mesh);
     
-    // Compute the initial QEM for vertices in this leaf
-    compute_leaf_QEM(n, mesh, local_vts );
+
 
 
     // Create a priority queue of candidate edges
@@ -1968,7 +1967,6 @@ VT *Contraction_Simplifier::get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts
             v_block->get_VT(lVT, mesh);
             cache.insert({v_block->get_v_start(), lVT});
             vt = &(cache[v_block->get_v_start()][local_index]);
-            compute_leaf_QEM(*v_block,mesh,lVT);
         }
         else
         {
@@ -2447,9 +2445,9 @@ void Contraction_Simplifier::update_QEM(ivect& surviving_vertices, Mesh &mesh){
 
 void Contraction_Simplifier::compute_leaf_QEM(Node_V &n, Mesh &mesh, leaf_VT &vts ){
 
-        itype v_begin = *(n.v_array_begin_iterator());
-        if(!initialQuadric[v_begin].is_zero())
-        return;
+        // itype v_begin = *(n.v_array_begin_iterator());
+        // if(!initialQuadric[v_begin].is_zero())
+        // return;
         for (auto it = n.v_array_begin_iterator(); it != n.v_array_end_iterator(); it++)
         {
             itype local_index = *it - n.get_v_start();
@@ -2459,4 +2457,21 @@ void Contraction_Simplifier::compute_leaf_QEM(Node_V &n, Mesh &mesh, leaf_VT &vt
                 initialQuadric[*it]+=Matrix(a);
             }
         }
+}
+void Contraction_Simplifier::compute_initial_QEM_parallel(PRT_Tree &tree, Mesh &mesh, vector<dvect> &planes){
+
+ #pragma omp parallel for
+    for (int i = 0; i < tree.get_leaves_number(); i++)
+    {
+        Node_V *n = tree.get_leaf(i);
+        if (!n->indexes_vertices())
+             continue;
+
+        itype v_start = n->get_v_start();
+        itype v_end = n->get_v_end();
+        itype v_range = v_end - v_start;
+         leaf_VT local_vts(v_range, VT());
+         n->get_VT(local_vts,mesh);
+         compute_leaf_QEM(*n,mesh,local_vts);
+    }
 }
