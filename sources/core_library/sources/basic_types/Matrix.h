@@ -56,7 +56,13 @@ public:
                     - m[a13]*m[a22]*m[a31] - m[a11]*m[a23]*m[a32] - m[a12]*m[a21]*m[a33];
         return det;
     }
-
+   bool is_zero(){
+       for (int i = 0; i < 16; i++) { 
+         if(  m[i] != 0.0)
+           return false;
+          }
+          return true;
+   }
     /* For test only */
    void print()
    {

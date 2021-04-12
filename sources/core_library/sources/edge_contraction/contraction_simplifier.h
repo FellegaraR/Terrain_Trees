@@ -98,7 +98,7 @@ protected:
 
     bool valid_boundary_condition(int v1,int v2,VT &vt1, VT &vt2,ET& et, bool v1_is_border, bool v2_is_border, Mesh &mesh);
     bool not_fold_over(int v1,int v2,VT &vt1, VT &vt2,ET& et, Mesh &mesh);
-
+    void compute_leaf_QEM(Node_V &n, Mesh &mesh, leaf_VT &vts );
     void update_QEM(ivect& surviving_vertices, Mesh &mesh);
     inline double vertex_error(Matrix q, double x, double y, double z)
     {

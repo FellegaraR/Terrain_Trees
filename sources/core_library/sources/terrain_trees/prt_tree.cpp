@@ -226,7 +226,7 @@ void PRT_Tree::compact_vertices_lists(Node_V &n, Mesh &mesh, ivect &surviving_ve
 }
 
 
-void PRT_Tree::update_tree(Node_V &n, ivect &new_v_positions, ivect &new_t_positions, bool all_deleted, itype &index_counter)
+void PRT_Tree::update_tree(Node_V &n, ivect &new_v_positions, ivect &new_t_positions, bool all_deleted, itype index_counter)
 {
     if (n.is_leaf())
     {
@@ -240,9 +240,9 @@ void PRT_Tree::update_tree(Node_V &n, ivect &new_v_positions, ivect &new_t_posit
         for(Node_V::child_iterator it=n.begin(); it!=n.end(); ++it)
         {
             if(*it != NULL)
-                this->update_tree(**it,new_v_positions,new_t_positions,all_deleted,index);
+                this->update_tree(**it,new_v_positions,new_t_positions,all_deleted,index_counter);
         }
-        itype end = index_counter
+        itype end = index_counter;
         n.set_v_range(start,end);
     }
 }

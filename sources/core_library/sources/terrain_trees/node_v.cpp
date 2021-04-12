@@ -213,7 +213,7 @@ void Node_V::get_ET(leaf_ET &ets,  Mesh &mesh)
 
 
 
-void Node_V::update_vertex_indices(ivect &new_v_indices, itype &index_counter, itype &index_counter){
+void Node_V::update_vertex_indices(ivect &new_v_indices, itype &index_counter){
 
         ivect new_v_list;
     for(RunIteratorPair itPair = make_v_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
