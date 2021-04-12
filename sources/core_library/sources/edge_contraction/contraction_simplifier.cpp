@@ -2467,11 +2467,30 @@ void Contraction_Simplifier::compute_initial_QEM_parallel(PRT_Tree &tree, Mesh &
         if (!n->indexes_vertices())
              continue;
 
-        itype v_start = n->get_v_start();
-        itype v_end = n->get_v_end();
-        itype v_range = v_end - v_start;
-         leaf_VT local_vts(v_range, VT());
-         n->get_VT(local_vts,mesh);
-         compute_leaf_QEM(*n,mesh,local_vts);
+        for (RunIteratorPair itPair = n->make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+        {
+            RunIterator const &t_id = itPair.first;
+
+            Triangle t = mesh.get_triangle(*t_id);
+            
+            for (int j = 0; j < t.vertices_num(); j++)
+            {
+                if (n->indexes_vertex(t.TV(j)))
+                   { 
+                double *a = &(trianglePlane[(*t_id)-1][0]);
+                initialQuadric[t.TV(j)]+=Matrix(a);
+                   }
+            }
+ 
+ 
+        }
+
+
+        // itype v_start = n->get_v_start();
+        // itype v_end = n->get_v_end();
+        // itype v_range = v_end - v_start;
+        //  leaf_VT local_vts(v_range, VT());
+        //  n->get_VT(local_vts,mesh);
+        //  compute_leaf_QEM(*n,mesh,local_vts);
     }
 }
