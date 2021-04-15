@@ -232,7 +232,9 @@ void Node_V::update_vertex_indices(ivect &new_v_indices, itype &index_counter){
     // this->add_vertex(*i)
         this->set_v_range(*new_v_list.begin(),*(new_v_list.end()-1)+1);    
    // cout<<*new_v_list.begin()<<", "<<*(new_v_list.end()-1)+1<<endl;
-    }// for(ivect_iter i=new_v_list.begin();i!=new_v_list.end();i++){
+    }
+
+    // for(ivect_iter i=new_v_list.begin();i!=new_v_list.end();i++){
     //     this->add_vertex(*i);
     // }
 }

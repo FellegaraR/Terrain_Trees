@@ -5,6 +5,8 @@ using namespace utility_functions;
 void load_tree_lite(PRT_Tree& tree, cli_parameters &cli);
 void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli);
 void load_terrain(PRT_Tree& tree, cli_parameters &cli);
+void count_critical_simplices(PRT_Tree& tree, cli_parameters &cli, Forman_Gradient& forman_gradient);
+
 
 int main(int argc, char** argv)
 {
@@ -196,15 +198,81 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     time.print_elapsed_time("[TIME] Preporcessing");
 
 
-      time.start();
+    time.start();
     simplifier.gradient_aware_simplify_parallel(tree,tree.get_mesh(),cli,forman_gradient);
     time.stop();
     time.print_elapsed_time("[TIME] Gradient-aware simplification ");
 
+  //  Writer::write_tree("new_tree", tree.get_root(), tree.get_subdivision());
+
+    count_critical_simplices(tree,cli,forman_gradient);
 
     // cout<<output_name<<endl;
-    // Writer::write_mesh_VTK(output_name,tree.get_mesh()); 
+  //   Writer::write_mesh_VTK("new_mesh",tree.get_mesh()); 
     // Writer::write_mesh(output_name,"grad",tree.get_mesh(),false); 
 
+    //  Forman_Gradient_Features_Extractor features_extractor;   
+    // features_extractor.extract_incidence_graph(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),cli.app_debug,cli.cache_size);
+    //  features_extractor.print_stats();
 }
+void count_critical_simplices(PRT_Tree& tree, cli_parameters &cli, Forman_Gradient& gradient){
 
+    int _min=0,saddle=0,_max = 0;
+   
+    Mesh mesh=tree.get_mesh();
+    cout<<"triangle number:"<<mesh.get_triangles_num()<<endl;
+    cout<<"Gradient size:"<<gradient.get_gradient().size()<<endl;
+    #pragma omp parallel for reduction(+:_max)
+    for(int i=1; i<=mesh.get_triangles_num();i++){
+        if(gradient.is_triangle_critical(i))
+            _max++;
+    }
+    cout<<_max<<endl;
+    for(int i=0; i<tree.get_leaves_number();i++){
+        Node_V *leaf = tree.get_leaf(i);
+    //    cout<<"Leaf node "<<i<<": "<<*leaf<<endl;
+        leaf_VT vts;
+         leaf_VV vvs;
+         leaf->get_VT(vts,mesh);
+        leaf->get_VV(vvs,mesh);
+         itype v_begin=leaf->get_v_start();
+    //     itype v_counter =0;
+         for (auto it = leaf->v_array_begin_iterator(); it != leaf->v_array_end_iterator(); it++)
+         {   
+             iset non_critical_edge;
+             bool is_v_critical = true;
+            itype v_pos =*it-v_begin;
+           for(auto it_t = vts[v_pos].begin();it_t!=vts[v_pos].end();it_t++){
+                
+                 Triangle t=mesh.get_triangle(*it_t);
+                 int v0_id = t.vertex_index(*it);
+                //  cout<<"v0:"<<*it<<endl;
+                //  cout<<"v0_id:"<< v0_id<<endl;
+               // itype v1=t.TV()
+                int v01_id = t.TV((v0_id + 1) % 3);
+                int v02_id = t.TV((v0_id + 2) % 3);
+                ivect edge1={*it,v01_id};
+                ivect edge2={*it,v02_id};
+                if(!gradient.is_edge_critical(edge1,*it_t,mesh))
+                non_critical_edge.insert(v01_id);
+                if(!gradient.is_edge_critical(edge2,*it_t,mesh))
+                non_critical_edge.insert(v02_id);
+                if(!gradient.is_vertex_critical(*it,*it_t,mesh)) 
+                      {is_v_critical=false;
+                      }
+
+                
+            }
+            if(is_v_critical)
+             _min++;
+
+        saddle += vvs[v_pos].size()-non_critical_edge.size();
+    //     v_counter++; 
+         }
+
+
+    }
+
+     saddle = saddle/2;
+     cout<<"min saddle max: "<<_min<<" "<<saddle<<" "<<_max<<endl;
+}

@@ -48,7 +48,11 @@ public:
     inline map<short,ivect_set>& get_critical_simplices() { return this->critical_simplices; }
     //TODO: add a function to count all critical simplices in the current mesh. 
     //To be used after simplification. 
-    inline void count_critical_simplices(Forman_Gradient &gradient,Mesh &mesh){};
+    inline void count_critical_simplices(Forman_Gradient &gradient,Mesh &mesh){
+
+        
+
+    };
 protected:
      uvect filtration; //for each vertex its filtration value
 

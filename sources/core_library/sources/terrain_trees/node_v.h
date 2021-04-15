@@ -149,10 +149,12 @@ public:
         if(p.is_leaf())
         {
             if(p.get_v_array_size() == 2) // it should be reindexed //it has been reindexed
-                out <<"Leaf["<< p.get_v_start() << " " << p.get_v_end()<<"]";
+               { out <<"Leaf["<< p.get_v_start() << " " << p.get_v_end()<<"]";
+                 out << "Leaf[v->"<< p.get_real_v_array_size() << " t->"<< p.get_real_t_array_size() <<"]";
+               }
             else   //should be reindexed
             {
-
+                 
                   out <<"Leaf["<< p.get_v_start() << " " << p.get_v_end()<<"]";
                 out << "Leaf[v->"<< p.get_real_v_array_size() << " t->"<< p.get_real_t_array_size() <<"]";
    
