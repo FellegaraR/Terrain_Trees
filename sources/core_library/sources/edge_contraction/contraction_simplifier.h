@@ -41,7 +41,7 @@ protected:
 
     ///
     void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
-                       Node_V &n, Mesh &mesh, contraction_parameters &params);
+                       Node_V &n, Mesh &mesh, contraction_parameters &params, map<vector<int>, double>& updated_edges);
   // void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
   //                     Node_V &n, Mesh &mesh, contraction_parameters &params);
     /// initializes the VTop and ETop of the edge and its two vertices
@@ -83,14 +83,14 @@ protected:
     /// (3) checks and updates the top list in the target leaf block n (if a top simplex is now incident in it)
     /// (4) and add the new edges to the edge queue
     void update(const ivect &e, VT &vt, VT &difference, Node_V &n, Node_V &v_block, edge_queue &edges,
-                Mesh &mesh, contraction_parameters &params);
+                Mesh &mesh, contraction_parameters &params,map<vector<int>, double>& updated_edges);
     void remove_from_mesh(int to_delete_v, ET &et, Mesh &mesh, contraction_parameters &params);
     bool link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et, Mesh &mesh);
     bool link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et,Node_V &n,VV& vv_locks, Mesh &mesh);
     bool link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et,Node_V &n, Node_V &v_block, VV& vv_locks, Mesh &mesh);
 
     void update_parallel(const ivect &e, VT &vt, VT &difference, Node_V &n, Node_V &v_block, edge_queue &edges,
-                Mesh &mesh, contraction_parameters &params);
+                Mesh &mesh, contraction_parameters &params,map<vector<int>, double>& updated_edges);
     void compute_initial_QEM(Mesh &mesh, vector<dvect> &planes);
     void compute_initial_QEM_parallel(PRT_Tree &tree, Mesh &mesh, vector<dvect> &planes);
     void compute_triangle_plane(Mesh &mesh, vector<dvect> &trPl);
@@ -127,7 +127,9 @@ protected:
 
     vector<Matrix> initialQuadric;
     vector<dvect> trianglePlane;
-    map<vector<int>, double> updated_edges;
+
+    // updated_edges is used to keep track of edges with new error, but 
+ //   map<vector<int>, double> updated_edges;
     vector<omp_lock_t> t_locks;
     vector<omp_lock_t> v_locks;
     vector<omp_lock_t> l_locks;

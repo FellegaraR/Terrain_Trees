@@ -119,6 +119,9 @@ time.start();
         initialQuadric = vector<Matrix>(mesh.get_vertices_num()+1,Matrix(0.0));
         cout<<"=========Calculate triangle plane========"<<endl;
         compute_triangle_plane(mesh,trianglePlane);
+        time.stop();
+        time.print_elapsed_time("[TIME] Calculating Planes: ");
+        time.start();
         cout<<"=========Calculate initial QEM========"<<endl;
        compute_initial_QEM_parallel(tree,mesh,trianglePlane);
        
@@ -247,6 +250,7 @@ n.get_VT_and_border(local_vts,is_v_border,mesh);
     // Create a priority queue of candidate edges
     edge_queue edges;
     find_candidate_edges_QEM(n,mesh,local_vts,edges,params);
+    map<vector<int>, double> updated_edges;
     int edge_num=edges.size();
     int edges_contracted_leaf=0;
     //cout<<"Edge number:"<<edges.size()<<endl;
@@ -294,11 +298,12 @@ n.get_VT_and_border(local_vts,is_v_border,mesh);
         get_edge_relations(e,et,vt0,vt1,v1_is_border,v2_is_border,outer_v_block,n,mesh,local_vts,is_v_border,cache,params,tree);
         //DISABLED GRADIENT CHECK FOR NOW TO CHECK THE CORRECTNESS OF PARALLEL COMPUTATION
         if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)/*&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)*/){
-        contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,params,gradient);
+        contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,params,gradient,updated_edges);
         edges_contracted_leaf++;
     // break;
         }
     // cout<<"Number of edges remaining:"<<edges.size()<<endl;
+    delete vt0,vt1,outer_v_block;
     }
 
 // if(cache.find(v_start) != cache.end()){
@@ -328,6 +333,7 @@ n.get_VT_and_border(local_vts,is_v_border,mesh);
 // Create a priority quue of candidate edges
 edge_queue edges;
 find_candidate_edges(n,mesh,local_vts,edges,params);
+map<vector<int>, double> updated_edges;
 int edge_num=edges.size();
 int edges_contracted_leaf=0;
 //cout<<"Edge number:"<<edges.size()<<endl;
@@ -358,7 +364,7 @@ params.add_edge_queue_size(edges.size());
         
         get_edge_relations(e,et,vt0,vt1,v1_is_border,v2_is_border,outer_v_block,n,mesh,local_vts,is_v_border,cache,params,tree);
         if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)/*&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)*/){
-        contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,params,gradient);
+        contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,params,gradient,updated_edges);
         edges_contracted_leaf++;
     // break;
         }
@@ -368,7 +374,7 @@ params.add_edge_queue_size(edges.size());
 }
 
 void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  Node_V &outer_v_block, edge_queue &edges,
-                                           Node_V &n, Mesh &mesh, contraction_parameters &params,Forman_Gradient &gradient)
+                                           Node_V &n, Mesh &mesh, contraction_parameters &params,Forman_Gradient &gradient, map<vector<int>, double>& updated_edges)
 {
     //cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
    // cout<<"[NOTICE] Contract Edge"<<endl;
@@ -390,11 +396,11 @@ void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1
     //Contraction_Simplifier::update(e,vt0,vt1,n,outer_v_block,edges,mesh,params);
 
     if (!params.is_parallel())
-        Contraction_Simplifier::update(e, vt0, vt1, n, outer_v_block, edges, mesh, params);
+        Contraction_Simplifier::update(e, vt0, vt1, n, outer_v_block, edges, mesh, params,updated_edges);
     else
     {
 
-        Contraction_Simplifier::update_parallel(e, vt0, vt1, n, outer_v_block, edges, mesh, params);
+        Contraction_Simplifier::update_parallel(e, vt0, vt1, n, outer_v_block, edges, mesh, params,updated_edges);
     }
 
     // we remove v2 and the triangles in et
@@ -921,7 +927,7 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &m
     // else
     
     find_candidate_edges(n, mesh, local_vts, edges, params);
-
+map<vector<int>, double> updated_edges;
     int edge_num = edges.size();
     int edges_contracted_leaf = 0;
     
@@ -959,7 +965,7 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &m
         VV vv_locks;
         if (link_condition(e[0], e[1], *vt0, *vt1, et, n, *outer_v_block, vv_locks, mesh)&&not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh))
         {
-            contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params,gradient);
+            contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params,gradient,updated_edges);
             edges_contracted_leaf++;
             // break;
 
@@ -1011,7 +1017,7 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mes
     edge_queue edges;
 
     find_candidate_edges_QEM(n, mesh, local_vts, edges, params);
-
+    map<vector<int>, double> updated_edges;
     int edge_num = edges.size();
     int edges_contracted_leaf = 0;
    // cout << "Edge number:" << edges.size() << endl;
@@ -1059,7 +1065,7 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mes
         VV vv_locks;
         if (link_condition(e[0], e[1], *vt0, *vt1, et, n, *outer_v_block, vv_locks, mesh)&&not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh))
         {
-            contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params,gradient);
+            contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params,gradient,updated_edges);
             edges_contracted_leaf++;
             // break;
      if(count_round>0)
@@ -1074,6 +1080,7 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mes
             omp_unset_lock(&(v_locks[*it - 1]));
         }
     delete current;
+   // delete vt0,vt1,outer_v_block;
     }
 
     // leaf_VV vvs;
@@ -1109,9 +1116,9 @@ void Gradient_Aware_Simplifier::update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh,
     //cout << "number of deleted triangles:" << params.get_counter() << endl;
 
     gradient.reorder_forman_gradient(mesh);
-    if(params.is_QEM()){
-        update_QEM(surviving_vertices,mesh);
-    }
+    // if(params.is_QEM()){
+    //     update_QEM(surviving_vertices,mesh);
+    // }
 
     /// NEW: the update_and_compact procedure check internally if we have removed all the top d-simplices
     bool all_deleted = mu.update_and_clean_triangles_arrays(mesh, new_v_positions, new_t_positions, params.get_counter());

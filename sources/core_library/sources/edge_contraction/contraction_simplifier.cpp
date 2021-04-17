@@ -223,7 +223,7 @@ void Contraction_Simplifier::find_candidate_edges_parallel(Node_V &n, Mesh &mesh
 }
 
 void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
-                                           Node_V &n, Mesh &mesh, contraction_parameters &params)
+                                           Node_V &n, Mesh &mesh, contraction_parameters &params, map<vector<int>, double>& updated_edges)
 {
        cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
     // cout<<"[NOTICE] Contract Edge"<<endl;
@@ -245,11 +245,11 @@ void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, N
     /// (2) then the outer_v_block (if e is a cross edge)
     /// (3) and, finally, we add the new edges crossing b to the edge queue
     if (!params.is_parallel())
-        Contraction_Simplifier::update(e, vt0, vt1, n, outer_v_block, edges, mesh, params);
+        Contraction_Simplifier::update(e, vt0, vt1, n, outer_v_block, edges, mesh, params,updated_edges);
     else
     {
 
-        Contraction_Simplifier::update_parallel(e, vt0, vt1, n, outer_v_block, edges, mesh, params);
+        Contraction_Simplifier::update_parallel(e, vt0, vt1, n, outer_v_block, edges, mesh, params,updated_edges);
     }
 
     // we remove v2 and the triangles in et
@@ -363,7 +363,7 @@ void Contraction_Simplifier::clean_coboundary(VT &cob, Mesh &mesh)
 }
 
 void Contraction_Simplifier::update(const ivect &e, VT &vt, VT &difference, Node_V &n, Node_V &v_block,
-                                    edge_queue &edges, Mesh &mesh, contraction_parameters &params)
+                                    edge_queue &edges, Mesh &mesh, contraction_parameters &params,map<vector<int>, double>& updated_edges)
 {
     set<ivect> e_set; /// we insert the new edges first in this set to avoid duplicate insertions in the queue
 
@@ -885,7 +885,7 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
 }
 
 void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &difference, Node_V &n, Node_V &v_block, edge_queue &edges,
-                                             Mesh &mesh, contraction_parameters &params)
+                                             Mesh &mesh, contraction_parameters &params,map<vector<int>, double>& updated_edges)
 {
     set<ivect> e_set; /// we insert the new edges first in this set to avoid duplicate insertions in the queue
     ivect t_locks_id;
@@ -930,7 +930,7 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
             else
             {
                 pair<ivect, double> updated_edge(*it, error);
-            #pragma omp critical
+           // #pragma omp critical
                 updated_edges.insert(updated_edge);
             }
 
@@ -939,7 +939,7 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
             if(params.no_limit())
             error_condition = true;
             else
-            error_condition = (error - params.get_maximum_limit() < Zero);
+            error_condition =(error + Zero <params.get_maximum_limit());
 
             if (error_condition && n.indexes_vertex(e[1]))
             {
@@ -1015,7 +1015,7 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
             else
             {
                 pair<ivect, double> updated_edge(*it, error);
-#pragma omp critical
+// #pragma omp critical
                 updated_edges.insert(updated_edge);
             }
             e = {(*it)[0], (*it)[1]};
@@ -1438,6 +1438,7 @@ void Contraction_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<
     // Create a priority queue of candidate edges
     edge_queue edges;
     find_candidate_edges_QEM(n, mesh, local_vts, edges, params);
+    map<vector<int>, double> updated_edges;
     int edge_num = edges.size();
     int edges_contracted_leaf = 0;
     //  cout << "Edge number:" << edges.size() << endl;
@@ -1485,7 +1486,7 @@ void Contraction_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<
         get_edge_relations(e, et, vt0, vt1, outer_v_block, n, mesh, local_vts, cache, params, tree);
         if (link_condition(e[0], e[1], *vt0, *vt1, et, mesh))
         {
-            contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params);
+            contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params,updated_edges);
             edges_contracted_leaf++;
             // break;
         }
@@ -1528,6 +1529,7 @@ void Contraction_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int,
     // }
     // else
     find_candidate_edges(n, mesh, local_vts, edges, params);
+    map<vector<int>, double> updated_edges;
     int edge_num = edges.size();
     int edges_contracted_leaf = 0;
     // cout<<"Edge number:"<<edges.size()<<endl;
@@ -1566,7 +1568,7 @@ void Contraction_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int,
             VV vv_locks;
             if (link_condition(e[0], e[1], *vt0, *vt1, et, n, vv_locks, mesh))
             {
-                contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params);
+                contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params,updated_edges);
                 edges_contracted_leaf++;
                 // break;
             }
@@ -1579,7 +1581,7 @@ void Contraction_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int,
         {
             if (link_condition(e[0], e[1], *vt0, *vt1, et, mesh))
             {
-                contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params);
+                contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params,updated_edges);
                 edges_contracted_leaf++;
                 // break;
             }
@@ -1615,6 +1617,7 @@ void Contraction_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &mesh
     // }
     // else
     find_candidate_edges(n, mesh, local_vts, edges, params);
+     map<vector<int>, double> updated_edges;
 
     int edge_num = edges.size();
     int edges_contracted_leaf = 0;
@@ -1650,7 +1653,7 @@ void Contraction_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &mesh
         VV vv_locks;
         if (link_condition(e[0], e[1], *vt0, *vt1, et, n, *outer_v_block, vv_locks, mesh) && valid_boundary_condition(e[0], e[1], *vt0, *vt1, et, v1_is_border, v2_is_border, mesh) && not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh))
         {
-            contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params);
+            contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params,updated_edges);
             edges_contracted_leaf++;
             // break;
 
@@ -1702,7 +1705,7 @@ void Contraction_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mesh &
     edge_queue edges;
 
     find_candidate_edges_QEM(n, mesh, local_vts, edges, params);
-
+    map<vector<int>, double> updated_edges;
     int edge_num = edges.size();
     int edges_contracted_leaf = 0;
     // cout << "Edge number:" << edges.size() << endl;
@@ -1750,7 +1753,7 @@ void Contraction_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mesh &
         VV vv_locks;
         if (link_condition(e[0], e[1], *vt0, *vt1, et, n, *outer_v_block, vv_locks, mesh) && valid_boundary_condition(e[0], e[1], *vt0, *vt1, et, v1_is_border, v2_is_border, mesh) && not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh))
         {
-            contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params);
+            contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params,updated_edges);
             edges_contracted_leaf++;
             // break;
 
@@ -1764,6 +1767,7 @@ void Contraction_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mesh &
             omp_unset_lock(&(v_locks[*it - 1]));
         }
         delete current;
+        delete vt0,vt1,outer_v_block;
     }
 
     // leaf_VV vvs;

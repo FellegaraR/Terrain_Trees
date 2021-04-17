@@ -54,13 +54,13 @@ public:
 
     };
 protected:
-     uvect filtration; //for each vertex its filtration value
-
-           itype extract_missing_id(ivect &smaller, ivect &bigger);
+    uvect filtration; //for each vertex its filtration value
+    map<short,ivect_set> critical_simplices;
+    itype extract_missing_id(ivect &smaller, ivect &bigger);
 
     bool cmp_filtered_simplices(const ivect& lhs, const ivect& rhs);
     utype simplex_filtration(const ivect &simpl);
-        map<short,ivect_set> critical_simplices;
+        
     void push_in_coboundary(simplex *sface, simplex *co_sface);
     
 

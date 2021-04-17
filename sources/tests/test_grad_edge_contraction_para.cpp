@@ -147,27 +147,28 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
 
     //CALCOLO IL FORMAN GRADIENT VECTOR
     Forman_Gradient forman_gradient = Forman_Gradient(tree.get_mesh().get_triangles_num());
-    Forman_Gradient_Computation gradient_computation = Forman_Gradient_Computation();
+    Forman_Gradient_Computation* gradient_computation = new Forman_Gradient_Computation();
 
     Timer time = Timer();
 
     time.start();
-    gradient_computation.initial_filtering_IA(tree.get_mesh());
+    gradient_computation->initial_filtering_IA(tree.get_mesh());
     time.stop();
     time.print_elapsed_time("[TIME] Initial filtering ");
 
     load_tree_lite(tree,cli);
 
     /// ---- FORMAN GRADIENT COMPUTATION --- ///
-    gradient_computation.reset_filtering(tree.get_mesh(),cli.original_vertex_indices);
-
+    gradient_computation->reset_filtering(tree.get_mesh(),cli.original_vertex_indices);
+    
     cout<<"[NOTA] Computing the gradient field"<<endl;
     time.start();
-    gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh(),tree.get_subdivision());
+    gradient_computation->compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh(),tree.get_subdivision());
     time.stop();
     time.print_elapsed_time("[TIME] computing gradient vector field ");
     cerr << "[MEMORY] peak for computing gradient vector field: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
-
+    delete gradient_computation;
+    ivect().swap(cli.original_vertex_indices);
     stringstream out2;
     out2 << base.str();
     out2 << "_" << SpatialDecType2string(cli.division_type) << "_" << cli.crit_type << "_v_" << cli.v_per_leaf << "_tree.vtk";
@@ -203,9 +204,11 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     time.stop();
     time.print_elapsed_time("[TIME] Gradient-aware simplification ");
 
-  //  Writer::write_tree("new_tree", tree.get_root(), tree.get_subdivision());
 
-    count_critical_simplices(tree,cli,forman_gradient);
+
+    //// A brutal-force method for checking critical simplices after the simplification. 
+    //// Should be disabled in experiments
+   // count_critical_simplices(tree,cli,forman_gradient);
 
     // cout<<output_name<<endl;
   //   Writer::write_mesh_VTK("new_mesh",tree.get_mesh()); 
