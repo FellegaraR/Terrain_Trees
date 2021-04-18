@@ -93,6 +93,7 @@ protected:
                 Mesh &mesh, contraction_parameters &params,map<vector<int>, double>& updated_edges);
     void compute_initial_QEM(Mesh &mesh, vector<dvect> &planes);
     void compute_initial_QEM_parallel(PRT_Tree &tree, Mesh &mesh, vector<dvect> &planes);
+    void compute_initial_plane_and_QEM_parallel(PRT_Tree &tree, Mesh &mesh);
     void compute_triangle_plane(Mesh &mesh, vector<dvect> &trPl);
     // new_vertex is the pos of the remaining vertex in the edge to be contracted. 0 refers to e[0], 1 refers to e[1]
     double compute_error(int v1, int v2, Mesh &mesh, int &new_vertex_pos);

@@ -115,17 +115,17 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
 
     if(params.is_QEM()){
 
-        trianglePlane =vector<dvect>(mesh.get_triangles_num(),dvect(4,0));
+   //     trianglePlane =vector<dvect>(mesh.get_triangles_num(),dvect(4,0));
         initialQuadric = vector<Matrix>(mesh.get_vertices_num()+1,Matrix(0.0));
         time.start();
         cout<<"=========Calculate triangle plane========"<<endl;
-        compute_triangle_plane(mesh,trianglePlane);
-        time.stop();
-        time.print_elapsed_time("[TIME] Calculating Planes: ");
-        time.start();
+    //    compute_triangle_plane(mesh,trianglePlane);
+      //  time.stop();
+        // time.print_elapsed_time("[TIME] Calculating Planes: ");
+        // time.start();
         cout<<"=========Calculate initial QEM========"<<endl;
-       compute_initial_QEM_parallel(tree,mesh,trianglePlane);
-       
+     //  compute_initial_QEM_parallel(tree,mesh,trianglePlane);
+       compute_initial_plane_and_QEM_parallel(tree,mesh);
         time.stop();
         time.print_elapsed_time("[TIME] Calculating initial QEM: ");
         vector<dvect>().swap(trianglePlane);

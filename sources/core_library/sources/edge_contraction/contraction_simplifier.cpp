@@ -2498,3 +2498,124 @@ void Contraction_Simplifier::compute_initial_QEM_parallel(PRT_Tree &tree, Mesh &
         //  compute_leaf_QEM(*n,mesh,local_vts);
     }
 }
+
+void Contraction_Simplifier::compute_initial_plane_and_QEM_parallel(PRT_Tree &tree, Mesh &mesh){
+
+
+ #pragma omp parallel for
+    for (int i = 0; i < tree.get_leaves_number(); i++)
+    {
+        Node_V *n = tree.get_leaf(i);
+        if (!n->indexes_vertices())
+             continue;
+
+        
+        for (RunIteratorPair itPair = n->make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+        {
+            RunIterator const &t_id = itPair.first;
+
+            Triangle t = mesh.get_triangle(*t_id);
+            if(!n->indexes_triangle_vertices(t))   
+              continue;
+            else{
+        dvect triangle_plane=dvect(4,0);
+        double coords[3][3];
+        for (int v = 0; v < 3; v++)
+        {
+            Vertex v1 = mesh.get_vertex(t.TV(v));
+            coords[0][v] = v1.get_x();
+            coords[1][v] = v1.get_y();
+            coords[2][v] = v1.get_z();
+        }
+        double a, b, c, m;
+        a = (coords[1][1] - coords[1][0]) * (coords[2][2] - coords[2][0]) - (coords[2][1] - coords[2][0]) * (coords[1][2] - coords[1][0]);
+        b = (coords[2][1] - coords[2][0]) * (coords[0][2] - coords[0][0]) - (coords[0][1] - coords[0][0]) * (coords[2][2] - coords[2][0]);
+        c = (coords[0][1] - coords[0][0]) * (coords[1][2] - coords[1][0]) - (coords[1][1] - coords[1][0]) * (coords[0][2] - coords[0][0]);
+        double tmp = a * a + b * b + c * c;
+        m = sqrt(tmp);
+        a = a / m;
+        b = b / m;
+        c = c / m;
+        triangle_plane[0] = a  ;
+        triangle_plane[1] = b ;
+        triangle_plane[2] = c;
+        triangle_plane[3] = -1 * (a * coords[0][0] + b * coords[1][0] + c * coords[2][0] );
+
+            
+            for (int j = 0; j < t.vertices_num(); j++)
+            {
+                if (n->indexes_vertex(t.TV(j)))  // Only add the plane error to vertices indexed by the current node
+                   {                             // to avoid duplicates.
+                double *plane = &(triangle_plane[0]);
+                initialQuadric[t.TV(j)]+=Matrix(plane);
+                   }
+            }
+ 
+ }
+        
+        }
+
+
+        // itype v_start = n->get_v_start();
+        // itype v_end = n->get_v_end();
+        // itype v_range = v_end - v_start;
+        //  leaf_VT local_vts(v_range, VT());
+        //  n->get_VT(local_vts,mesh);
+        //  compute_leaf_QEM(*n,mesh,local_vts);
+    }
+}
+
+//// Another version of parallel QEM computation, need to compare the performance
+// void Contraction_Simplifier::compute_initial_plane_and_QEM_parallel(PRT_Tree &tree, Mesh &mesh)
+// {
+
+// #pragma omp parallel for
+//     for (int i = 0; i < tree.get_leaves_number(); i++)
+//     {
+//         Node_V *n = tree.get_leaf(i);
+//         if (!n->indexes_vertices())
+//             continue;
+
+//         itype v_start = n->get_v_start();
+//         itype v_end = n->get_v_end();
+//         itype v_range = v_end - v_start;
+//         leaf_VT local_vts(v_range, VT());
+//         n->get_VT(local_vts, mesh);
+//         for (RunIteratorPair itPair = n->make_v_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+//         {
+//             RunIterator const &v_id = itPair.first;
+//             VT vt = local_vts[*v_id-v_start];
+//             for (auto it = vt.begin(); it != vt.end(); it++)
+//             {
+//                 Triangle t = mesh.get_triangle(*it);
+
+//                 dvect triangle_plane = dvect(4, 0);
+//                 double coords[3][3];
+//                 for (int v = 0; v < 3; v++)
+//                 {
+//                     Vertex v1 = mesh.get_vertex(t.TV(v));
+//                     coords[0][v] = v1.get_x();
+//                     coords[1][v] = v1.get_y();
+//                     coords[2][v] = v1.get_z();
+//                 }
+//                 double a, b, c, m;
+//                 a = (coords[1][1] - coords[1][0]) * (coords[2][2] - coords[2][0]) - (coords[2][1] - coords[2][0]) * (coords[1][2] - coords[1][0]);
+//                 b = (coords[2][1] - coords[2][0]) * (coords[0][2] - coords[0][0]) - (coords[0][1] - coords[0][0]) * (coords[2][2] - coords[2][0]);
+//                 c = (coords[0][1] - coords[0][0]) * (coords[1][2] - coords[1][0]) - (coords[1][1] - coords[1][0]) * (coords[0][2] - coords[0][0]);
+//                 double tmp = a * a + b * b + c * c;
+//                 m = sqrt(tmp);
+//                 a = a / m;
+//                 b = b / m;
+//                 c = c / m;
+//                 triangle_plane[0] = a;
+//                 triangle_plane[1] = b;
+//                 triangle_plane[2] = c;
+//                 triangle_plane[3] = -1 * (a * coords[0][0] + b * coords[1][0] + c * coords[2][0]);
+
+//                 double *plane = &(triangle_plane[0]);
+//                 initialQuadric[*v_id] += Matrix(plane);
+//             }
+
+//         }
+//     }
+// }

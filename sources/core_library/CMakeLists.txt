@@ -15,7 +15,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib )
 set(CMAKE_BUILD_TYPE Release)
 
 find_package(Boost REQUIRED)
-find_package(Doxygen REQUIRED)
+#find_package(Doxygen REQUIRED)
 find_package(OpenMP)
 
 
