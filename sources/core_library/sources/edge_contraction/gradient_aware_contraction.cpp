@@ -114,9 +114,10 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
 
 
     if(params.is_QEM()){
-time.start();
+
         trianglePlane =vector<dvect>(mesh.get_triangles_num(),dvect(4,0));
         initialQuadric = vector<Matrix>(mesh.get_vertices_num()+1,Matrix(0.0));
+        time.start();
         cout<<"=========Calculate triangle plane========"<<endl;
         compute_triangle_plane(mesh,trianglePlane);
         time.stop();
@@ -128,6 +129,8 @@ time.start();
         time.stop();
         time.print_elapsed_time("[TIME] Calculating initial QEM: ");
         vector<dvect>().swap(trianglePlane);
+            cerr << "[MEMORY] peak for computing QEM: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+
         }
    time.start();
     while(1)
@@ -155,7 +158,7 @@ time.start();
     vector<int>().swap(v_in_leaf);
     lists_leafs().swap(conflict_leafs);
 
-    Contraction_Simplifier::preprocess(tree,mesh,cli);
+    
     
     cout<<"number of remaining triangles: "<<tree.get_mesh().get_triangles_num()<<endl;
 
@@ -171,7 +174,7 @@ time.start();
 
         if(simplification_round == params.get_contracted_edges_num())
             break;
-
+    Contraction_Simplifier::preprocess(tree,mesh,cli);
     }
 
 #pragma omp parallel for
