@@ -28,7 +28,12 @@ int main(int argc, char** argv)
     
     cli.maximum_limit=atof(argv[4]);
 
-    cli.num_of_threads =atoi(argv[5]);
+     if(atoi(argv[5])==-1){
+   cli.num_of_threads = omp_get_max_threads();
+    }
+     else{
+  cli.num_of_threads =atoi(argv[5]);
+    }
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cli.app_debug=OUTPUT;
     cerr<<"[GENERATION] PR-T tree"<<endl;
@@ -183,15 +188,16 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
    else{
        output_name=output_name+"_length";
    }
-
+    time.start();
     tree.init_leaves_list(tree.get_root()); 
-
+    time.stop();
+    time.print_elapsed_time("[TIME] Initialize leave list: ");
     cout<<"[NOTA]Border checking"<<endl;
     time.start();
     Border_Checker border_checker=Border_Checker();
     border_checker.compute_borders(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
     time.stop();
-    time.print_elapsed_time("[TIME] Border Checking ");
+    time.print_elapsed_time("[TIME] Border Checking: ");
     time.start();
     Gradient_Aware_Simplifier simplifier;
     simplifier.preprocess(tree,tree.get_mesh(),cli);

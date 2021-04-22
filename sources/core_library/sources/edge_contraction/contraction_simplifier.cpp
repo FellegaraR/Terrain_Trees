@@ -2250,7 +2250,7 @@ void Contraction_Simplifier::preprocess(PRT_Tree &tree, Mesh &mesh, cli_paramete
     v_in_leaf.assign(mesh.get_vertices_num() + 1, -1);
     vector<ivect> cross_triangles(tree.get_leaves_number(), ivect());
     // Can be parallel
-    cout << "preprocessing" << endl;
+  //  cout << "preprocessing" << endl;
 #pragma omp parallel for
     for (int i = 0; i < tree.get_leaves_number(); i++)
     {

@@ -129,7 +129,7 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
         time.stop();
         time.print_elapsed_time("[TIME] Calculating initial QEM: ");
         vector<dvect>().swap(trianglePlane);
-            cerr << "[MEMORY] peak for computing QEM: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+        cerr << "[MEMORY] peak for computing QEM: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
         }
    time.start();
@@ -160,7 +160,7 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
 
     
     
-    cout<<"number of remaining triangles: "<<tree.get_mesh().get_triangles_num()<<endl;
+   // cout<<"number of remaining triangles: "<<tree.get_mesh().get_triangles_num()<<endl;
 
         // for (unsigned i = 0; i < tree.get_leaves_number(); i++)
         // {
@@ -205,7 +205,11 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
     /// finally we have to update/compress the mesh and the tree
     // Gradient_Aware_Simplifier::update_mesh_and_tree(tree,mesh,params,gradient);
     // cerr << "[MEMORY] peak for mesh and tree updating: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+    time.start();
     Gradient_Aware_Simplifier::update_mesh_and_tree(tree,mesh,params,gradient);
+    time.stop();
+    time.print_elapsed_time("[TIME] Mesh and tree updating: ");
+
     cerr << "[MEMORY] peak for mesh and tree updating: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
  
 }
@@ -897,8 +901,8 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
             }
         }
        // cout << "finished one for loop" << endl;
- cerr << "[MEMORY] peak for a simplification round:" << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
-cerr<<"Number of processed nodes:"<<processed_node<<endl;
+ //cerr << "[MEMORY] peak for a simplification round:" << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+//cerr<<"Number of processed nodes:"<<processed_node<<endl;
     //} while (processed == true);
     } while (processed_node!=tree.get_leaves_number());
 }
@@ -1093,25 +1097,25 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mes
 
 void Gradient_Aware_Simplifier::update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh, contraction_parameters &params, Forman_Gradient &gradient)
 {
-    Timer time;
+    // Timer time;
 
     ///  UPDATE OF MESH AND TREE
     ivect new_v_positions;
     ivect new_t_positions;
     ivect surviving_vertices;
 
-    time.start();
+   // time.start();
     //    cerr<<"[TREE] compact vertices lists"<<endl;
     tree.compact_vertices_lists(tree.get_root(), mesh, surviving_vertices);
-    time.stop();
-    time.print_elapsed_time("[TIME] Compact tree vertices lists: ");
-    cerr << "[MEMORY] peak for compacting tree vertices lists: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+    // time.stop();
+    // time.print_elapsed_time("[TIME] Compact tree vertices lists: ");
+    // cerr << "[MEMORY] peak for compacting tree vertices lists: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
     //    print_container_content("surviving vertices: ",surviving_vertices);
     //    mesh.print_mesh(cout);
     //    int a; cin>>a;
 
-    time.start();
+    // time.start();
     //    cerr<<"[MESH] compact"<<endl;
     Mesh_Updater mu;
     cout << "number of surviving vertices:" << surviving_vertices.size() << endl;
@@ -1125,9 +1129,9 @@ void Gradient_Aware_Simplifier::update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh,
 
     /// NEW: the update_and_compact procedure check internally if we have removed all the top d-simplices
     bool all_deleted = mu.update_and_clean_triangles_arrays(mesh, new_v_positions, new_t_positions, params.get_counter());
-    time.stop();
-    time.print_elapsed_time("[TIME] Compact and update mesh: ");
-    cerr << "[MEMORY] peak for compacting and updating the mesh: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+    // time.stop();
+    // time.print_elapsed_time("[TIME] Compact and update mesh: ");
+    // cerr << "[MEMORY] peak for compacting and updating the mesh: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
 
 
@@ -1136,14 +1140,14 @@ void Gradient_Aware_Simplifier::update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh,
     // mesh.print_mesh_stats(cerr);
     // cerr<<"------------"<<endl;
 
-    time.start();
+    // time.start();
     //    cerr<<"[TREE] update indices in the tree"<<endl;
     ///TODO: Check triangle intersection before updating the tree.
 
     tree.update_tree(tree.get_root(), new_v_positions, new_t_positions, all_deleted,1);
-    time.stop();
-    time.print_elapsed_time("[TIME] Update tree (top-simplices): ");
-    cerr << "[MEMORY] peak for updating the tree (top-simplices): " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+    // time.stop();
+    // time.print_elapsed_time("[TIME] Update tree (top-simplices): ");
+    // cerr << "[MEMORY] peak for updating the tree (top-simplices): " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
     //    Reindexer r;
     //    r.reorganize_index_and_mesh(tree,mesh,false);

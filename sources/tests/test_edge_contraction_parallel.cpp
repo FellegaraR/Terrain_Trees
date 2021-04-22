@@ -20,9 +20,14 @@ int main(int argc, char **argv)
       if(atof(argv[4])==-1){
         cli.contract_all_edges = true;
     }
-
+  
   cli.maximum_limit = atof(argv[4]);
+ if(atoi(argv[5])==-1){
+   cli.num_of_threads = omp_get_max_threads();
+ }
+ else{
   cli.num_of_threads =atoi(argv[5]);
+ }
   cli.debug_mode = false;
   PRT_Tree ptree = PRT_Tree(cli.v_per_leaf, cli.division_type);
   cerr << "[GENERATION] PR-T tree" << endl;
