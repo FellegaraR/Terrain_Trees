@@ -129,8 +129,8 @@ protected:
     vector<Matrix> initialQuadric;
     vector<dvect> trianglePlane;
 
-    // updated_edges is used to keep track of edges with new error, but 
- //   map<vector<int>, double> updated_edges;
+    
+
     vector<omp_lock_t> t_locks;
     vector<omp_lock_t> v_locks;
     vector<omp_lock_t> l_locks;
