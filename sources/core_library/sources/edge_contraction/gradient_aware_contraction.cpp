@@ -75,7 +75,7 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
     if(cli.contract_all_edges==true)
        params.contract_all_possible_edges();
     params.set_maximum_limit(cli.maximum_limit);
-    omp_set_num_threads(cli.num_of_threads);
+
     
     if(cli.QEM_based)
         params.queue_criterion_QEM();
@@ -99,10 +99,10 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
     v_locks.resize(v_num);
     l_locks.resize(l_num);
 
-#pragma omp parallel for
-    for (int i = 0; i < v_num; i++)
-        omp_init_lock(&(v_locks[i]));
-    cout << "Initialize v_locks" << endl;
+// #pragma omp parallel for
+//     for (int i = 0; i < v_num; i++)
+//         omp_init_lock(&(v_locks[i]));
+//     cout << "Initialize v_locks" << endl;
 
 #pragma omp parallel for
     for (int i = 0; i < l_num; i++)
@@ -128,7 +128,7 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
        compute_initial_plane_and_QEM_parallel(tree,mesh);
         time.stop();
         time.print_elapsed_time("[TIME] Calculating initial QEM: ");
-        vector<dvect>().swap(trianglePlane);
+      //  vector<dvect>().swap(trianglePlane);
         cerr << "[MEMORY] peak for computing QEM: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
         }
@@ -177,9 +177,9 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
     Contraction_Simplifier::preprocess(tree,mesh,cli);
     }
 
-#pragma omp parallel for
-    for (int i = 0; i < v_num; i++)
-        omp_destroy_lock(&(v_locks[i]));
+// #pragma omp parallel for
+//     for (int i = 0; i < v_num; i++)
+//         omp_destroy_lock(&(v_locks[i]));
 
 #pragma omp parallel for
     for (int i = 0; i < l_num; i++)
@@ -544,8 +544,8 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
 
     if(v2_is_critical)
      {
-         if(debug)
-        cout<<"v2 is critical"<<endl;
+        //  if(debug)
+        // cout<<"v2 is critical"<<endl;
          return false;}
 
     for(auto it=ets.begin();it!=ets.end();it++){

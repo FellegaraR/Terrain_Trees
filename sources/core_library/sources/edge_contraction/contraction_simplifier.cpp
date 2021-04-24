@@ -231,8 +231,8 @@ void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, N
 {
     cout << "[EDGE CONTRACTION] v1 and v2:" << e[0] - 1 << ", " << e[1] - 1 << endl;
     // cout<<"[NOTICE] Contract Edge"<<endl;
-    omp_set_lock(&(v_locks[e[0] - 1]));
-    omp_set_lock(&(v_locks[e[1] - 1]));
+    // omp_set_lock(&(v_locks[e[0] - 1]));
+    // omp_set_lock(&(v_locks[e[1] - 1]));
     ivect et_vec;
     et_vec.push_back(et.first);
     if (et.second != -1)
@@ -261,8 +261,8 @@ void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, N
     // finally we clear the VT(v2)
     vt1.clear();
     //et.clear();
-    omp_unset_lock(&(v_locks[e[0] - 1]));
-    omp_unset_lock(&(v_locks[e[1] - 1]));
+    // omp_unset_lock(&(v_locks[e[0] - 1]));
+    // omp_unset_lock(&(v_locks[e[1] - 1]));
 }
 
 // void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
@@ -398,7 +398,7 @@ void Contraction_Simplifier::update(const ivect &e, VT &vt, VT &difference, Node
             int new_vertex_pos = -1;
             double error = compute_error((*it)[0], (*it)[1], mesh, new_vertex_pos);
             //    cout<<"[DEBUG] calculated error: "<<error<<endl;
-            assert(new_vertex_pos != -1);
+           // assert(new_vertex_pos != -1);
 
             if (updated_edges.find(*it) != updated_edges.end())
                 updated_edges[*it] = error;
@@ -537,7 +537,7 @@ void Contraction_Simplifier::update(const ivect &e, VT &vt, VT &difference, Node
             int new_vertex_pos = -1;
             double error = compute_error((*it)[0], (*it)[1], mesh, new_vertex_pos);
             //    cout<<"[DEBUG] calculated error: "<<error<<endl;
-            assert(new_vertex_pos != -1);
+            //assert(new_vertex_pos != -1);
             if (updated_edges.find(*it) != updated_edges.end()) // updated_edges keep all the edges that have new cost values
                 updated_edges[*it] = error;
             else
@@ -924,7 +924,7 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
             int new_vertex_pos = -1;
             double error = compute_error((*it)[0], (*it)[1], mesh, new_vertex_pos);
             //   cout<<"[DEBUG] calculated error: "<<error<<endl;
-            assert(new_vertex_pos != -1);
+            //assert(new_vertex_pos != -1);
 
             if (updated_edges.find(*it) != updated_edges.end())
                 updated_edges[*it] = error;
@@ -1010,7 +1010,7 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
             int new_vertex_pos = -1;
             double error = compute_error((*it)[0], (*it)[1], mesh, new_vertex_pos);
             //    cout<<"[DEBUG] calculated error: "<<error<<endl;
-            assert(new_vertex_pos != -1);
+          //  assert(new_vertex_pos != -1);
             if (updated_edges.find(*it) != updated_edges.end()) // updated_edges keep all the edges that have new cost values
                 updated_edges[*it] = error;
             else
@@ -1099,10 +1099,10 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
 //     for (int i = 0; i < t_num; i++)
 //         omp_init_lock(&(t_locks[i]));
 //     cout << "Initialize t_locks" << endl;
-#pragma omp parallel for
-    for (int i = 0; i < v_num; i++)
-        omp_init_lock(&(v_locks[i]));
-    cout << "Initialize v_locks" << endl;
+// #pragma omp parallel for
+//     for (int i = 0; i < v_num; i++)
+//         omp_init_lock(&(v_locks[i]));
+//     cout << "Initialize v_locks" << endl;
 
 #pragma omp parallel for
     for (int i = 0; i < l_num; i++)
@@ -1153,9 +1153,9 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
     //     for (int i = 0; i < t_num; i++)
     //         omp_destroy_lock(&(t_locks[i]));
 
-#pragma omp parallel for
-    for (int i = 0; i < v_num; i++)
-        omp_destroy_lock(&(v_locks[i]));
+// #pragma omp parallel for
+//     for (int i = 0; i < v_num; i++)
+//         omp_destroy_lock(&(v_locks[i]));
 
 #pragma omp parallel for
     for (int i = 0; i < l_num; i++)
@@ -2081,7 +2081,7 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
 
             int new_vertex_pos = -1;
             double error = compute_error(e[0], e[1], mesh, new_vertex_pos);
-            assert(new_vertex_pos != -1);
+         //   assert(new_vertex_pos != -1);
 
             if (n.indexes_vertex(e[1])) // e (v1,v2) is a candidate edge if at least v2 is in n
             {
@@ -2106,7 +2106,7 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
                     }
                     else
                     {
-                        if (error - params.get_maximum_limit() < Zero)
+                        if ((error - params.get_maximum_limit() )< Zero)
                         {
                             //      cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
                             edges.push(new Geom_Edge(e, error));
@@ -2136,9 +2136,9 @@ void Contraction_Simplifier::compute_initial_QEM(Mesh &mesh, vector<dvect> &plan
             //
             Matrix tmp = Matrix(a);
             //#pragma omp critical
-            omp_set_lock(&(v_locks[mesh.get_triangle(i).TV(j) - 1]));
+           // omp_set_lock(&(v_locks[mesh.get_triangle(i).TV(j) - 1]));
             initialQuadric[mesh.get_triangle(i).TV(j)] += tmp;
-            omp_unset_lock(&(v_locks[mesh.get_triangle(i).TV(j) - 1]));
+           // omp_unset_lock(&(v_locks[mesh.get_triangle(i).TV(j) - 1]));
         }
     }
 }

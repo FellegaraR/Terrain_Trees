@@ -220,7 +220,7 @@ void Node_V::update_vertex_indices(ivect &new_v_indices, itype &index_counter){
     {
         RunIterator const& v_id = itPair.first;
         if(new_v_indices[*v_id-1] != -1){
-            assert(index_counter == new_v_indices[*v_id-1]);
+        //    assert(index_counter == new_v_indices[*v_id-1]);
             new_v_list.push_back(new_v_indices[*v_id-1]);
             index_counter++;            
            // cout<<new_v_indices[*v_id-1]<<endl;

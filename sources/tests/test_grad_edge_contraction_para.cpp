@@ -27,13 +27,15 @@ int main(int argc, char** argv)
     }
     
     cli.maximum_limit=atof(argv[4]);
-
+cout<<"Number of available threads:"<<omp_get_max_threads()<<endl;
      if(atoi(argv[5])==-1){
    cli.num_of_threads = omp_get_max_threads();
     }
      else{
-  cli.num_of_threads =atoi(argv[5]);
+    cli.num_of_threads =atoi(argv[5]);
+    omp_set_num_threads(cli.num_of_threads);
     }
+
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
     cli.app_debug=OUTPUT;
     cerr<<"[GENERATION] PR-T tree"<<endl;
