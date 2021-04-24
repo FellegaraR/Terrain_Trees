@@ -332,10 +332,7 @@ void Contraction_Simplifier::get_ET(ivect &e, ET &et, Node_V &n, Mesh &mesh, lea
             {
                 et_tmp.push_back(vt[i]);
 
-                // if(count_round>0){
-                //     cout<<"et: "<<t<<endl;
-                //     cout<<vt[i]<<endl;
-                // }
+ 
             }
         }
     }
@@ -780,10 +777,10 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
         //     omp_unset_lock(&(t_locks[vts[i] - 1]));
         // }
 
-        for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
-        {
-            omp_set_lock(&(v_locks[*it - 1]));
-        }
+        // for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
+        // {
+        //     omp_set_lock(&(v_locks[*it - 1]));
+        // }
 
         // for (int i=0;i<vt1.size();i++){
         //     omp_unset_lock(&(t_locks[vt1[i]]));
@@ -812,8 +809,7 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
 
 bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et, Node_V &n, Node_V &v_block, VV &vv_locks, Mesh &mesh)
 {
-    if (count_round > 0)
-        cout << "Checking link condition" << endl;
+
     //Update: Considering that the edge to be contracted should not be boundary edge
     //We can simplify the link condition check while checking if e is boundary edge
     if (et.first == -1 || et.second == -1)
@@ -879,13 +875,13 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
             }
         }
 
-        for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
-        {
-            omp_set_lock(&(v_locks[*it - 1]));
-        }
+        // for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
+        // {
+        //     omp_set_lock(&(v_locks[*it - 1]));
+        // }
     }
-    if (count_round > 0)
-        cout << "Checked link condition" << endl;
+
+
     return counter <= 2;
 }
 
@@ -1577,10 +1573,10 @@ void Contraction_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int,
                 edges_contracted_leaf++;
                 // break;
             }
-            for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
-            {
-                omp_unset_lock(&(v_locks[*it - 1]));
-            }
+            // for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
+            // {
+            //     omp_unset_lock(&(v_locks[*it - 1]));
+            // }
         }
         else
         {
@@ -1667,10 +1663,10 @@ void Contraction_Simplifier::simplify_leaf_cross(Node_V &n, int n_id, Mesh &mesh
             // vv_locks stores all the vertices in the VV(v0) & VV(v1) that are not contained by n or outer_v_block
             update_conflict_nodes(vv_locks, n_id, tree);
         }
-        for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
-        {
-            omp_unset_lock(&(v_locks[*it - 1]));
-        }
+        // for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
+        // {
+        //     omp_unset_lock(&(v_locks[*it - 1]));
+        // }
         // }
         // else
         // {
@@ -1764,10 +1760,10 @@ void Contraction_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mesh &
             // vv_locks stores all the vertices in the VV(v0) & VV(v1) that are not contained by n or outer_v_block
             update_conflict_nodes(vv_locks, n_id, tree);
         }
-        for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
-        {
-            omp_unset_lock(&(v_locks[*it - 1]));
-        }
+        // for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
+        // {
+        //     omp_unset_lock(&(v_locks[*it - 1]));
+        // }
         delete current;
         delete vt0, vt1, outer_v_block;
     }
@@ -1808,18 +1804,11 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
     // Using local cache
     if (e[1] > e[0])
     {
-        if (count_round > 0)
-        {
-            cout << "case 1" << endl;
-            cout << e[0] << ", " << e[1] << ", " << n.get_v_start() << endl;
-        }
+
         vt1 = Contraction_Simplifier::get_VT(e[1], n, mesh, vts, cache, tree, outer_v_block, params);
         vt0 = Contraction_Simplifier::get_VT(e[0], n, mesh, vts, cache, tree, outer_v_block, params);
         v2_is_border = is_border_edge[e[1] - n.get_v_start()];
-        if (count_round > 0)
-        {
-            cout << v2_is_border << endl;
-        }
+       
         if (n.indexes_vertex(e[0]))
         {
             v1_is_border = is_border_edge[e[0] - n.get_v_start()];
@@ -1843,8 +1832,7 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
     }
     else
     {
-        if (count_round > 0)
-            cout << "case 2" << endl;
+ 
         vt0 = get_VT(e[0], n, mesh, vts, cache, tree, outer_v_block, params);
         vt1 = get_VT(e[1], n, mesh, vts, cache, tree, outer_v_block, params);
 
@@ -1938,10 +1926,7 @@ VT *Contraction_Simplifier::get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts
 {
     int local_index;
     bool debug = false;
-    if (count_round > 0)
-    {
-        debug = true;
-    }
+
     if (n.indexes_vertex(v_id))
     {
         if (debug)
@@ -2413,8 +2398,7 @@ bool Contraction_Simplifier::valid_boundary_condition(int v1, int v2, VT &vt1, V
 
 bool Contraction_Simplifier::not_fold_over(int v1, int v2, VT &vt1, VT &vt2, ET &et, Mesh &mesh)
 {
-    if (count_round > 0)
-        cout << "Checking if folder over" << endl;
+
     VT vt2_sub_et = vt2;
     ivect et_vec;
     et_vec.push_back(et.first);
@@ -2431,13 +2415,11 @@ bool Contraction_Simplifier::not_fold_over(int v1, int v2, VT &vt1, VT &vt2, ET 
 
         if (!same_side)
         {
-            if (count_round > 0)
-                cout << "Checked false" << endl;
+  
             return false;
         }
     }
-    if (count_round > 0)
-        cout << "Checked" << endl;
+
     return true;
 }
 
