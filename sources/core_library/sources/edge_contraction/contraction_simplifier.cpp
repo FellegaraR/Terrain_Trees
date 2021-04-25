@@ -809,14 +809,18 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
 
 bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et, Node_V &n, Node_V &v_block, VV &vv_locks, Mesh &mesh)
 {
-
+    if(v0==23423&&v1==23422)
+       cout<<"enter link condition function"<<endl;
+    if(v0==23415&&v1==23517)
+       cout<<"enter link condition function"<<endl;
     //Update: Considering that the edge to be contracted should not be boundary edge
     //We can simplify the link condition check while checking if e is boundary edge
     if (et.first == -1 || et.second == -1)
         return false;
     int counter = 0;
     //#pragma omp critical
-    //    cout<<"enter link condition function"<<endl;
+
+      
     {
         iset vv0, vv1;
         //vts.insert(vts.end(),vt0.begin(),vt0.end());
@@ -949,7 +953,7 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
                     e = {(*it)[1], (*it)[0]};
                 }
 
-                //  cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
+             // cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
                 edges.push(new Geom_Edge(e, error));
             }
         }
@@ -959,7 +963,7 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
     {
         int pos = -1;
         //   bool not_valid=false;
-        dvect diff(4, 0.0);
+      //  dvect diff(4, 0.0);
         /// we have to add the new edges in the queue
         ivect new_e;
         new_e.assign(2, 0);
@@ -1024,7 +1028,7 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
             if (params.no_limit())
                 error_condition = true;
             else
-                error_condition = (error - params.get_maximum_limit() < Zero);
+                error_condition = (error + Zero <params.get_maximum_limit() );
             if (error_condition && n.indexes_vertex(e[1]))
             {
                 if (new_vertex_pos == 1)
@@ -1032,7 +1036,7 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
                     e = {(*it)[1], (*it)[0]};
                 }
 
-                //  cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
+      //        cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                 edges.push(new Geom_Edge(e, error));
             }
@@ -1048,7 +1052,7 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
             if (params.no_limit())
                 error_condition = true;
             else
-                error_condition = (value - params.get_maximum_limit() < Zero);
+                error_condition = (value + Zero < params.get_maximum_limit());
 
             if (error_condition && n.indexes_vertex(e[1]))
             {
@@ -2102,6 +2106,8 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
                     //Edge edge_obj(e[0],e[1]);
                     if (params.no_limit())
                     {
+                   //      cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
+
                         edges.push(new Geom_Edge(e, error));
                     }
                     else
@@ -2399,6 +2405,12 @@ bool Contraction_Simplifier::valid_boundary_condition(int v1, int v2, VT &vt1, V
 bool Contraction_Simplifier::not_fold_over(int v1, int v2, VT &vt1, VT &vt2, ET &et, Mesh &mesh)
 {
 
+
+
+    if(v1==23423&&v2==23422)
+        cout<<"Check fold over"<<endl;
+    if(v1==23415&&v2==23517)
+        cout<<"Check fold over"<<endl;
     VT vt2_sub_et = vt2;
     ivect et_vec;
     et_vec.push_back(et.first);

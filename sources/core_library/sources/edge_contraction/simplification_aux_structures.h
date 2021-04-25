@@ -13,7 +13,7 @@ struct Geom_Edge{
 
 struct CompareEdge{
 
-  const double Zero=1e-7;
+  const double Zero=1e-5;
 
     bool operator()(Geom_Edge* e1,Geom_Edge* e2){
 

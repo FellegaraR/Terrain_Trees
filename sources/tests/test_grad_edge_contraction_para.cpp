@@ -22,7 +22,7 @@ int main(int argc, char** argv)
     cli.crit_type = "pr";
     cli.v_per_leaf = atoi(argv[2]);
 
-    if(atof(argv[4])==-1){
+    if(atoi(argv[4])==-1){
         cli.contract_all_edges = true;
     }
     
