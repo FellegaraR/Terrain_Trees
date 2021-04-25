@@ -2074,11 +2074,14 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
         }
 
         Triangle &t = mesh.get_triangle(*t_id);
+        // if(!n.indexes_triangle_vertices(t))
+        //     continue;
 
         for (int i = 0; i < t.vertices_num(); i++)
         {
             t.TE(i, e);
-
+            if((!n.indexes_vertex(e[0]))&&(!n.indexes_vertex(e[1])))
+                 continue;
             int new_vertex_pos = -1;
             double error = compute_error(e[0], e[1], mesh, new_vertex_pos);
          //   assert(new_vertex_pos != -1);
