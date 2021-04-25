@@ -809,10 +809,7 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
 
 bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et, Node_V &n, Node_V &v_block, VV &vv_locks, Mesh &mesh)
 {
-    if(v0==23423&&v1==23422)
-       cout<<"enter link condition function"<<endl;
-    if(v0==23415&&v1==23517)
-       cout<<"enter link condition function"<<endl;
+
     //Update: Considering that the edge to be contracted should not be boundary edge
     //We can simplify the link condition check while checking if e is boundary edge
     if (et.first == -1 || et.second == -1)
@@ -834,39 +831,39 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
 
         for (int i = 0; i < vt0.size(); i++)
         {
-            if (!mesh.is_triangle_removed(vt0[i]))
-            {
+            // if (!mesh.is_triangle_removed(vt0[i]))
+            // {
                 Triangle t = mesh.get_triangle(vt0[i]);
                 int v0_id = t.vertex_index(v0);
                 int v01_id = t.TV((v0_id + 1) % 3);
                 int v02_id = t.TV((v0_id + 2) % 3);
 
-                if (!n.indexes_vertex(v01_id) && !v_block.indexes_vertex(v01_id))
-                    vv_locks.insert(v01_id);
+                // if (n.get_v_start() != v_block.get_v_start()&&!n.indexes_vertex(v01_id) && !v_block.indexes_vertex(v01_id))
+                //     vv_locks.insert(v01_id);
 
-                if (!n.indexes_vertex(v02_id) && !v_block.indexes_vertex(v02_id))
-                    vv_locks.insert(v02_id);
+                // if (n.get_v_start() != v_block.get_v_start()&&!n.indexes_vertex(v02_id) && !v_block.indexes_vertex(v02_id))
+                //     vv_locks.insert(v02_id);
 
                 vv0.insert(v01_id);
                 vv0.insert(v02_id);
-            }
+            // }
         }
 
         for (int i = 0; i < vt1.size(); i++)
         {
-            if (!mesh.is_triangle_removed(vt1[i]))
-            {
+            // if (!mesh.is_triangle_removed(vt1[i]))
+            // {
                 Triangle t = mesh.get_triangle(vt1[i]);
                 int v1_id = t.vertex_index(v1);
                 int v11_id = t.TV((v1_id + 1) % 3);
                 int v12_id = t.TV((v1_id + 2) % 3);
-                if (!n.indexes_vertex(v11_id) && !v_block.indexes_vertex(v11_id))
+                if (n.get_v_start() != v_block.get_v_start()&&!n.indexes_vertex(v11_id) && !v_block.indexes_vertex(v11_id))
                     vv_locks.insert(v11_id);
-                if (!n.indexes_vertex(v12_id) && !v_block.indexes_vertex(v12_id))
+                if (n.get_v_start() != v_block.get_v_start()&&!n.indexes_vertex(v12_id) && !v_block.indexes_vertex(v12_id))
                     vv_locks.insert(v12_id);
                 vv1.insert(v11_id);
                 vv1.insert(v12_id);
-            }
+            // }
         }
 
         //  cout<<v1<<"'s VV size: "<<vv1.size()<<endl;
@@ -893,7 +890,7 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
                                              Mesh &mesh, contraction_parameters &params, map<vector<int>, double> &updated_edges)
 {
     set<ivect> e_set; /// we insert the new edges first in this set to avoid duplicate insertions in the queue
-    ivect t_locks_id;
+
     /// before updating the triangle, we check
     /// if the leaf block indexing e[0] does not contain the current triangle we have to add it
     /// NOTA: there is one possible case.. as leaf block n already indexes the triangle in e[1]
@@ -962,11 +959,8 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
     for (ivect_iter it = difference.begin(); it != difference.end(); ++it)
     {
         int pos = -1;
-        //   bool not_valid=false;
-      //  dvect diff(4, 0.0);
         /// we have to add the new edges in the queue
-        ivect new_e;
-        new_e.assign(2, 0);
+ 
 
         Triangle &t = mesh.get_triangle(*it);
         if (n.get_v_start() != v_block.get_v_start())
@@ -981,11 +975,13 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
             }
         }
 
-        if (!mesh.is_triangle_removed(*it))
-        {
+        // if (!mesh.is_triangle_removed(*it))
+        // {
             /// then we update the triangle changing e[1] with e[0]
             pos = t.vertex_index(e[1]);
             t.setTV_keep_border(pos, e[0]);
+            ivect new_e;
+            new_e.assign(2, 0);
             for (int i = 0; i < 3; i++)
             {
                 if (i != pos)
@@ -994,12 +990,12 @@ void Contraction_Simplifier::update_parallel(const ivect &e, VT &vt, VT &differe
                     e_set.insert(new_e);
                 }
             }
-        }
-        else
-        {
-            //    omp_unset_lock(&(t_locks[*it - 1]));
-            continue;
-        }
+        // }
+        // else
+        // {
+        //     //    omp_unset_lock(&(t_locks[*it - 1]));
+        //     continue;
+        // }
     }
 
     /// we push the new "unique" edges in the queue
@@ -2313,19 +2309,7 @@ void Contraction_Simplifier::preprocess(PRT_Tree &tree, Mesh &mesh, cli_paramete
     }
     // cout<<"[DEBUG] conflict node lists:"<<endl;
 
-    // for (int i = 0; i < tree.get_leaves_number(); i++)
-    // {
-    //     Node_V *n = tree.get_leaf(i);
-    //     if (!n->indexes_vertices())
-    //          continue;
-    //          cout<<"Node "<<i<<endl;
-    //    for(auto it=conflict_leafs[i].begin();it!=conflict_leafs[i].end();it++){
-    //         cout<<*it<<", ";
-    //    }
-    //    cout<<endl;
 
-    // }
-    // cout<<"preprocessing finished"<<endl;
 
     // for (auto it = nodes_of_t.begin(); it != nodes_of_t.end(); it++)
     // {
@@ -2406,11 +2390,6 @@ bool Contraction_Simplifier::not_fold_over(int v1, int v2, VT &vt1, VT &vt2, ET 
 {
 
 
-
-    if(v1==23423&&v2==23422)
-        cout<<"Check fold over"<<endl;
-    if(v1==23415&&v2==23517)
-        cout<<"Check fold over"<<endl;
     VT vt2_sub_et = vt2;
     ivect et_vec;
     et_vec.push_back(et.first);

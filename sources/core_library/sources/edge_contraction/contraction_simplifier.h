@@ -24,7 +24,7 @@ public:
     //Generate conflict leaf list and vertex in leaf list
     void preprocess(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
 protected:
-    const double Zero = 1e-7;
+    const double Zero = 1e-5;
     void update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh, contraction_parameters &params);
     void simplify_compute(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, Spatial_Subdivision &division, contraction_parameters &params, PRT_Tree &tree);
     void simplify_compute_parallel(Mesh &mesh,  Spatial_Subdivision &division, contraction_parameters &params, PRT_Tree &tree);
