@@ -4,7 +4,7 @@
 
 #include "basic_types/edge.h"
 #include "basic_types/basic_wrappers.h"
-
+const double Zero=1e-13;
 struct Geom_Edge{
     ivect edge;
     double val;
@@ -13,7 +13,7 @@ struct Geom_Edge{
 
 struct CompareEdge{
 
-  const double Zero=1e-5;
+ 
 
     bool operator()(Geom_Edge* e1,Geom_Edge* e2){
 

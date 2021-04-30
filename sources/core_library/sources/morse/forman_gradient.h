@@ -124,9 +124,10 @@ public:
     // cout<<"[DEBUG]tid:"<<tid<<"v1 and v2:"<<v1<<", "<<v2<<endl;
     grad.erase_edge_relation(mesh.get_triangle(tid).vertex_index(v1),mesh.get_triangle(tid).vertex_index(v2));
     grad.setVE(mesh.get_triangle(tid).vertex_index(v1),mesh.get_triangle(tid).vertex_index(v2));
-  //  #pragma omp critical
+    
     forman_gradient[tid-1]=convert_expand_to_compressed(grad.getArrow());
-    short v1i = gradient.convert_compressed_to_expand(tid).get_vertex_pair(mesh.get_triangle(tid).vertex_index(v1));
+   
+    //short v1i = gradient.convert_compressed_to_expand(tid).get_vertex_pair(mesh.get_triangle(tid).vertex_index(v1));
      //cout<<"Now vertex "<<v1<<" is paired with "<<mesh.get_triangle(tid).TV(v1i)<<endl;
     }
     

@@ -91,15 +91,20 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
 
  time.start();
     cout<<"Number of threads used in the simplification:"<<omp_get_max_threads()<<endl;
-  //  const int t_num = mesh.get_triangles_num();
+    const int t_num = mesh.get_triangles_num();
   //  const int v_num = mesh.get_vertices_num();
     const int l_num = tree.get_leaves_number();
     // omp_lock_t lock[t_num];
-  //  t_locks.resize(t_num);
+    t_locks.resize(t_num);
   //  v_locks.resize(v_num);
     l_locks.resize(l_num);
 
-// #pragma omp parallel for
+ #pragma omp parallel for
+    for (int i = 0; i < t_num; i++)
+        omp_init_lock(&(t_locks[i]));
+    cout << "Initialize t_locks" << endl;
+
+//  #pragma omp parallel for
 //     for (int i = 0; i < v_num; i++)
 //         omp_init_lock(&(v_locks[i]));
 //     cout << "Initialize v_locks" << endl;
@@ -177,6 +182,10 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
     Contraction_Simplifier::preprocess(tree,mesh,cli);
     }
 
+#pragma omp parallel for
+    for (int i = 0; i < t_num; i++)
+        omp_destroy_lock(&(t_locks[i]));
+
 // #pragma omp parallel for
 //     for (int i = 0; i < v_num; i++)
 //         omp_destroy_lock(&(v_locks[i]));
@@ -189,7 +198,8 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
 
     ///// Clear all the auxiliary data structures.
     //v_locks.clear();
-   // vector<omp_lock_t>().swap(v_locks);
+    vector<omp_lock_t>().swap(t_locks);
+    //vector<omp_lock_t>().swap(v_locks);
     vector<omp_lock_t>().swap(l_locks);
     // vector<int>().swap(v_in_leaf);
     // lists_leafs().swap(conflict_leafs);
@@ -383,8 +393,10 @@ params.add_edge_queue_size(edges.size());
 void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  Node_V &outer_v_block, edge_queue &edges,
                                            Node_V &n, Mesh &mesh, contraction_parameters &params,Forman_Gradient &gradient, map<vector<int>, double>& updated_edges)
 {
- //   cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
+   // cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<"on thread "<<omp_get_thread_num()<<endl;
    // cout<<"[NOTICE] Contract Edge"<<endl;
+    //   omp_set_lock(&(v_locks[e[0] - 1]));
+    //omp_set_lock(&(v_locks[e[1] - 1]));
     ivect et_vec;
     et_vec.push_back(et.first);
     if(et.second!=-1)
@@ -422,11 +434,7 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
 
     bool debug=false;
 
-    // debug=true;
-//     if(v1==23423&&v2==23422)
-//         debug =true;
-//     if(v1==23415&&v2==23517)
-//         debug =true;
+
 
 //   if(debug)  
 //     cout<<"[debug]checking edge "<<v1<<", "<<v2<<endl;
@@ -529,15 +537,18 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
             if(t.TV(j)==v3_des&&vt2[i]!=t2)
             {
                 t3_des=vt2[i];
+                //  omp_set_lock(&(t_locks[t3_des - 1]));
             }
             else if(t.TV(j)==v3_sin&&vt2[i]!=t1)
             {
                 t3_sin=vt2[i];
+                // omp_set_lock(&(t_locks[t3_sin - 1]));
             }
                 }
         }
 
         if(gradient.is_triangle_critical(vt2[i])) {
+            
         // if(debug)
         //     cout<<"vt2 is critical"<<endl;
             return false;}
@@ -582,15 +593,21 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     bool edge1_critical=true;
     bool edge2_critical=true;
     for(int i=0; i<vt1.size(); i++){
-        if(gradient.is_triangle_critical(vt1[i])){
-            // if(debug)
-            // cout<<"vt1 is critical"<<endl;
-         return false;}
+  //  omp_set_lock(&(t_locks[vt1[i] - 1]));
+    // if(gradient.is_triangle_critical(vt1[i])){
+    //         // if(debug)
+    //         // cout<<"vt1 is critical"<<endl;
+    //  //   omp_unset_lock(&(t_locks[vt1[i]- 1]));
+    //      return false;
+    //      }
+         
         for(int j=0; j<3; j++){
             int vid=mesh.get_triangle(vt1[i]).TV(j);
             if(vid==v3_des){
                 if(vt1[i]!=t2)
-                t3_adj_des=vt1[i];
+                {t3_adj_des=vt1[i];
+                
+                }
                 ivect edge1;
                 edge1 ={v1,v3_des};
                 sort(edge1.begin(),edge1.end());
@@ -598,8 +615,10 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
                 edge1_critical=false;
             }
             else if(vid==v3_sin){
-                if(vt1[i]!=t1)
+                if(vt1[i]!=t1){
                  t3_adj_sin=vt1[i];
+                
+                 }
                 ivect edge1;
                 edge1 ={v1,v3_sin};
                 std::sort(edge1.begin(),edge1.end());
@@ -608,13 +627,21 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
             }
 
         }
+
+ //omp_unset_lock(&(t_locks[vt1[i]- 1]));
     }
+
+//  omp_set_lock(&(t_locks[t3_adj_sin - 1]));
+//  omp_set_lock(&(t_locks[t3_adj_des - 1]));   
     if(edge1_critical||edge2_critical)
      {
         //  if(debug)
         //  cout<<"edge is critical"<<endl;
+        // omp_unset_lock(&(t_locks[t3_adj_des - 1]));   
+        //  omp_unset_lock(&(t_locks[t3_adj_sin - 1]));
          return false;}
     //Check if v1 is point to v3_sin
+    
     itype v1_pair=-1;
     itype v1_id=mesh.get_triangle(t1).vertex_index(v1);
     short v1_pair_id=gradient.convert_compressed_to_expand(t1).get_vertex_pair(v1_id);
@@ -649,7 +676,8 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
     if(v1_pair!=v2&&v2_pair!=v1){
     //     if(debug)
     //    cout<<"edge is not paired with v1 or v2"<<endl;
-
+        //  omp_unset_lock(&(t_locks[t3_adj_des - 1]));   
+        //  omp_unset_lock(&(t_locks[t3_adj_sin - 1]));
         return false;
     }
 
@@ -707,6 +735,9 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1,int v2, VT &
 
     //    if(debug)
     // cout<<"valid gradient condition"<<endl;
+
+    // omp_unset_lock(&(t_locks[t3_adj_des - 1]));   
+    // omp_unset_lock(&(t_locks[t3_adj_sin - 1]));
     return true;
     //Triangle 
 
@@ -786,14 +817,15 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
 
     //boost::dynamic_bitset<> conflict_nodes(tree.get_leaves_number());
     ivect nodes_status(tree.get_leaves_number(), 0);
+    //cout<<"total leaf node number: "<<tree.get_leaves_number()<<endl;
     int processed_node = 0;
     bool processed = false;
     do
     {
        // processed = false;
         
-#pragma omp parallel for reduction(+:processed_node)// schedule(dynamic,1)
-        for (unsigned i = 0; i < tree.get_leaves_number(); i++)
+#pragma omp parallel for reduction(+:processed_node) 
+        for (int i = 0; i < tree.get_leaves_number(); i++)
         {
             Node_V *leaf = tree.get_leaf(i);
             if(nodes_status[i]==-1)
@@ -807,7 +839,7 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
           }
             //check the array of conflict_nodes
             // if nodes_status[i]==1, then continue
-          //  cout << "Current leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
+     //    cout << "Current leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
     omp_set_lock(&(l_locks[i]));
             if (nodes_status[i] != 0)
             {
@@ -885,6 +917,8 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
                 omp_set_lock(&(l_locks[i]));
                 nodes_status[i] = -1;
                 omp_unset_lock(&(l_locks[i]));
+        //        cout << "Simplified leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
+
                 //cout<<"unset leaf node:"<<i<<" on thread "<<omp_get_thread_num()<<endl;
 
                 for (iset_iter it = conflicts.begin(); it != conflicts.end(); it++)
@@ -897,6 +931,10 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh,  Spatial_S
                     if (status == 1)
                     {
                         nodes_status[*it] = 0;
+                    }
+                    else if(status==2)
+                    {
+                        cout<<"Should not happen, check the locking system"<<endl;
                     }
                     //cout<<"unset leaf node:"<<*it<<" on thread "<<omp_get_thread_num()<<endl;
                     omp_unset_lock(&(l_locks[*it]));
@@ -1045,7 +1083,7 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mes
 
         if (mesh.is_vertex_removed(e[0]) || mesh.is_vertex_removed(e[1]))
         {
-
+        
             delete current;
             continue;
         }

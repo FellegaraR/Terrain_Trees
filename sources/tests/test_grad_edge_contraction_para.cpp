@@ -176,6 +176,7 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     cerr << "[MEMORY] peak for computing gradient vector field: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
     delete gradient_computation;
     ivect().swap(cli.original_vertex_indices);
+
     stringstream out2;
     out2 << base.str();
     out2 << "_" << SpatialDecType2string(cli.division_type) << "_" << cli.crit_type << "_v_" << cli.v_per_leaf << "_tree.vtk";
