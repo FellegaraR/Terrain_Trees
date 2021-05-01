@@ -376,11 +376,11 @@ void Contraction_Simplifier::update(const ivect &e, VT &vt, VT &difference, Node
             ivect new_e(2, 0);
             Triangle &t = mesh.get_triangle(vt[i]);
             int v1_pos = t.vertex_index(e[0]);
-            for (int i = 0; i < t.vertices_num(); i++)
+            for (int j = 0; j < t.vertices_num(); j++)
             {
-                if (i != v1_pos)
+                if (j != v1_pos)
                 {
-                    t.TE(i, new_e);
+                    t.TE(j, new_e);
                     //     if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed
                     v1_related_set.insert(new_e);
                 }
@@ -813,10 +813,8 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
     if (et.first == -1 || et.second == -1)
         return false;
     int counter = 0;
-    //#pragma omp critical
+  
 
-      
-    {
         iset vv0, vv1;
         //vts.insert(vts.end(),vt0.begin(),vt0.end());
         VT vts = vt0;
@@ -878,7 +876,7 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
         // {
         //     omp_set_lock(&(v_locks[*it - 1]));
         // }
-    }
+    
 
 
     return counter <= 2;
@@ -903,11 +901,11 @@ void Contraction_Simplifier::update_parallel(const ivect &current_e, VT &vt, VT 
             ivect new_e(2, 0);
             Triangle &t = mesh.get_triangle(vt[i]);
             int v1_pos = t.vertex_index(current_e[0]);
-            for (int i = 0; i < t.vertices_num(); i++)
+            for (int j = 0; j < t.vertices_num(); j++)
             {
-                if (i != v1_pos)
+                if (j != v1_pos)
                 {
-                    t.TE(i, new_e);
+                    t.TE(j, new_e);
                     //     if(n.indexes_vertex(new_e[1])) /// we process an edge only if it has all the extrema already processed
                     v1_related_set.insert(new_e);
                 }
@@ -916,7 +914,6 @@ void Contraction_Simplifier::update_parallel(const ivect &current_e, VT &vt, VT 
         for (auto it = v1_related_set.begin(); it != v1_related_set.end(); ++it)
         {
             //Calculate updated edge costs of VE(v1)
-            double value;
             ivect new_edge(2, -1);
             Vertex &v1 = mesh.get_vertex((*it)[0]);
             Vertex &v2 = mesh.get_vertex((*it)[1]);
@@ -973,8 +970,6 @@ void Contraction_Simplifier::update_parallel(const ivect &current_e, VT &vt, VT 
             // }
         }
 
-        // if (!mesh.is_triangle_removed(*it))
-        // {
             /// then we update the triangle changing e[1] with e[0]
             pos = t.vertex_index(current_e[1]);
             t.setTV_keep_border(pos, current_e[0]);
@@ -988,19 +983,13 @@ void Contraction_Simplifier::update_parallel(const ivect &current_e, VT &vt, VT 
                     e_set.insert(new_e);
                 }
             }
-        // }
-        // else
-        // {
-        //     //    omp_unset_lock(&(t_locks[*it - 1]));
-        //     continue;
-        // }
+
     }
 
     /// we push the new "unique" edges in the queue
     for (auto it = e_set.begin(); it != e_set.end(); ++it)
     {
-        //Calculate length
-        double value;
+   
         ivect new_edge(2, -1);
         // if (n.indexes_vertex(e[1]))
         if (params.is_QEM())
@@ -1031,15 +1020,13 @@ void Contraction_Simplifier::update_parallel(const ivect &current_e, VT &vt, VT 
 
             if (error_condition && n.indexes_vertex(new_edge[1]))
             {
-
-
-      //        cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
-
+                 // cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
                 edges.push(new Geom_Edge(new_edge, error));
             }
         }
         else
         {
+            double value;
             Vertex &v1 = mesh.get_vertex((*it)[0]);
             Vertex &v2 = mesh.get_vertex((*it)[1]);
             dvect dif = {v1.get_x() - v2.get_x(), v1.get_y() - v2.get_y(), v1.get_z() - v2.get_z()};
@@ -2401,7 +2388,6 @@ bool Contraction_Simplifier::not_fold_over(int v1, int v2, VT &vt1, VT &vt2, ET 
 
         if (!same_side)
         {
-  
             return false;
         }
     }
