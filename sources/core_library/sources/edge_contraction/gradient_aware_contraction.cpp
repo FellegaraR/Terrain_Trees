@@ -157,24 +157,24 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
         }
 
         ///UPDATE: update data structure and conflict nodes lists after each round
-        vector<int>().swap(v_in_leaf);
-        lists_leafs().swap(conflict_leafs);
+        // time.stop();
+        // time.start();
+        // vector<int>().swap(v_in_leaf);
+        // lists_leafs().swap(conflict_leafs);
+        // time.stop();
+        // time.print_elapsed_time("[TIME] Cleaning the auxiliary data structures: ");
 
+        // time.start();
         // cout<<"number of remaining triangles: "<<tree.get_mesh().get_triangles_num()<<endl;
 
-        // for (unsigned i = 0; i < tree.get_leaves_number(); i++)
-        // {
-        //     Node_V * leaf = tree.get_leaf(i);
-        //                  ///TEMP
-        //         for(auto it=leaf->get_t_array_begin();it!=leaf->get_t_array_end();it++)
-        //         cout<<*it<<", ";
-        //         cout<<endl;
-        // }
+
 
         if (simplification_round == params.get_contracted_edges_num())
             break;
         Contraction_Simplifier::preprocess(tree, mesh, cli);
     }
+
+    
 
 #pragma omp parallel for
     for (int i = 0; i < t_num; i++)
@@ -195,6 +195,9 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
     vector<omp_lock_t>().swap(t_locks);
     //vector<omp_lock_t>().swap(v_locks);
     vector<omp_lock_t>().swap(l_locks);
+    vector<Matrix>().swap(initialQuadric);
+    vector<int>().swap(v_in_leaf);
+    lists_leafs().swap(conflict_leafs);
     // vector<int>().swap(v_in_leaf);
     // lists_leafs().swap(conflict_leafs);
     // l_locks.clear();

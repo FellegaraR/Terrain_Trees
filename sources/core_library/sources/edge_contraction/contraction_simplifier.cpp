@@ -2223,7 +2223,6 @@ double Contraction_Simplifier::compute_error(int v1, int v2, Mesh &mesh, int &ne
 
 void Contraction_Simplifier::preprocess(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli)
 {
-
     conflict_leafs.assign(tree.get_leaves_number(), iset());
     //map<int, ivect> nodes_of_t;
     v_in_leaf.assign(mesh.get_vertices_num() + 1, -1);
