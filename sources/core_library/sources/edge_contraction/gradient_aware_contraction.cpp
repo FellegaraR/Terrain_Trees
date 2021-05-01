@@ -90,18 +90,18 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
 
     time.start();
     cout << "Number of threads used in the simplification:" << omp_get_max_threads() << endl;
-    const int t_num = mesh.get_triangles_num();
+    // const int t_num = mesh.get_triangles_num();
     //  const int v_num = mesh.get_vertices_num();
     const int l_num = tree.get_leaves_number();
     // omp_lock_t lock[t_num];
-    t_locks.resize(t_num);
+    // t_locks.resize(t_num);
     //  v_locks.resize(v_num);
     l_locks.resize(l_num);
 
-#pragma omp parallel for
-    for (int i = 0; i < t_num; i++)
-        omp_init_lock(&(t_locks[i]));
-    cout << "Initialize t_locks" << endl;
+// #pragma omp parallel for
+//     for (int i = 0; i < t_num; i++)
+//         omp_init_lock(&(t_locks[i]));
+//     cout << "Initialize t_locks" << endl;
 
     //  #pragma omp parallel for
     //     for (int i = 0; i < v_num; i++)
@@ -176,9 +176,9 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
 
     
 
-#pragma omp parallel for
-    for (int i = 0; i < t_num; i++)
-        omp_destroy_lock(&(t_locks[i]));
+// #pragma omp parallel for
+//     for (int i = 0; i < t_num; i++)
+//         omp_destroy_lock(&(t_locks[i]));
 
         // #pragma omp parallel for
         //     for (int i = 0; i < v_num; i++)
@@ -192,7 +192,7 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
 
     ///// Clear all the auxiliary data structures.
     //v_locks.clear();
-    vector<omp_lock_t>().swap(t_locks);
+    // vector<omp_lock_t>().swap(t_locks);
     //vector<omp_lock_t>().swap(v_locks);
     vector<omp_lock_t>().swap(l_locks);
     vector<Matrix>().swap(initialQuadric);
