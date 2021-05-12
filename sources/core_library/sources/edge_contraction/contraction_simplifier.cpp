@@ -2223,7 +2223,9 @@ double Contraction_Simplifier::compute_error(int v1, int v2, Mesh &mesh, int &ne
 
 void Contraction_Simplifier::preprocess(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli)
 {
+    if(cli.num_of_threads != 1){
     conflict_leafs.assign(tree.get_leaves_number(), iset());
+    }
     //map<int, ivect> nodes_of_t;
     v_in_leaf.assign(mesh.get_vertices_num() + 1, -1);
     vector<ivect> cross_triangles(tree.get_leaves_number(), ivect());
@@ -2278,7 +2280,7 @@ void Contraction_Simplifier::preprocess(PRT_Tree &tree, Mesh &mesh, cli_paramete
         //     v_in_leaf[*it] = i;
         // }
     }
-
+if(cli.num_of_threads != 1){
 #pragma omp parallel for
     for (int i = 0; i < tree.get_leaves_number(); i++)
     {
@@ -2298,7 +2300,7 @@ void Contraction_Simplifier::preprocess(PRT_Tree &tree, Mesh &mesh, cli_paramete
             }
         }
     }
-
+}
 
 
 

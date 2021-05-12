@@ -83,7 +83,13 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
         params.queue_criterion_length();
     }
     // Set to be parallel mode
-    params.parallel_compute();
+    if(cli.num_of_threads!=1){
+        params.parallel_compute();
+    }
+    else
+    {
+        params.sequential_compute();
+    }
     Timer time;
     int simplification_round;
     int round = 1;
@@ -96,6 +102,7 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
     // omp_lock_t lock[t_num];
     // t_locks.resize(t_num);
     //  v_locks.resize(v_num);
+    if(params.is_parallel()){
     l_locks.resize(l_num);
 
 // #pragma omp parallel for
@@ -112,6 +119,7 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
     for (int i = 0; i < l_num; i++)
         omp_init_lock(&(l_locks[i]));
     cout << "Initialize l_locks" << endl;
+    }
     time.stop();
     time.print_elapsed_time("[TIME] Initialization of locks:  ");
 
@@ -183,11 +191,11 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
         // #pragma omp parallel for
         //     for (int i = 0; i < v_num; i++)
         //         omp_destroy_lock(&(v_locks[i]));
-
+if(params.is_parallel()){
 #pragma omp parallel for
     for (int i = 0; i < l_num; i++)
         omp_destroy_lock(&(l_locks[i]));
-
+}
     time.stop();
 
     ///// Clear all the auxiliary data structures.
@@ -405,13 +413,13 @@ void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1
     /// (3) and, finally, we add the new edges crossing b to the edge queue
     //Contraction_Simplifier::update(e,vt0,vt1,n,outer_v_block,edges,mesh,params);
 
-    if (!params.is_parallel())
-        Contraction_Simplifier::update(e, vt0, vt1, n, outer_v_block, edges, mesh, params, updated_edges);
-    else
-    {
+    // if (!params.is_parallel())
+    //     Contraction_Simplifier::update(e, vt0, vt1, n, outer_v_block, edges, mesh, params, updated_edges);
+    // else
+    // {
 
         Contraction_Simplifier::update_parallel(e, vt0, vt1, n, outer_v_block, edges, mesh, params, updated_edges);
-    }
+    // }
 
     // we remove v2 and the triangles in et
     Contraction_Simplifier::remove_from_mesh(e[1], et, mesh, params);
@@ -830,8 +838,10 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh, Spatial_Su
         for (int i = 0; i < tree.get_leaves_number(); i++)
         {
             Node_V *leaf = tree.get_leaf(i);
+            if(params.is_parallel()){
             if (nodes_status[i] == -1)
                 continue;
+            }
             //cout<<*leaf<<endl;
             if (!leaf->indexes_vertices())
             {
@@ -842,6 +852,8 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh, Spatial_Su
             //check the array of conflict_nodes
             // if nodes_status[i]==1, then continue
             //    cout << "Current leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
+            
+            if(params.is_parallel()){
             omp_set_lock(&(l_locks[i]));
             if (nodes_status[i] != 0)
             {
@@ -942,6 +954,18 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh, Spatial_Su
                 }
             }
         }
+        else{
+
+                processed_node = processed_node + 1;
+                //  processed = true;
+                // cout << "Start simplification" << endl;
+                if (params.is_QEM() == true)
+                    simplify_leaf_cross_QEM(*leaf, i, mesh, params, tree, gradient);
+                else
+                    simplify_leaf_cross(*leaf, i, mesh, params, tree, gradient);
+        }
+        }
+
         // cout << "finished one for loop" << endl;
         //cerr << "[MEMORY] peak for a simplification round:" << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
         //cerr<<"Number of processed nodes:"<<processed_node<<endl;
@@ -1114,7 +1138,9 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mes
             // A new step for cross edge case
             // Check possible new conflict nodes by checking the vv_locks
             // vv_locks stores all the vertices in the VV(v0) & VV(v1) that are not contained by n or outer_v_block
+            if(params.is_parallel()){
             update_conflict_nodes(vv_locks, n_id, tree);
+            }
         }
         // for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
         // {
