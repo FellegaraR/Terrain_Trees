@@ -2599,9 +2599,9 @@ void Contraction_Simplifier::error_range(PRT_Tree &tree, Mesh &mesh, cli_paramet
     for(int i=0;i< edge_costs.size();i++){
 
         itype bin_num = (edge_costs[i]-min)/gap;
-        if(bin_num==10)
+        if(bin_num==hist_counter.size())
         {
-            hist_counter[9]++;
+            hist_counter[bin_num-1]++;
         }
         else
         hist_counter[bin_num]++;
