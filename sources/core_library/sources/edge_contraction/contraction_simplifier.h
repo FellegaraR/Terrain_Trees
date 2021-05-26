@@ -23,6 +23,8 @@ public:
     void simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
     //Generate conflict leaf list and vertex in leaf list
     void preprocess(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli);
+    void error_range(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli, itype num_bin);
+    
 protected:
     
     void update_mesh_and_tree(PRT_Tree &tree, Mesh &mesh, contraction_parameters &params);
@@ -76,7 +78,8 @@ protected:
 
     void find_candidate_edges_parallel(Node_V &n, Mesh &mesh, leaf_VT &vts, edge_queue &edges, contraction_parameters &params, bool is_cross);
     //void find_candidate_edges_parallel_QEM(Node_V &n, Mesh &mesh, leaf_VT &vts, edge_queue &edges, contraction_parameters &params, bool is_cross);
-
+    void error_range_leaf(Node_V &n, Mesh &mesh, dvect& edge_costs, coord_type& min, coord_type& max);
+  //  void error_hist_leaf(Node_V &n, Mesh &mesh,ivect& count, coord_type min, coord_type max);
     /// the procedure updatess
     /// (1) the VTop relation of the surviving vertex
     /// (2) the top simplices for which we change the v2 with v1

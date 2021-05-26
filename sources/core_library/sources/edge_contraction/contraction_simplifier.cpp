@@ -2094,7 +2094,7 @@ void Contraction_Simplifier::find_candidate_edges_QEM(Node_V &n, Mesh &mesh, lea
                     //Edge edge_obj(e[0],e[1]);
                     if (params.no_limit())
                     {
-                   //      cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
+                        //cout<<"["<<e[0]-1<<","<<e[1]-1<<"]  Error will be introduced: "<<error<<endl;
 
                         edges.push(new Geom_Edge(e, error));
                     }
@@ -2576,4 +2576,88 @@ void Contraction_Simplifier::compute_initial_plane_and_QEM_parallel(PRT_Tree &tr
 
 //         }
 //     }
+// }
+
+void Contraction_Simplifier::error_range(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli, itype num_bin){
+
+    initialQuadric = vector<Matrix>(mesh.get_vertices_num() + 1, Matrix(0.0));
+    compute_initial_plane_and_QEM_parallel(tree, mesh);
+    dvect edge_costs;
+    coord_type min=INFINITY, max=-INFINITY;
+    ivect hist_counter (num_bin,0);
+    
+    //#pragma omp parallel for  
+    for (unsigned i = 0; i < tree.get_leaves_number(); i++)
+        {
+                Node_V *leaf = tree.get_leaf(i);
+            //   coord_type n_min=INFINITY, n_max=-INFINITY;
+                error_range_leaf(*leaf, mesh,edge_costs, min, max);
+
+        }
+    cout<<"min: "<<min<<" ,max: "<<max<<endl;
+    coord_type gap = (max-min)/num_bin;
+    for(int i=0;i< edge_costs.size();i++){
+
+        itype bin_num = (edge_costs[i]-min)/gap;
+        if(bin_num==10)
+        {
+            hist_counter[9]++;
+        }
+        else
+        hist_counter[bin_num]++;
+    }
+    cout<<"Print the count of each subrange"<<endl;
+    for(int i=0; i<hist_counter.size();i++){
+        cout<<"bin "<<i<<": "<<hist_counter[i]<<endl;
+    }
+}
+
+
+void Contraction_Simplifier::error_range_leaf(Node_V &n, Mesh &mesh, dvect& edge_costs, coord_type& min, coord_type& max){
+    if (!n.indexes_vertices())
+        return;
+
+    map<ivect, coord_type> edge_map;
+    ivect e;
+    for (RunIteratorPair itPair = n.make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+    {
+        RunIterator const &t_id = itPair.first;
+        // if (mesh.is_triangle_removed(*t_id))
+        // {
+        //     //  cout<<"triangle removed"<<endl;
+        //     continue;
+        // }
+        Triangle &t = mesh.get_triangle(*t_id);
+
+        for (int i = 0; i < t.vertices_num(); i++)
+        {
+            t.TE(i, e);
+            if(!n.indexes_vertex(e[1]))
+                 continue;
+            int new_vertex_pos = -1;
+            double error = compute_error(e[0], e[1], mesh, new_vertex_pos);
+            if(error>max)
+            max = error;
+            if(error<min)
+            min = error;
+            if (n.indexes_vertex(e[1])) // e (v1,v2) is a candidate edge if at least v2 is in n
+            {
+                map<ivect, coord_type>::iterator it = edge_map.find(e);
+                 
+                if (it == edge_map.end())
+                {
+                    cout<<e[0]<<" and "<<e[1]<<"'s error: "<< error<<endl;
+                    edge_map[e] = error;
+                    edge_costs.push_back(error);
+                }
+            }       
+        }
+    }
+}
+
+// void Contraction_Simplifier::error_hist_leaf(Node_V &n, Mesh &mesh,ivect& count, coord_type min, coord_type max){
+
+// coord_type gap = (max-min)/count.size();
+
+
 // }
