@@ -2595,21 +2595,42 @@ void Contraction_Simplifier::error_range(PRT_Tree &tree, Mesh &mesh, cli_paramet
 
         }
     cout<<"min: "<<min<<" ,max: "<<max<<endl;
-    coord_type gap = (max-min)/num_bin;
-    for(int i=0;i< edge_costs.size();i++){
 
-        itype bin_num = (edge_costs[i]-min)/gap;
-        if(bin_num==hist_counter.size())
-        {
-            hist_counter[bin_num-1]++;
-        }
-        else
-        hist_counter[bin_num]++;
-    }
-    cout<<"Print the count of each subrange"<<endl;
-    for(int i=0; i<hist_counter.size();i++){
-        cout<<"bin "<<i<<": "<<hist_counter[i]<<endl;
-    }
+    //// Below is part for computing histogram
+    // coord_type gap = (max-min)/num_bin;
+    // for(int i=0;i< edge_costs.size();i++){
+
+    //     itype bin_num = (edge_costs[i]-min)/gap;
+    //     if(bin_num==hist_counter.size())
+    //     {
+    //         hist_counter[bin_num-1]++;
+    //     }
+    //     else
+    //     hist_counter[bin_num]++;
+    // }
+    // cout<<"Print the count of each subrange"<<endl;
+    // for(int i=0; i<hist_counter.size();i++){
+    //     cout<<"bin "<<i<<": "<<hist_counter[i]<<endl;
+    // }
+
+    //// Below is for computing quartiles
+    sort(edge_costs.begin(),edge_costs.end());
+
+    auto it_second_half = edge_costs.cbegin() + edge_costs.size() / 2;
+    auto it_first_half = it_second_half;
+    if ((edge_costs.size() % 2) == 0) --it_first_half;
+
+    double q1 = median(edge_costs.begin(), it_first_half);
+    double q2 = median(edge_costs.begin(), edge_costs.end());
+    double q3 = median(it_second_half, edge_costs.end());
+
+    cout<<"first quartile: "<<q1<<" second quartile: "<<q2<<" third quartile: "<<q3<<endl;
+    // itype size = edge_costs.size();
+    // int mid = size/2;
+    // double median;
+    // median = size % 2 == 0 ? (edge_costs[mid] + edge_costs[mid-1])/2 : edge_costs[mid];
+
+
 }
 
 

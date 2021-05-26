@@ -79,7 +79,7 @@ protected:
     void find_candidate_edges_parallel(Node_V &n, Mesh &mesh, leaf_VT &vts, edge_queue &edges, contraction_parameters &params, bool is_cross);
     //void find_candidate_edges_parallel_QEM(Node_V &n, Mesh &mesh, leaf_VT &vts, edge_queue &edges, contraction_parameters &params, bool is_cross);
     void error_range_leaf(Node_V &n, Mesh &mesh, dvect& edge_costs, coord_type& min, coord_type& max);
-  //  void error_hist_leaf(Node_V &n, Mesh &mesh,ivect& count, coord_type min, coord_type max);
+  
     /// the procedure updatess
     /// (1) the VTop relation of the surviving vertex
     /// (2) the top simplices for which we change the v2 with v1
@@ -124,6 +124,13 @@ protected:
         return result;
     }
 
+    inline double median(vector<double>::const_iterator begin, vector<double>::const_iterator end) {
+    int len = end - begin;
+    auto it = begin + len / 2;
+    double m = *it;
+    if ((len % 2) == 0) m = (m + *(--it)) / 2;
+    return m;
+}
     // update conflict_leafs based on the vertices in the VV(v0) & VV(v1) that are not contained by n or outer_v_block
     void update_conflict_nodes(VV & vv_locks,int n_id, PRT_Tree &tree);
 

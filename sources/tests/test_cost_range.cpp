@@ -139,7 +139,7 @@ void cost_hist(PRT_Tree& tree, cli_parameters &cli, itype num_bins){
     tree.init_leaves_list(tree.get_root()); 
     time.stop();
     time.print_elapsed_time("[TIME] Initialize leave list: ");
-    cout<<"[NOTA]Border checking"<<endl;
+   // cout<<"[NOTA]Border checking"<<endl;
 
     time.start();
     Gradient_Aware_Simplifier simplifier;
