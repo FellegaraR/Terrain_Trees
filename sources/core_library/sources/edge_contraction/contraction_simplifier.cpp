@@ -2646,7 +2646,7 @@ void Contraction_Simplifier::error_range_leaf(Node_V &n, Mesh &mesh, dvect& edge
                  
                 if (it == edge_map.end())
                 {
-                    cout<<e[0]<<" and "<<e[1]<<"'s error: "<< error<<endl;
+   //                 cout<<e[0]<<" and "<<e[1]<<"'s error: "<< error<<endl;
                     edge_map[e] = error;
                     edge_costs.push_back(error);
                 }
