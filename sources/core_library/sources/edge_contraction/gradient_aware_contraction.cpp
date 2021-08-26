@@ -22,15 +22,17 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify(PRT_Tree &tree, Mesh &me
     if (params.is_QEM())
     {
         time.start();
-        trianglePlane = vector<dvect>(mesh.get_triangles_num(), dvect(4, 0));
-        initialQuadric = vector<Matrix>(mesh.get_vertices_num() + 1, Matrix(0.0));
-        cout << "=========Calculate triangle plane========" << endl;
-        compute_triangle_plane(mesh, trianglePlane);
-        cout << "=========Calculate initial QEM========" << endl;
-        compute_initial_QEM(mesh, trianglePlane);
-        vector<dvect>().swap(trianglePlane);
+      //  trianglePlane =vector<dvect>(mesh.get_triangles_num(),dvect(4,0));
+        initialQuadric = vector<Matrix>(mesh.get_vertices_num()+1,Matrix(0.0));
+        cout<<"=========Calculate triangle plane========"<<endl;
+        //compute_triangle_plane(mesh,trianglePlane);
+        cout<<"=========Calculate initial QEM========"<<endl;
+       // compute_initial_QEM(mesh,trianglePlane);
+        compute_plane_and_QEM(tree.get_root(),mesh,tree.get_subdivision(),tree);
         time.stop();
         time.print_elapsed_time("[TIME] Calculating initial QEM: ");
+        cerr << "[MEMORY] peak for buidling QEM: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+
     }
     time.start();
     while (1)
@@ -63,10 +65,16 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify(PRT_Tree &tree, Mesh &me
     if (!cli.debug_mode)
         time.print_elapsed_time("[TIME] Edge contraction simplification: ");
 
-    //  cerr << "[RAM peak] for contracting a simplicial complex: " << to_string(MemoryUsage().getValue_in_MB(false)) << " Mbs" << std::endl;
+    cerr << "[MEMORY] peak for Simplification: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+    
+    vector<Matrix>().swap(initialQuadric);
 
     /// finally we have to update/compress the mesh and the tree
-    Gradient_Aware_Simplifier::update_mesh_and_tree(tree, mesh, params, gradient);
+    time.start();
+    Gradient_Aware_Simplifier::update_mesh_and_tree(tree,mesh,params,gradient);
+    time.stop();
+    time.print_elapsed_time("[TIME] Mesh and tree updating: ");
+    cerr << "[MEMORY] peak for mesh and tree updating: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 }
 
 void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_parameters &cli, Forman_Gradient &gradient)
@@ -261,8 +269,10 @@ void Gradient_Aware_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cac
     //   cout<<"Simplification in leaf."<<endl;
     boost::dynamic_bitset<> is_v_border(v_end - v_start);
     //cout<<"Simplification in leaf."<<endl;
-    leaf_VT local_vts(v_range, VT());
-    n.get_VT_and_border(local_vts, is_v_border, mesh);
+    //leaf_VT local_vts(v_range, VT());
+    //n.get_VT_and_border(local_vts, is_v_border, mesh);
+    leaf_VT &local_vts = get_VTS(n, mesh, cache, tree, params, is_v_border);
+
     //cout<<"Extracted VT and border edges"<<endl;
     // Create a priority queue of candidate edges
     edge_queue edges;
@@ -314,19 +324,22 @@ void Gradient_Aware_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cac
 
         get_edge_relations(e, et, vt0, vt1, v1_is_border, v2_is_border, outer_v_block, n, mesh, local_vts, is_v_border, cache, params, tree);
         //DISABLED GRADIENT CHECK FOR NOW TO CHECK THE CORRECTNESS OF PARALLEL COMPUTATION
-        if (link_condition(e[0], e[1], *vt0, *vt1, et, mesh) /*&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)*/)
+        if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)&&not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)){
         {
             contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params, gradient, updated_edges);
             edges_contracted_leaf++;
             // break;
         }
         // cout<<"Number of edges remaining:"<<edges.size()<<endl;
-        delete vt0, vt1, outer_v_block;
+        delete current;
     }
 
     // if(cache.find(v_start) != cache.end()){
     //     cache.update(v_start,local_vts);
     // }
+    if(cache.find(v_start) != cache.end()){
+    cache.update(v_start,local_vts);
+    }
 }
 
 void Gradient_Aware_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree, Forman_Gradient &gradient)
@@ -387,6 +400,35 @@ void Gradient_Aware_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<i
             // break;
         }
     }
+}
+
+void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  Node_V &outer_v_block, edge_queue &edges,
+                                           Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,Forman_Gradient &gradient,map<vector<int>, double>& updated_edges)
+{
+ //cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
+   // cout<<"[NOTICE] Contract Edge"<<endl;
+    ivect et_vec;
+    et_vec.push_back(et.first);
+    if(et.second!=-1)
+        et_vec.push_back(et.second);
+
+    difference_of_vectors(vt0,et_vec); // vt0 now contains the difference VT0 - ET
+    difference_of_vectors(vt1,et_vec); // vt1 now contains the difference VT1 - ET
+
+   // cout<<"VT1 size: "<<vt0.size()<<" VT2 size: "<<vt1.size()<<endl;
+    // contract v1 to v0.
+
+    /// prior checking the d-1 faces we update
+    /// (1) the corresponding vt0 relation (by adding the triangles in vt1-et to vt0)
+    /// (2) then the outer_v_block (if e is a cross edge)
+    /// (3) and, finally, we add the new edges crossing b to the edge queue
+    Contraction_Simplifier::update(e,vt0,vt1,n,outer_v_block,edges,mesh,params,updated_edges);
+
+    // we remove v2 and the triangles in et
+    Contraction_Simplifier::remove_from_mesh(e[1],et,mesh,params); 
+    // finally we clear the VT(v2)
+    vt1.clear();
+    //et.clear();
 }
 
 void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,

@@ -191,10 +191,12 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
    else{
        output_name=output_name+"_length";
    }
+   if(cli.num_of_threads!=1){
     time.start();
     tree.init_leaves_list(tree.get_root()); 
     time.stop();
     time.print_elapsed_time("[TIME] Initialize leave list: ");
+    }
     cout<<"[NOTA]Border checking"<<endl;
     time.start();
     Border_Checker border_checker=Border_Checker();
@@ -207,10 +209,16 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     time.stop();
     time.print_elapsed_time("[TIME] Preporcessing");
 
-
+    if(cli.num_of_threads==1){
+    time.start();
+    simplifier.gradient_aware_simplify(tree,tree.get_mesh(),cli,forman_gradient);
+    time.stop();
+    }
+    else{
     time.start();
     simplifier.gradient_aware_simplify_parallel(tree,tree.get_mesh(),cli,forman_gradient);
     time.stop();
+    }
     time.print_elapsed_time("[TIME] Gradient-aware simplification ");
 
 

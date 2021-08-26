@@ -43,6 +43,8 @@ protected:
 
     ///
     void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
+                       Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, map<vector<int>, double>& updated_edges);
+    void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
                        Node_V &n, Mesh &mesh, contraction_parameters &params, map<vector<int>, double>& updated_edges);
   // void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
   //                     Node_V &n, Mesh &mesh, contraction_parameters &params);
@@ -54,6 +56,8 @@ protected:
     void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1,bool& v1_is_border, bool& v2_is_border, Node_V *&outer_v_block,
                             Node_V &n, Mesh &mesh, leaf_VT &vts, boost::dynamic_bitset<>is_border_edge, map<int, leaf_VT>&cache, contraction_parameters &params, PRT_Tree &tree);
   
+    void get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1,bool& v1_is_border, bool& v2_is_border, Node_V *&outer_v_block,
+                            Node_V &n, Mesh &mesh, leaf_VT &vts,boost::dynamic_bitset<>is_border_edge, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,PRT_Tree &tree);
 
     void update_cached_VT(int v_id, LRU_Cache<int, leaf_VT> &cache);
     /// the VTop is always without removed top-simplices
@@ -65,7 +69,8 @@ protected:
 
 
     leaf_VT &get_VTS(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache,
-                     PRT_Tree &tree, contraction_parameters &params);
+                     PRT_Tree &tree, contraction_parameters &params,boost::dynamic_bitset<>& is_v_border);
+
     // Find two adjacent triangles of edge e.
     void get_ET(ivect &e, ET &et, Node_V &n, Mesh &mesh, leaf_VT &vts);
     ///
@@ -95,6 +100,8 @@ protected:
     void update_parallel(const ivect &e, VT &vt, VT &difference, Node_V &n, Node_V &v_block, edge_queue &edges,
                 Mesh &mesh, contraction_parameters &params,map<vector<int>, double>& updated_edges);
     void compute_initial_QEM(Mesh &mesh, vector<dvect> &planes);
+    void compute_plane_and_QEM(Node_V &n, Mesh &mesh,Spatial_Subdivision &division, PRT_Tree &tree);
+    void QEM_leaf(Node_V &n, Mesh &mesh, PRT_Tree &tree);
     void compute_initial_QEM_parallel(PRT_Tree &tree, Mesh &mesh, vector<dvect> &planes);
     void compute_initial_plane_and_QEM_parallel(PRT_Tree &tree, Mesh &mesh);
     void compute_triangle_plane(Mesh &mesh, vector<dvect> &trPl);

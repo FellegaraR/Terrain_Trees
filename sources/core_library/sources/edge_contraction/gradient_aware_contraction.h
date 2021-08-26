@@ -19,6 +19,9 @@ protected:
     void simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree& tree,Forman_Gradient &gradient);
     void simplify_leaf_cross(Node_V &n,int n_id, Mesh &mesh, contraction_parameters &params, PRT_Tree &tree,Forman_Gradient &gradient); 
     void simplify_leaf_cross_QEM(Node_V &n,int n_id, Mesh &mesh, contraction_parameters &params,PRT_Tree &tree, Forman_Gradient &gradient);
+   
+    void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
+                              Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,Forman_Gradient &gradient, map<vector<int>, double>& updated_edges);
 
     void contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
                               Node_V &n, Mesh &mesh,  contraction_parameters &params,Forman_Gradient &gradient, map<vector<int>, double>& updated_edges);
