@@ -31,14 +31,14 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify(PRT_Tree &tree, Mesh &me
         compute_plane_and_QEM(tree.get_root(),mesh,tree.get_subdivision(),tree);
         time.stop();
         time.print_elapsed_time("[TIME] Calculating initial QEM: ");
-        cerr << "[MEMORY] peak for buidling QEM: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+        cerr << "[MEMORY] peak for building QEM: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
     }
     time.start();
     while (1)
     {
         simplification_round = params.get_contracted_edges_num(); //checked edges
-
+        cout<<"Sequential simplification"<<endl;
         /// HERE YOU NEED TO DEFINE A PROCEDURE FOR SIMPLIFY THE TIN BY USING THE SPATIAL INDEX
         this->simplify_compute(tree.get_root(), mesh, cache, tree.get_subdivision(), params, tree, gradient);
 
@@ -266,27 +266,27 @@ void Gradient_Aware_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cac
     itype v_end = n.get_v_end();
     itype v_range = v_end - v_start;
 
-    //   cout<<"Simplification in leaf."<<endl;
+   //    cout<<"Simplification in leaf."<<endl;
     boost::dynamic_bitset<> is_v_border(v_end - v_start);
     //cout<<"Simplification in leaf."<<endl;
     //leaf_VT local_vts(v_range, VT());
     //n.get_VT_and_border(local_vts, is_v_border, mesh);
     leaf_VT &local_vts = get_VTS(n, mesh, cache, tree, params, is_v_border);
 
-    //cout<<"Extracted VT and border edges"<<endl;
+   // cout<<"Extracted VT and border edges"<<endl;
     // Create a priority queue of candidate edges
     edge_queue edges;
     find_candidate_edges_QEM(n, mesh, local_vts, edges, params);
     map<vector<int>, double> updated_edges;
     int edge_num = edges.size();
     int edges_contracted_leaf = 0;
-    //cout<<"Edge number:"<<edges.size()<<endl;
+ //  cout<<"Edge number:"<<edges.size()<<endl;
     params.add_edge_queue_size(edges.size());
     while (!edges.empty())
     {
         Geom_Edge *current = edges.top();
         ivect e = current->edge;
-        //    cout<<"Start contraction."<<endl;
+      //     cout<<"Start contraction."<<endl;
         //  cout<<"Edge error:"<<current->val<<endl;
 
         edges.pop();
@@ -321,11 +321,11 @@ void Gradient_Aware_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cac
         VT *vt0 = NULL, *vt1 = NULL;
         Node_V *outer_v_block = NULL;
         bool v1_is_border = false, v2_is_border = false;
-
+    //    cout << "Get edge relations"<<endl;
         get_edge_relations(e, et, vt0, vt1, v1_is_border, v2_is_border, outer_v_block, n, mesh, local_vts, is_v_border, cache, params, tree);
         //DISABLED GRADIENT CHECK FOR NOW TO CHECK THE CORRECTNESS OF PARALLEL COMPUTATION
+      //  cout<<"Link condition"<<endl;
         if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)&&not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)){
-        {
             contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params, gradient, updated_edges);
             edges_contracted_leaf++;
             // break;
@@ -342,65 +342,67 @@ void Gradient_Aware_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cac
     }
 }
 
-void Gradient_Aware_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree, Forman_Gradient &gradient)
-{
+void Gradient_Aware_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,PRT_Tree& tree,Forman_Gradient &gradient){
 
-    if (!n.indexes_vertices())
-        return;
+if(!n.indexes_vertices())
+     return;
 
     itype v_start = n.get_v_start();
     itype v_end = n.get_v_end();
     itype v_range = v_end - v_start;
 
-    boost::dynamic_bitset<> is_v_border(v_end - v_start);
-    //cout<<"Simplification in leaf."<<endl;
-    leaf_VT local_vts(v_range, VT());
-    n.get_VT_and_border(local_vts, is_v_border, mesh);
+boost::dynamic_bitset<> is_v_border(v_end-v_start);
+//cout<<"Simplification in leaf."<<endl;
+leaf_VT local_vts(v_range,VT());
+n.get_VT_and_border(local_vts,is_v_border,mesh);
 
-    // local_VTstar_ET all_rels;
-    // Forman_Gradient_Topological_Relations::get_VTstar_ET(all_rels,n,mesh,gradient);
+// local_VTstar_ET all_rels;
+// Forman_Gradient_Topological_Relations::get_VTstar_ET(all_rels,n,mesh,gradient);
 
-    // Create a priority quue of candidate edges
-    edge_queue edges;
-    find_candidate_edges(n, mesh, local_vts, edges, params);
-    map<vector<int>, double> updated_edges;
-    int edge_num = edges.size();
-    int edges_contracted_leaf = 0;
-    //cout<<"Edge number:"<<edges.size()<<endl;
-    params.add_edge_queue_size(edges.size());
-    while (!edges.empty())
+// Create a priority quue of candidate edges
+edge_queue edges;
+find_candidate_edges(n,mesh,local_vts,edges,params);
+map<vector<int>, double> updated_edges;
+int edge_num=edges.size();
+int edges_contracted_leaf=0;
+//cout<<"Edge number:"<<edges.size()<<endl;
+params.add_edge_queue_size(edges.size());
+    while(!edges.empty())
     {
-        Geom_Edge *current = edges.top();
-        ivect e = current->edge;
-        //    cout<<"Start contraction."<<endl;
-        //  cout<<"Edge Length:"<<current->val<<endl;
+        Geom_Edge* current = edges.top();
+         ivect e=current->edge;
+  //    cout<<"Start contraction."<<endl;
+  //  cout<<"Edge Length:"<<current->val<<endl;
 
         edges.pop();
 
-        if (mesh.is_vertex_removed(e[0]) || mesh.is_vertex_removed(e[1]))
-        {
-            //   cout<<"Vertex removed"<<endl;
-            // cout<<"skip current edge"<<endl;
-            delete current;
-            // if(edges_contracted_leaf>edge_num*0.2)
-            // cout<<"Num of deleted in a leaf"<<edges_contracted_leaf<<"; 20% of the queue num:"<<edge_num*0.2<<endl;
+        if (mesh.is_vertex_removed(e[0])||mesh.is_vertex_removed(e[1])){
+         //   cout<<"Vertex removed"<<endl;
+        // cout<<"skip current edge"<<endl;
+         delete current;
+        // if(edges_contracted_leaf>edge_num*0.2)
+           // cout<<"Num of deleted in a leaf"<<edges_contracted_leaf<<"; 20% of the queue num:"<<edge_num*0.2<<endl;
             continue;
+
         }
 
-        ET et(-1, -1);
-        VT *vt0 = NULL, *vt1 = NULL;
-        Node_V *outer_v_block = NULL;
-        bool v1_is_border = false, v2_is_border = false;
-
-        get_edge_relations(e, et, vt0, vt1, v1_is_border, v2_is_border, outer_v_block, n, mesh, local_vts, is_v_border, cache, params, tree);
-        if (link_condition(e[0], e[1], *vt0, *vt1, et, mesh) /*&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)*/)
-        {
-            contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params, gradient, updated_edges);
-            edges_contracted_leaf++;
-            // break;
+        ET et(-1,-1);
+        VT *vt0=NULL,*vt1=NULL;
+        Node_V *outer_v_block=NULL;
+        bool v1_is_border=false, v2_is_border=false;
+        
+        get_edge_relations(e,et,vt0,vt1,v1_is_border,v2_is_border,outer_v_block,n,mesh,local_vts,is_v_border,cache,params,tree);
+        
+        if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)&&not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)){
+        contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params,gradient,updated_edges);
+        edges_contracted_leaf++;
+    // break;
         }
+    delete current;
     }
+
 }
+
 
 void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  Node_V &outer_v_block, edge_queue &edges,
                                            Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,Forman_Gradient &gradient,map<vector<int>, double>& updated_edges)
@@ -799,71 +801,71 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1, int v2, VT 
     //Triangle
 }
 
-void Gradient_Aware_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, bool &v1_is_border, bool &v2_is_border, Node_V *&outer_v_block,
-                                                   Node_V &n, Mesh &mesh, leaf_VT &vts, boost::dynamic_bitset<> is_border_edge, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree)
-{
+// void Gradient_Aware_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1, bool &v1_is_border, bool &v2_is_border, Node_V *&outer_v_block,
+//                                                    Node_V &n, Mesh &mesh, leaf_VT &vts, boost::dynamic_bitset<> is_border_edge, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree)
+// {
 
-    //cout<<"[NOTICE]get edge relation"<<endl;
-    outer_v_block = NULL;
-    /// inverted order as I only need the block indexing v1
-    if (e[1] > e[0])
-    {
-        vt1 = Contraction_Simplifier::get_VT(e[1], n, mesh, vts, cache, tree, outer_v_block, params);
-        vt0 = Contraction_Simplifier::get_VT(e[0], n, mesh, vts, cache, tree, outer_v_block, params);
+//     //cout<<"[NOTICE]get edge relation"<<endl;
+//     outer_v_block = NULL;
+//     /// inverted order as I only need the block indexing v1
+//     if (e[1] > e[0])
+//     {
+//         vt1 = Contraction_Simplifier::get_VT(e[1], n, mesh, vts, cache, tree, outer_v_block, params);
+//         vt0 = Contraction_Simplifier::get_VT(e[0], n, mesh, vts, cache, tree, outer_v_block, params);
 
-        v2_is_border = is_border_edge[e[1] - n.get_v_start()];
-        if (n.indexes_vertex(e[0]))
-        {
-            v1_is_border = is_border_edge[e[0] - n.get_v_start()];
-        }
-        else
-        {
-            for (auto it = vt0->begin(); it != vt0->end(); it++)
-            {
-                Triangle &t = mesh.get_triangle(*it);
-                int v_pos = t.vertex_index(e[0]);
-                for (int v1 = 1; v1 < t.vertices_num(); v1++)
-                {
-                    if (t.is_border_edge((v1 + v_pos) % t.vertices_num()))
-                    {
-                        v1_is_border = true;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
+//         v2_is_border = is_border_edge[e[1] - n.get_v_start()];
+//         if (n.indexes_vertex(e[0]))
+//         {
+//             v1_is_border = is_border_edge[e[0] - n.get_v_start()];
+//         }
+//         else
+//         {
+//             for (auto it = vt0->begin(); it != vt0->end(); it++)
+//             {
+//                 Triangle &t = mesh.get_triangle(*it);
+//                 int v_pos = t.vertex_index(e[0]);
+//                 for (int v1 = 1; v1 < t.vertices_num(); v1++)
+//                 {
+//                     if (t.is_border_edge((v1 + v_pos) % t.vertices_num()))
+//                     {
+//                         v1_is_border = true;
+//                         break;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     else
+//     {
 
-        vt0 = Contraction_Simplifier::get_VT(e[0], n, mesh, vts, cache, tree, outer_v_block, params);
-        vt1 = Contraction_Simplifier::get_VT(e[1], n, mesh, vts, cache, tree, outer_v_block, params);
+//         vt0 = Contraction_Simplifier::get_VT(e[0], n, mesh, vts, cache, tree, outer_v_block, params);
+//         vt1 = Contraction_Simplifier::get_VT(e[1], n, mesh, vts, cache, tree, outer_v_block, params);
 
-        v1_is_border = is_border_edge[e[0] - n.get_v_start()];
-        if (n.indexes_vertex(e[1]))
-        {
-            v2_is_border = is_border_edge[e[1] - n.get_v_start()];
-        }
-        else
-        {
-            for (auto it = vt1->begin(); it != vt1->end(); it++)
-            {
-                Triangle &t = mesh.get_triangle(*it);
-                int v_pos = t.vertex_index(e[1]);
-                for (int v1 = 1; v1 < t.vertices_num(); v1++)
-                {
-                    if (t.is_border_edge((v1 + v_pos) % t.vertices_num()))
-                    {
-                        v2_is_border = true;
-                        break;
-                    }
-                }
-            }
-        }
-    }
+//         v1_is_border = is_border_edge[e[0] - n.get_v_start()];
+//         if (n.indexes_vertex(e[1]))
+//         {
+//             v2_is_border = is_border_edge[e[1] - n.get_v_start()];
+//         }
+//         else
+//         {
+//             for (auto it = vt1->begin(); it != vt1->end(); it++)
+//             {
+//                 Triangle &t = mesh.get_triangle(*it);
+//                 int v_pos = t.vertex_index(e[1]);
+//                 for (int v1 = 1; v1 < t.vertices_num(); v1++)
+//                 {
+//                     if (t.is_border_edge((v1 + v_pos) % t.vertices_num()))
+//                     {
+//                         v2_is_border = true;
+//                         break;
+//                     }
+//                 }
+//             }
+//         }
+//     }
 
-    Contraction_Simplifier::get_ET(e, et, n, mesh, vts);
-}
+//     Contraction_Simplifier::get_ET(e, et, n, mesh, vts);
+// }
 
 void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh, Spatial_Subdivision &division, contraction_parameters &params, PRT_Tree &tree, Forman_Gradient &gradient)
 {

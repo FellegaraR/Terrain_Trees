@@ -582,17 +582,9 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
     if (et.first == -1 || et.second == -1)
         return false;
     int counter = 0;
-    //#pragma omp critical
     {
         iset vv0, vv1;
-        //vts.insert(vts.end(),vt0.begin(),vt0.end());
-        VT vts = vt0;
-        unify_vectors(vts, vt1);
-        for (int i = 0; i < vts.size(); i++)
-        {
-            omp_set_lock(&(t_locks[vts[i] - 1]));
-        }
-
+      
         for (int i = 0; i < vt0.size(); i++)
         {
             if (!mesh.is_triangle_removed(vt0[i]))
@@ -617,7 +609,6 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
                 vv1.insert(t.TV((v1_id + 2) % 3));
             }
         }
-
         //  cout<<v1<<"'s VV size: "<<vv1.size()<<endl;
         for (iset_iter it = vv1.begin(); it != vv1.end(); it++)
         {
@@ -628,33 +619,8 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
             }
         }
 
-        for (int i = 0; i < vts.size(); i++)
-        {
-            omp_unset_lock(&(t_locks[vts[i] - 1]));
-        }
-
-        // for (int i=0;i<vt1.size();i++){
-        //     omp_unset_lock(&(t_locks[vt1[i]]));
-        // }
-        // if(et.first!=-1){
-        //     if(!mesh.is_triangle_removed(et.first)){
-        //     Triangle t1= mesh.get_triangle(et.first);
-        //     for(int i=0;i<3;i++){
-        //         if(t1.TV(i)!=v0&&t1.TV(i)!=v1)
-        //          link_e.insert(t1.TV(i));
-        //     }
-        //     }
-        // }
-        // if(et.second!=-1){
-        //      if(!mesh.is_triangle_removed(et.second)){
-        //     Triangle t2= mesh.get_triangle(et.second);
-        //     for(int i=0;i<3;i++){
-        //         if(t2.TV(i)!=v0&&t2.TV(i)!=v1)
-        //          link_e.insert(t2.TV(i));
-        //     }
-        // }
-        // }
     }
+  
     return counter <= 2;
 }
 

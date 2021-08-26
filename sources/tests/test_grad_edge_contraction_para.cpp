@@ -203,11 +203,7 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     border_checker.compute_borders(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
     time.stop();
     time.print_elapsed_time("[TIME] Border Checking: ");
-    time.start();
     Gradient_Aware_Simplifier simplifier;
-    simplifier.preprocess(tree,tree.get_mesh(),cli);
-    time.stop();
-    time.print_elapsed_time("[TIME] Preporcessing");
 
     if(cli.num_of_threads==1){
     time.start();
@@ -215,6 +211,10 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     time.stop();
     }
     else{
+    time.start();
+    simplifier.preprocess(tree,tree.get_mesh(),cli);
+    time.stop();
+    time.print_elapsed_time("[TIME] Preporcessing");
     time.start();
     simplifier.gradient_aware_simplify_parallel(tree,tree.get_mesh(),cli,forman_gradient);
     time.stop();
