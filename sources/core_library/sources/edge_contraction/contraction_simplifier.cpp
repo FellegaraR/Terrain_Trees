@@ -624,105 +624,106 @@ bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET
     return counter <= 2;
 }
 
-bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et, Node_V &n, VV &vv_locks, Mesh &mesh)
-{
+//// Function below is no longer used 
+// bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et, Node_V &n, VV &vv_locks, Mesh &mesh)
+// {
 
-    //Update: Considering that the edge to be contracted should not be boundary edge
-    //We can simplify the link condition check while checking if e is boundary edge
-    if (et.first == -1 || et.second == -1)
-        return false;
-    int counter = 0;
-    //#pragma omp critical
-    {
-        iset vv0, vv1;
-        //vts.insert(vts.end(),vt0.begin(),vt0.end());
-        VT vts = vt0;
-        unify_vectors(vts, vt1);
-        // for (int i = 0; i < vts.size(); i++)
-        // {
-        //     omp_set_lock(&(t_locks[vts[i] - 1]));
-        // }
+//     //Update: Considering that the edge to be contracted should not be boundary edge
+//     //We can simplify the link condition check while checking if e is boundary edge
+//     if (et.first == -1 || et.second == -1)
+//         return false;
+//     int counter = 0;
+//     //#pragma omp critical
+//     {
+//         iset vv0, vv1;
+//         //vts.insert(vts.end(),vt0.begin(),vt0.end());
+//         VT vts = vt0;
+//         unify_vectors(vts, vt1);
+//         // for (int i = 0; i < vts.size(); i++)
+//         // {
+//         //     omp_set_lock(&(t_locks[vts[i] - 1]));
+//         // }
 
-        for (int i = 0; i < vt0.size(); i++)
-        {
-            if (!mesh.is_triangle_removed(vt0[i]))
-            {
-                Triangle t = mesh.get_triangle(vt0[i]);
-                int v0_id = t.vertex_index(v0);
-                int v01_id = t.TV((v0_id + 1) % 3);
-                int v02_id = t.TV((v0_id + 2) % 3);
-                if (!n.indexes_vertex(v01_id))
-                    vv_locks.insert(v01_id);
+//         for (int i = 0; i < vt0.size(); i++)
+//         {
+//             if (!mesh.is_triangle_removed(vt0[i]))
+//             {
+//                 Triangle t = mesh.get_triangle(vt0[i]);
+//                 int v0_id = t.vertex_index(v0);
+//                 int v01_id = t.TV((v0_id + 1) % 3);
+//                 int v02_id = t.TV((v0_id + 2) % 3);
+//                 if (!n.indexes_vertex(v01_id))
+//                     vv_locks.insert(v01_id);
 
-                if (!n.indexes_vertex(v02_id))
-                    vv_locks.insert(v02_id);
+//                 if (!n.indexes_vertex(v02_id))
+//                     vv_locks.insert(v02_id);
 
-                vv0.insert(v01_id);
-                vv0.insert(v02_id);
-            }
-        }
+//                 vv0.insert(v01_id);
+//                 vv0.insert(v02_id);
+//             }
+//         }
 
-        for (int i = 0; i < vt1.size(); i++)
-        {
-            if (!mesh.is_triangle_removed(vt1[i]))
-            {
-                Triangle t = mesh.get_triangle(vt1[i]);
-                int v1_id = t.vertex_index(v1);
-                int v11_id = t.TV((v1_id + 1) % 3);
-                int v12_id = t.TV((v1_id + 2) % 3);
-                if (!n.indexes_vertex(v11_id))
-                    vv_locks.insert(v11_id);
-                if (!n.indexes_vertex(v12_id))
-                    vv_locks.insert(v12_id);
-                vv1.insert(v11_id);
-                vv1.insert(v12_id);
-            }
-        }
+//         for (int i = 0; i < vt1.size(); i++)
+//         {
+//             if (!mesh.is_triangle_removed(vt1[i]))
+//             {
+//                 Triangle t = mesh.get_triangle(vt1[i]);
+//                 int v1_id = t.vertex_index(v1);
+//                 int v11_id = t.TV((v1_id + 1) % 3);
+//                 int v12_id = t.TV((v1_id + 2) % 3);
+//                 if (!n.indexes_vertex(v11_id))
+//                     vv_locks.insert(v11_id);
+//                 if (!n.indexes_vertex(v12_id))
+//                     vv_locks.insert(v12_id);
+//                 vv1.insert(v11_id);
+//                 vv1.insert(v12_id);
+//             }
+//         }
 
-        //  cout<<v1<<"'s VV size: "<<vv1.size()<<endl;
-        for (iset_iter it = vv1.begin(); it != vv1.end(); it++)
-        {
-            if (vv0.find(*it) != vv0.end())
-            {
-                //   link_ab.insert(*it);
-                counter++;
-            }
-        }
+//         //  cout<<v1<<"'s VV size: "<<vv1.size()<<endl;
+//         for (iset_iter it = vv1.begin(); it != vv1.end(); it++)
+//         {
+//             if (vv0.find(*it) != vv0.end())
+//             {
+//                 //   link_ab.insert(*it);
+//                 counter++;
+//             }
+//         }
 
-        // for (int i = 0; i < vts.size(); i++)
-        // {
-        //     omp_unset_lock(&(t_locks[vts[i] - 1]));
-        // }
+//         // for (int i = 0; i < vts.size(); i++)
+//         // {
+//         //     omp_unset_lock(&(t_locks[vts[i] - 1]));
+//         // }
 
-        // for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
-        // {
-        //     omp_set_lock(&(v_locks[*it - 1]));
-        // }
+//         // for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)
+//         // {
+//         //     omp_set_lock(&(v_locks[*it - 1]));
+//         // }
 
-        // for (int i=0;i<vt1.size();i++){
-        //     omp_unset_lock(&(t_locks[vt1[i]]));
-        // }
-        // if(et.first!=-1){
-        //     if(!mesh.is_triangle_removed(et.first)){
-        //     Triangle t1= mesh.get_triangle(et.first);
-        //     for(int i=0;i<3;i++){
-        //         if(t1.TV(i)!=v0&&t1.TV(i)!=v1)
-        //          link_e.insert(t1.TV(i));
-        //     }
-        //     }
-        // }
-        // if(et.second!=-1){
-        //      if(!mesh.is_triangle_removed(et.second)){
-        //     Triangle t2= mesh.get_triangle(et.second);
-        //     for(int i=0;i<3;i++){
-        //         if(t2.TV(i)!=v0&&t2.TV(i)!=v1)
-        //          link_e.insert(t2.TV(i));
-        //     }
-        // }
-        // }
-    }
-    return counter <= 2;
-}
+//         // for (int i=0;i<vt1.size();i++){
+//         //     omp_unset_lock(&(t_locks[vt1[i]]));
+//         // }
+//         // if(et.first!=-1){
+//         //     if(!mesh.is_triangle_removed(et.first)){
+//         //     Triangle t1= mesh.get_triangle(et.first);
+//         //     for(int i=0;i<3;i++){
+//         //         if(t1.TV(i)!=v0&&t1.TV(i)!=v1)
+//         //          link_e.insert(t1.TV(i));
+//         //     }
+//         //     }
+//         // }
+//         // if(et.second!=-1){
+//         //      if(!mesh.is_triangle_removed(et.second)){
+//         //     Triangle t2= mesh.get_triangle(et.second);
+//         //     for(int i=0;i<3;i++){
+//         //         if(t2.TV(i)!=v0&&t2.TV(i)!=v1)
+//         //          link_e.insert(t2.TV(i));
+//         //     }
+//         // }
+//         // }
+//     }
+//     return counter <= 2;
+// }
 
 bool Contraction_Simplifier::link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et, Node_V &n, Node_V &v_block, VV &vv_locks, Mesh &mesh)
 {
@@ -1114,15 +1115,14 @@ void Contraction_Simplifier::simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters
     int round = 1;
     if (params.is_QEM())
     {
-        time.start();
-        trianglePlane = vector<dvect>(mesh.get_triangles_num(), dvect(4, 0));
+
+       // trianglePlane = vector<dvect>(mesh.get_triangles_num(), dvect(4, 0));
         initialQuadric = vector<Matrix>(mesh.get_vertices_num() + 1, Matrix(0.0));
         cout << "=========Calculate triangle plane========" << endl;
-        compute_triangle_plane(mesh, trianglePlane);
+      //  compute_triangle_plane(mesh, trianglePlane);
         cout << "=========Calculate initial QEM========" << endl;
-        compute_initial_QEM(mesh, trianglePlane);
-        time.stop();
-        time.print_elapsed_time("[TIME] Calculating initial QEM: ");
+      //  compute_initial_QEM(mesh, trianglePlane);
+        compute_plane_and_QEM(tree.get_root(),mesh,tree.get_subdivision(),tree);
     }
     time.start();
     while (1)
@@ -1162,8 +1162,11 @@ void Contraction_Simplifier::simplify(PRT_Tree &tree, Mesh &mesh, cli_parameters
 
     //  cerr << "[RAM peak] for contracting a simplicial complex: " << to_string(MemoryUsage().getValue_in_MB(false)) << " Mbs" << std::endl;
 
+    cerr << "[MEMORY] peak for Simplification: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+
     /// finally we have to update/compress the mesh and the tree
     Contraction_Simplifier::update_mesh_and_tree(tree, mesh, params);
+    cerr << "[MEMORY] peak for mesh and tree updating: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 }
 
 void Contraction_Simplifier::simplify_compute(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, Spatial_Subdivision &division, contraction_parameters &params, PRT_Tree &tree)
@@ -1756,7 +1759,7 @@ void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *
 }
 
 void Contraction_Simplifier::get_edge_relations(ivect &e, ET &et, VT *&vt0, VT *&vt1,bool& v1_is_border, bool& v2_is_border, Node_V *&outer_v_block,
-                                                Node_V &n, Mesh &mesh, leaf_VT &vts,boost::dynamic_bitset<>is_border_edge, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,PRT_Tree &tree){
+                                                Node_V &n, Mesh &mesh, leaf_VT &vts,boost::dynamic_bitset<> is_border_edge, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,PRT_Tree &tree){
     //cout<<"[NOTICE]get edge relation"<<endl;
     outer_v_block = NULL;
     /// inverted order as I only need the block indexing v1
@@ -1815,7 +1818,7 @@ VT *Contraction_Simplifier::get_VT(int v_id, Node_V &n, Mesh &mesh, leaf_VT &vts
         local_index = v_id - v_block->get_v_start();
 
         LRU_Cache<int, leaf_VT>::mapIt it_c = cache.end();
-#pragma omp critical
+
         {
             it_c = cache.find(v_block->get_v_start()); //First check in the cache
             if (it_c == cache.end())                   //if not in the cache

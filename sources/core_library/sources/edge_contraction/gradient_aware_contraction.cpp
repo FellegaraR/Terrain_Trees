@@ -22,23 +22,22 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify(PRT_Tree &tree, Mesh &me
     if (params.is_QEM())
     {
         time.start();
-      //  trianglePlane =vector<dvect>(mesh.get_triangles_num(),dvect(4,0));
-        initialQuadric = vector<Matrix>(mesh.get_vertices_num()+1,Matrix(0.0));
-        cout<<"=========Calculate triangle plane========"<<endl;
+        //  trianglePlane =vector<dvect>(mesh.get_triangles_num(),dvect(4,0));
+        initialQuadric = vector<Matrix>(mesh.get_vertices_num() + 1, Matrix(0.0));
+        cout << "=========Calculate triangle plane========" << endl;
         //compute_triangle_plane(mesh,trianglePlane);
-        cout<<"=========Calculate initial QEM========"<<endl;
-       // compute_initial_QEM(mesh,trianglePlane);
-        compute_plane_and_QEM(tree.get_root(),mesh,tree.get_subdivision(),tree);
+        cout << "=========Calculate initial QEM========" << endl;
+        // compute_initial_QEM(mesh,trianglePlane);
+        compute_plane_and_QEM(tree.get_root(), mesh, tree.get_subdivision(), tree);
         time.stop();
         time.print_elapsed_time("[TIME] Calculating initial QEM: ");
         cerr << "[MEMORY] peak for building QEM: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
-
     }
     time.start();
     while (1)
     {
         simplification_round = params.get_contracted_edges_num(); //checked edges
-        cout<<"Sequential simplification"<<endl;
+        cout << "Sequential simplification" << endl;
         /// HERE YOU NEED TO DEFINE A PROCEDURE FOR SIMPLIFY THE TIN BY USING THE SPATIAL INDEX
         this->simplify_compute(tree.get_root(), mesh, cache, tree.get_subdivision(), params, tree, gradient);
 
@@ -66,12 +65,12 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify(PRT_Tree &tree, Mesh &me
         time.print_elapsed_time("[TIME] Edge contraction simplification: ");
 
     cerr << "[MEMORY] peak for Simplification: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
-    
+
     vector<Matrix>().swap(initialQuadric);
 
     /// finally we have to update/compress the mesh and the tree
     time.start();
-    Gradient_Aware_Simplifier::update_mesh_and_tree(tree,mesh,params,gradient);
+    Gradient_Aware_Simplifier::update_mesh_and_tree(tree, mesh, params, gradient);
     time.stop();
     time.print_elapsed_time("[TIME] Mesh and tree updating: ");
     cerr << "[MEMORY] peak for mesh and tree updating: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
@@ -91,7 +90,8 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
         params.queue_criterion_length();
     }
     // Set to be parallel mode
-    if(cli.num_of_threads!=1){
+    if (cli.num_of_threads != 1)
+    {
         params.parallel_compute();
     }
     else
@@ -110,23 +110,24 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
     // omp_lock_t lock[t_num];
     // t_locks.resize(t_num);
     //  v_locks.resize(v_num);
-    if(params.is_parallel()){
-    l_locks.resize(l_num);
+    if (params.is_parallel())
+    {
+        l_locks.resize(l_num);
 
-// #pragma omp parallel for
-//     for (int i = 0; i < t_num; i++)
-//         omp_init_lock(&(t_locks[i]));
-//     cout << "Initialize t_locks" << endl;
+        // #pragma omp parallel for
+        //     for (int i = 0; i < t_num; i++)
+        //         omp_init_lock(&(t_locks[i]));
+        //     cout << "Initialize t_locks" << endl;
 
-    //  #pragma omp parallel for
-    //     for (int i = 0; i < v_num; i++)
-    //         omp_init_lock(&(v_locks[i]));
-    //     cout << "Initialize v_locks" << endl;
+        //  #pragma omp parallel for
+        //     for (int i = 0; i < v_num; i++)
+        //         omp_init_lock(&(v_locks[i]));
+        //     cout << "Initialize v_locks" << endl;
 
 #pragma omp parallel for
-    for (int i = 0; i < l_num; i++)
-        omp_init_lock(&(l_locks[i]));
-    cout << "Initialize l_locks" << endl;
+        for (int i = 0; i < l_num; i++)
+            omp_init_lock(&(l_locks[i]));
+        cout << "Initialize l_locks" << endl;
     }
     time.stop();
     time.print_elapsed_time("[TIME] Initialization of locks:  ");
@@ -183,27 +184,24 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
         // time.start();
         // cout<<"number of remaining triangles: "<<tree.get_mesh().get_triangles_num()<<endl;
 
-
-
         if (simplification_round == params.get_contracted_edges_num())
             break;
         Contraction_Simplifier::preprocess(tree, mesh, cli);
     }
 
-    
+    // #pragma omp parallel for
+    //     for (int i = 0; i < t_num; i++)
+    //         omp_destroy_lock(&(t_locks[i]));
 
-// #pragma omp parallel for
-//     for (int i = 0; i < t_num; i++)
-//         omp_destroy_lock(&(t_locks[i]));
-
-        // #pragma omp parallel for
-        //     for (int i = 0; i < v_num; i++)
-        //         omp_destroy_lock(&(v_locks[i]));
-if(params.is_parallel()){
+    // #pragma omp parallel for
+    //     for (int i = 0; i < v_num; i++)
+    //         omp_destroy_lock(&(v_locks[i]));
+    if (params.is_parallel())
+    {
 #pragma omp parallel for
-    for (int i = 0; i < l_num; i++)
-        omp_destroy_lock(&(l_locks[i]));
-}
+        for (int i = 0; i < l_num; i++)
+            omp_destroy_lock(&(l_locks[i]));
+    }
     time.stop();
 
     ///// Clear all the auxiliary data structures.
@@ -266,27 +264,27 @@ void Gradient_Aware_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cac
     itype v_end = n.get_v_end();
     itype v_range = v_end - v_start;
 
-   //    cout<<"Simplification in leaf."<<endl;
+    //    cout<<"Simplification in leaf."<<endl;
     boost::dynamic_bitset<> is_v_border(v_end - v_start);
     //cout<<"Simplification in leaf."<<endl;
     //leaf_VT local_vts(v_range, VT());
     //n.get_VT_and_border(local_vts, is_v_border, mesh);
     leaf_VT &local_vts = get_VTS(n, mesh, cache, tree, params, is_v_border);
 
-   // cout<<"Extracted VT and border edges"<<endl;
+    // cout<<"Extracted VT and border edges"<<endl;
     // Create a priority queue of candidate edges
     edge_queue edges;
     find_candidate_edges_QEM(n, mesh, local_vts, edges, params);
     map<vector<int>, double> updated_edges;
     int edge_num = edges.size();
     int edges_contracted_leaf = 0;
- //  cout<<"Edge number:"<<edges.size()<<endl;
+    //  cout<<"Edge number:"<<edges.size()<<endl;
     params.add_edge_queue_size(edges.size());
     while (!edges.empty())
     {
         Geom_Edge *current = edges.top();
         ivect e = current->edge;
-      //     cout<<"Start contraction."<<endl;
+        //     cout<<"Start contraction."<<endl;
         //  cout<<"Edge error:"<<current->val<<endl;
 
         edges.pop();
@@ -321,11 +319,12 @@ void Gradient_Aware_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cac
         VT *vt0 = NULL, *vt1 = NULL;
         Node_V *outer_v_block = NULL;
         bool v1_is_border = false, v2_is_border = false;
-    //    cout << "Get edge relations"<<endl;
+        //    cout << "Get edge relations"<<endl;
         get_edge_relations(e, et, vt0, vt1, v1_is_border, v2_is_border, outer_v_block, n, mesh, local_vts, is_v_border, cache, params, tree);
         //DISABLED GRADIENT CHECK FOR NOW TO CHECK THE CORRECTNESS OF PARALLEL COMPUTATION
-      //  cout<<"Link condition"<<endl;
-        if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)&&not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)){
+        //  cout<<"Link condition"<<endl;
+        if (link_condition(e[0], e[1], *vt0, *vt1, et, mesh) && not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh) && valid_gradient_configuration(e[0], e[1], *vt0, *vt1, et, v1_is_border, v2_is_border, gradient, mesh))
+        {
             contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params, gradient, updated_edges);
             edges_contracted_leaf++;
             // break;
@@ -337,97 +336,98 @@ void Gradient_Aware_Simplifier::simplify_leaf_QEM(Node_V &n, Mesh &mesh, LRU_Cac
     // if(cache.find(v_start) != cache.end()){
     //     cache.update(v_start,local_vts);
     // }
-    if(cache.find(v_start) != cache.end()){
-    cache.update(v_start,local_vts);
+    if (cache.find(v_start) != cache.end())
+    {
+        cache.update(v_start, local_vts);
     }
 }
 
-void Gradient_Aware_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,PRT_Tree& tree,Forman_Gradient &gradient){
+void Gradient_Aware_Simplifier::simplify_leaf(Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, PRT_Tree &tree, Forman_Gradient &gradient)
+{
 
-if(!n.indexes_vertices())
-     return;
+    if (!n.indexes_vertices())
+        return;
 
     itype v_start = n.get_v_start();
     itype v_end = n.get_v_end();
     itype v_range = v_end - v_start;
 
-boost::dynamic_bitset<> is_v_border(v_end-v_start);
-//cout<<"Simplification in leaf."<<endl;
-leaf_VT local_vts(v_range,VT());
-n.get_VT_and_border(local_vts,is_v_border,mesh);
+    boost::dynamic_bitset<> is_v_border(v_end - v_start);
+    //cout<<"Simplification in leaf."<<endl;
+    leaf_VT local_vts(v_range, VT());
+    n.get_VT_and_border(local_vts, is_v_border, mesh);
 
-// local_VTstar_ET all_rels;
-// Forman_Gradient_Topological_Relations::get_VTstar_ET(all_rels,n,mesh,gradient);
+    // local_VTstar_ET all_rels;
+    // Forman_Gradient_Topological_Relations::get_VTstar_ET(all_rels,n,mesh,gradient);
 
-// Create a priority quue of candidate edges
-edge_queue edges;
-find_candidate_edges(n,mesh,local_vts,edges,params);
-map<vector<int>, double> updated_edges;
-int edge_num=edges.size();
-int edges_contracted_leaf=0;
-//cout<<"Edge number:"<<edges.size()<<endl;
-params.add_edge_queue_size(edges.size());
-    while(!edges.empty())
+    // Create a priority quue of candidate edges
+    edge_queue edges;
+    find_candidate_edges(n, mesh, local_vts, edges, params);
+    map<vector<int>, double> updated_edges;
+    int edge_num = edges.size();
+    int edges_contracted_leaf = 0;
+    //cout<<"Edge number:"<<edges.size()<<endl;
+    params.add_edge_queue_size(edges.size());
+    while (!edges.empty())
     {
-        Geom_Edge* current = edges.top();
-         ivect e=current->edge;
-  //    cout<<"Start contraction."<<endl;
-  //  cout<<"Edge Length:"<<current->val<<endl;
+        Geom_Edge *current = edges.top();
+        ivect e = current->edge;
+        //    cout<<"Start contraction."<<endl;
+        //  cout<<"Edge Length:"<<current->val<<endl;
 
         edges.pop();
 
-        if (mesh.is_vertex_removed(e[0])||mesh.is_vertex_removed(e[1])){
-         //   cout<<"Vertex removed"<<endl;
-        // cout<<"skip current edge"<<endl;
-         delete current;
-        // if(edges_contracted_leaf>edge_num*0.2)
-           // cout<<"Num of deleted in a leaf"<<edges_contracted_leaf<<"; 20% of the queue num:"<<edge_num*0.2<<endl;
+        if (mesh.is_vertex_removed(e[0]) || mesh.is_vertex_removed(e[1]))
+        {
+            //   cout<<"Vertex removed"<<endl;
+            // cout<<"skip current edge"<<endl;
+            delete current;
+            // if(edges_contracted_leaf>edge_num*0.2)
+            // cout<<"Num of deleted in a leaf"<<edges_contracted_leaf<<"; 20% of the queue num:"<<edge_num*0.2<<endl;
             continue;
-
         }
 
-        ET et(-1,-1);
-        VT *vt0=NULL,*vt1=NULL;
-        Node_V *outer_v_block=NULL;
-        bool v1_is_border=false, v2_is_border=false;
-        
-        get_edge_relations(e,et,vt0,vt1,v1_is_border,v2_is_border,outer_v_block,n,mesh,local_vts,is_v_border,cache,params,tree);
-        
-        if(link_condition(e[0],e[1],*vt0,*vt1,et,mesh)&&not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh)&&valid_gradient_configuration(e[0],e[1],*vt0,*vt1,et,v1_is_border,v2_is_border,gradient,mesh)){
-        contract_edge(e,et,*vt0,*vt1,*outer_v_block,edges,n,mesh,cache,params,gradient,updated_edges);
-        edges_contracted_leaf++;
-    // break;
+        ET et(-1, -1);
+        VT *vt0 = NULL, *vt1 = NULL;
+        Node_V *outer_v_block = NULL;
+        bool v1_is_border = false, v2_is_border = false;
+
+        get_edge_relations(e, et, vt0, vt1, v1_is_border, v2_is_border, outer_v_block, n, mesh, local_vts, is_v_border, cache, params, tree);
+
+        if (link_condition(e[0], e[1], *vt0, *vt1, et, mesh) && not_fold_over(e[0], e[1], *vt0, *vt1, et, mesh) && valid_gradient_configuration(e[0], e[1], *vt0, *vt1, et, v1_is_border, v2_is_border, gradient, mesh))
+        {
+            contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, cache, params, gradient, updated_edges);
+            edges_contracted_leaf++;
+            // break;
         }
-    delete current;
+        delete current;
     }
-
 }
 
-
-void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1,  Node_V &outer_v_block, edge_queue &edges,
-                                           Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params,Forman_Gradient &gradient,map<vector<int>, double>& updated_edges)
+void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, Node_V &outer_v_block, edge_queue &edges,
+                                              Node_V &n, Mesh &mesh, LRU_Cache<int, leaf_VT> &cache, contraction_parameters &params, Forman_Gradient &gradient, map<vector<int>, double> &updated_edges)
 {
- //cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
-   // cout<<"[NOTICE] Contract Edge"<<endl;
+    //cout<<"[EDGE CONTRACTION] v1 and v2:"<<e[0]-1<<", "<<e[1]-1<<endl;
+    // cout<<"[NOTICE] Contract Edge"<<endl;
     ivect et_vec;
     et_vec.push_back(et.first);
-    if(et.second!=-1)
+    if (et.second != -1)
         et_vec.push_back(et.second);
 
-    difference_of_vectors(vt0,et_vec); // vt0 now contains the difference VT0 - ET
-    difference_of_vectors(vt1,et_vec); // vt1 now contains the difference VT1 - ET
+    difference_of_vectors(vt0, et_vec); // vt0 now contains the difference VT0 - ET
+    difference_of_vectors(vt1, et_vec); // vt1 now contains the difference VT1 - ET
 
-   // cout<<"VT1 size: "<<vt0.size()<<" VT2 size: "<<vt1.size()<<endl;
+    // cout<<"VT1 size: "<<vt0.size()<<" VT2 size: "<<vt1.size()<<endl;
     // contract v1 to v0.
 
     /// prior checking the d-1 faces we update
     /// (1) the corresponding vt0 relation (by adding the triangles in vt1-et to vt0)
     /// (2) then the outer_v_block (if e is a cross edge)
     /// (3) and, finally, we add the new edges crossing b to the edge queue
-    Contraction_Simplifier::update(e,vt0,vt1,n,outer_v_block,edges,mesh,params,updated_edges);
+    Contraction_Simplifier::update(e, vt0, vt1, n, outer_v_block, edges, mesh, params, updated_edges);
 
     // we remove v2 and the triangles in et
-    Contraction_Simplifier::remove_from_mesh(e[1],et,mesh,params); 
+    Contraction_Simplifier::remove_from_mesh(e[1], et, mesh, params);
     // finally we clear the VT(v2)
     vt1.clear();
     //et.clear();
@@ -462,7 +462,7 @@ void Gradient_Aware_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1
     // else
     // {
 
-        Contraction_Simplifier::update_parallel(e, vt0, vt1, n, outer_v_block, edges, mesh, params, updated_edges);
+    Contraction_Simplifier::update_parallel(e, vt0, vt1, n, outer_v_block, edges, mesh, params, updated_edges);
     // }
 
     // we remove v2 and the triangles in et
@@ -882,9 +882,10 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh, Spatial_Su
         for (int i = 0; i < tree.get_leaves_number(); i++)
         {
             Node_V *leaf = tree.get_leaf(i);
-            if(params.is_parallel()){
-            if (nodes_status[i] == -1)
-                continue;
+            if (params.is_parallel())
+            {
+                if (nodes_status[i] == -1)
+                    continue;
             }
             //cout<<*leaf<<endl;
             if (!leaf->indexes_vertices())
@@ -896,109 +897,111 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh, Spatial_Su
             //check the array of conflict_nodes
             // if nodes_status[i]==1, then continue
             //    cout << "Current leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
-            
-            if(params.is_parallel()){
-            omp_set_lock(&(l_locks[i]));
-            if (nodes_status[i] != 0)
-            {
-                omp_unset_lock(&(l_locks[i]));
-                //   cout<<"Node "<<i<<" is skipped."<<endl;
-                continue;
-            }
-            // else we set the conflict nodes of leaf[i] to be 1 in nodes_status
-            else
-            {
-                nodes_status[i] = 2;
-                omp_unset_lock(&(l_locks[i]));
-                iset conflicts = conflict_leafs[i];
-                // Check if the conflict nodes were set to 1 already
-                // bool shared_conflicts = false;
-                bool cannot_process = false;
-                for (iset_iter it = conflicts.begin(); it != conflicts.end(); it++)
-                {
-                    //  cout<<"set leaf node:"<<*it<<" on thread "<<omp_get_thread_num()<<endl;
-                    omp_set_lock(&(l_locks[*it])); // leafs should be locked when being checked and updated.
-                    int status = 0;
-                    //   #pragma omp atomic read
-                    status = nodes_status[*it];
-                    if (status == 1 || status == 2) //it is conflicted with another node being processed
-                    {
-                        // cout<<"conflict node id:"<<*it<<" with "<<i<<" on thread "<<omp_get_thread_num()<<endl;
-                        omp_unset_lock(&(l_locks[*it]));
-                        //it++; No need, the current one should not be change to 0
-                        for (iset_iter it2 = conflicts.begin(); it2 != it; it2++)
-                        {
-                            //     cout<<"unset leaf node:"<<*it2<<" on thread "<<omp_get_thread_num()<<endl;
-                            omp_set_lock(&(l_locks[*it2]));
-                            if (nodes_status[*it2] == 1)
-                                nodes_status[*it2] = 0;
-                            omp_unset_lock(&(l_locks[*it2]));
-                        }
-                        //omp_unset_lock(&(l_locks[*it]));
-                        // unset the locks that have been set
-                        cannot_process = true;
-                        //cout<<"neighbor conflict"<<endl;
 
-                        break;
-                    }
-                    else if (status == 0)
-                    {
-                        nodes_status[*it] = 1;
-                    }
-                    omp_unset_lock(&(l_locks[*it]));
-                }
-                if (cannot_process == true)
+            if (params.is_parallel())
+            {
+                omp_set_lock(&(l_locks[i]));
+                if (nodes_status[i] != 0)
                 {
-                    omp_set_lock(&(l_locks[i]));
-                    nodes_status[i] = 0;
                     omp_unset_lock(&(l_locks[i]));
+                    //   cout<<"Node "<<i<<" is skipped."<<endl;
                     continue;
                 }
-
-                //  cout<<"Node "<<i<<" will be processed."<<endl;
-                // omp_set_lock(&(l_locks[i]));
-                // // set nodes_status[i]=2 when node is being processed
-                // nodes_status[i] = 2;
-                // omp_unset_lock(&(l_locks[i]));
-                processed_node = processed_node + 1;
-                //  processed = true;
-                // cout << "Start simplification" << endl;
-                if (params.is_QEM() == true)
-                    simplify_leaf_cross_QEM(*leaf, i, mesh, params, tree, gradient);
+                // else we set the conflict nodes of leaf[i] to be 1 in nodes_status
                 else
-                    simplify_leaf_cross(*leaf, i, mesh, params, tree, gradient);
-
-                //  cout << "Finish simplification" << endl;
-                //set nodes_status[i]=-1 after processing
-
-                omp_set_lock(&(l_locks[i]));
-                nodes_status[i] = -1;
-                omp_unset_lock(&(l_locks[i]));
-                //        cout << "Simplified leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
-
-                //cout<<"unset leaf node:"<<i<<" on thread "<<omp_get_thread_num()<<endl;
-
-                for (iset_iter it = conflicts.begin(); it != conflicts.end(); it++)
                 {
-                    //  cout<<" set leaf lock "<<*it<<" on thread "<<omp_get_thread_num()<<endl;
-                    omp_set_lock(&(l_locks[*it]));
-                    int status = 0;
-                    //   #pragma omp atomic read
-                    status = nodes_status[*it];
-                    if (status == 1)
+                    nodes_status[i] = 2;
+                    omp_unset_lock(&(l_locks[i]));
+                    iset conflicts = conflict_leafs[i];
+                    // Check if the conflict nodes were set to 1 already
+                    // bool shared_conflicts = false;
+                    bool cannot_process = false;
+                    for (iset_iter it = conflicts.begin(); it != conflicts.end(); it++)
                     {
-                        nodes_status[*it] = 0;
+                        //  cout<<"set leaf node:"<<*it<<" on thread "<<omp_get_thread_num()<<endl;
+                        omp_set_lock(&(l_locks[*it])); // leafs should be locked when being checked and updated.
+                        int status = 0;
+                        //   #pragma omp atomic read
+                        status = nodes_status[*it];
+                        if (status == 1 || status == 2) //it is conflicted with another node being processed
+                        {
+                            // cout<<"conflict node id:"<<*it<<" with "<<i<<" on thread "<<omp_get_thread_num()<<endl;
+                            omp_unset_lock(&(l_locks[*it]));
+                            //it++; No need, the current one should not be change to 0
+                            for (iset_iter it2 = conflicts.begin(); it2 != it; it2++)
+                            {
+                                //     cout<<"unset leaf node:"<<*it2<<" on thread "<<omp_get_thread_num()<<endl;
+                                omp_set_lock(&(l_locks[*it2]));
+                                if (nodes_status[*it2] == 1)
+                                    nodes_status[*it2] = 0;
+                                omp_unset_lock(&(l_locks[*it2]));
+                            }
+                            //omp_unset_lock(&(l_locks[*it]));
+                            // unset the locks that have been set
+                            cannot_process = true;
+                            //cout<<"neighbor conflict"<<endl;
+
+                            break;
+                        }
+                        else if (status == 0)
+                        {
+                            nodes_status[*it] = 1;
+                        }
+                        omp_unset_lock(&(l_locks[*it]));
                     }
-                    else if (status == 2)
+                    if (cannot_process == true)
                     {
-                        cout << "Should not happen, check the locking system" << endl;
+                        omp_set_lock(&(l_locks[i]));
+                        nodes_status[i] = 0;
+                        omp_unset_lock(&(l_locks[i]));
+                        continue;
                     }
-                    //cout<<"unset leaf node:"<<*it<<" on thread "<<omp_get_thread_num()<<endl;
-                    omp_unset_lock(&(l_locks[*it]));
+
+                    //  cout<<"Node "<<i<<" will be processed."<<endl;
+                    // omp_set_lock(&(l_locks[i]));
+                    // // set nodes_status[i]=2 when node is being processed
+                    // nodes_status[i] = 2;
+                    // omp_unset_lock(&(l_locks[i]));
+                    processed_node = processed_node + 1;
+                    //  processed = true;
+                    // cout << "Start simplification" << endl;
+                    if (params.is_QEM() == true)
+                        simplify_leaf_cross_QEM(*leaf, i, mesh, params, tree, gradient);
+                    else
+                        simplify_leaf_cross(*leaf, i, mesh, params, tree, gradient);
+
+                    //  cout << "Finish simplification" << endl;
+                    //set nodes_status[i]=-1 after processing
+
+                    omp_set_lock(&(l_locks[i]));
+                    nodes_status[i] = -1;
+                    omp_unset_lock(&(l_locks[i]));
+                    //        cout << "Simplified leaf node:" << i << " on thread " << omp_get_thread_num() << endl;
+
+                    //cout<<"unset leaf node:"<<i<<" on thread "<<omp_get_thread_num()<<endl;
+
+                    for (iset_iter it = conflicts.begin(); it != conflicts.end(); it++)
+                    {
+                        //  cout<<" set leaf lock "<<*it<<" on thread "<<omp_get_thread_num()<<endl;
+                        omp_set_lock(&(l_locks[*it]));
+                        int status = 0;
+                        //   #pragma omp atomic read
+                        status = nodes_status[*it];
+                        if (status == 1)
+                        {
+                            nodes_status[*it] = 0;
+                        }
+                        else if (status == 2)
+                        {
+                            cout << "Should not happen, check the locking system" << endl;
+                        }
+                        //cout<<"unset leaf node:"<<*it<<" on thread "<<omp_get_thread_num()<<endl;
+                        omp_unset_lock(&(l_locks[*it]));
+                    }
                 }
             }
-        }
-        else{
+            else
+            {
 
                 processed_node = processed_node + 1;
                 //  processed = true;
@@ -1007,7 +1010,7 @@ void Gradient_Aware_Simplifier::simplify_compute_parallel(Mesh &mesh, Spatial_Su
                     simplify_leaf_cross_QEM(*leaf, i, mesh, params, tree, gradient);
                 else
                     simplify_leaf_cross(*leaf, i, mesh, params, tree, gradient);
-        }
+            }
         }
 
         // cout << "finished one for loop" << endl;
@@ -1182,8 +1185,9 @@ void Gradient_Aware_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mes
             // A new step for cross edge case
             // Check possible new conflict nodes by checking the vv_locks
             // vv_locks stores all the vertices in the VV(v0) & VV(v1) that are not contained by n or outer_v_block
-            if(params.is_parallel()){
-            update_conflict_nodes(vv_locks, n_id, tree);
+            if (params.is_parallel())
+            {
+                update_conflict_nodes(vv_locks, n_id, tree);
             }
         }
         // for (iset_iter it = vv_locks.begin(); it != vv_locks.end(); it++)

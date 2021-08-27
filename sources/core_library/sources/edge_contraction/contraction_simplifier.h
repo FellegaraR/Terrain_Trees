@@ -94,7 +94,7 @@ protected:
                 Mesh &mesh, contraction_parameters &params,map<vector<int>, double>& updated_edges);
     void remove_from_mesh(int to_delete_v, ET &et, Mesh &mesh, contraction_parameters &params);
     bool link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et, Mesh &mesh);
-    bool link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et,Node_V &n,VV& vv_locks, Mesh &mesh);
+   // bool link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et,Node_V &n,VV& vv_locks, Mesh &mesh);
     bool link_condition(int v0, int v1, VT &vt0, VT &vt1, ET &et,Node_V &n, Node_V &v_block, VV& vv_locks, Mesh &mesh);
 
     void update_parallel(const ivect &e, VT &vt, VT &difference, Node_V &n, Node_V &v_block, edge_queue &edges,

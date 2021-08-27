@@ -34,6 +34,9 @@ cout<<"Number of available threads:"<<omp_get_max_threads()<<endl;
      else{
     cli.num_of_threads =atoi(argv[5]);
     omp_set_num_threads(cli.num_of_threads);
+    //// TO check if the parallel version works the same as the sequential one:
+    //// We can set the number of threads to be 1. 
+    // omp_set_num_threads(1);
     }
 
     PRT_Tree ptree = PRT_Tree(cli.v_per_leaf,cli.division_type);
