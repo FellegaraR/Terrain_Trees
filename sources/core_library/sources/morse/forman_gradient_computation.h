@@ -43,6 +43,7 @@ public:
     
     void initial_filtering(Mesh &mesh);
     void initial_filtering_IA(Mesh &mesh);
+    inline uvect get_filtration(){return this->filtration;}
     void reset_filtering(Mesh &mesh,ivect& original_vertex_indices);
     inline map<short,ivect_set>& get_critical_simplices() { return this->critical_simplices; }
 protected:
@@ -58,6 +59,7 @@ protected:
 
     void add_VT_entry(itype v_id, itype t_id, Node_V &n, leaf_VT &vts);
     void add_ET_entry(ivect &e, itype max_field_id, itype t_id, Node_V &n, leaf_ET &ets);
+
 private:
     int saddle, _max, _min;
     leaf_VT vts;
@@ -146,6 +148,7 @@ private:
     int get_t_id(const vector<int> &popped, vector<int> &vt, Mesh &mesh);
     void sort_simplex(vector<int> &simplex, Mesh &mesh);
 
+    
 };
 
 

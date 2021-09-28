@@ -223,7 +223,7 @@ void Forman_Gradient_Features_Extractor::get_new_IG_paths(Node_V &n, Mesh &mesh,
         if(gradient.is_edge_critical(it_e->first,it_e->second,mesh))
         {
             /// intro stuff.. ///
-            itype max_field_v = mesh.get_max_elevation_vertex(it_e->first);
+            itype max_field_v = get_max_elevation_vertex(it_e->first);
 
             Triangle& t_first = mesh.get_triangle(it_e->second.first);
 
@@ -298,7 +298,7 @@ void Forman_Gradient_Features_Extractor::get_new_IG_paths(Node_T &n, itype v_sta
         if(gradient.is_edge_critical(it_e->first,it_e->second,mesh))
         {
             /// intro stuff.. ///
-            itype max_field_v = mesh.get_max_elevation_vertex(it_e->first);
+            itype max_field_v = get_max_elevation_vertex(it_e->first);
 
             Triangle& t_first = mesh.get_triangle(it_e->second.first);
 
@@ -597,6 +597,7 @@ void Forman_Gradient_Features_Extractor::explore_asc1cell_mig(Node_V &n, const p
                 }
                 else if (operation == OUTPUT && gradient.is_triangle_critical(current_pair.first))
                 {
+                    //cout<<"Triangle "<<current_pair.first<<" is critical. "<<endl;
                     pair_saddle_maximum(saddle_node,first_t_id,current_pair.first,last_t,ig);
                 }
             }

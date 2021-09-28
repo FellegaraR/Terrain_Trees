@@ -115,12 +115,16 @@ public:
 
     inline void print_stats() { stats.print_stats(); }
     inline void reset_stats() { stats.reset_stats_counter(); }
+    inline void set_filtration_vec(uvect input){this->filtration=input;}
 
     inline void reset_extraction_critica_counters()
     {
         found_max = found_1selle = found_min = 0;
+        sad_min=sad_max=level2=0;
     }
-
+    inline void print_arc_nums(){cout<<"saddle and minimum: "<<sad_min<<endl;
+    cout<<"saddle and maximum: "<<sad_max<<endl;
+    cout<<"Level 2 arcs:"<<level2<<endl;}
     
 protected:    
     /// variables neede for output purposes
@@ -129,6 +133,7 @@ protected:
     simplices_map edges_1celle;
     ivect manifold_2celle_asc;
     IG forman_ig;
+      uvect filtration; //for each vertex its filtration value
     
     //contains the net timing obtained for a single manifold extraction
     coord_type new_paths, u_paths, cache_t, rels_gathering;
@@ -139,6 +144,7 @@ protected:
     // for debug
     int found_max, found_1selle, found_min;
 
+    int sad_min,sad_max,level2;
 //    // for debug only
 //    map<ivect,ET> saddles_around_maxima;
     
@@ -269,6 +275,7 @@ protected:
         if(minimum == NULL)
         {
             minimum = new nNode(v);
+                            sad_min++;
             ig.add_minimum(v,minimum);
             ig.addArc(minimum,last_v,saddle_node,label,0);
         }
@@ -277,10 +284,13 @@ protected:
             Arc *arc = ig.already_connected(minimum,saddle_node);
             if(arc==NULL)
             {
+                sad_min++;
                 ig.addArc(minimum,last_v,saddle_node,label,0);
             }
             else
-                arc->setLabel(2); ///this edge cannot be simplified
+               { arc->setLabel(2); ///this edge cannot be simplified
+                 level2++;
+               }
         }
     }
 
@@ -291,6 +301,7 @@ protected:
         {
             maximum = new nNode(t);
             ig.add_maximum(t,maximum);
+                            sad_max++;
             ig.addArc(saddle_node,first_t_id,maximum,last_t,1);
         }
         else
@@ -298,11 +309,49 @@ protected:
             Arc *arc = ig.already_connected(maximum,saddle_node);
             if(arc==NULL)
             {
+                sad_max++;
                 ig.addArc(saddle_node,first_t_id,maximum,last_t,1);
             }
             else
-                arc->setLabel(2); ///this edge cannot be simplified
+                {arc->setLabel(2); ///this edge cannot be simplified
+                level2++;
+                }
         }
+    }
+    inline itype get_max_elevation_vertex(const ivect &vect)
+    {
+        if(vect.size() == 0)
+        {
+            cerr << "[ERROR] get_max_field_vertex -> empty vector" << endl;
+            return -1;
+        }
+
+        itype max = vect[0];
+        coord_type max_field = filtration[vect[0]-1];
+        for(unsigned v=1; v<vect.size(); v++)
+        {
+            if(filtration[vect[v]-1] > max_field)
+            {
+                max = vect[v];
+                max_field = filtration[vect[v]-1];
+            }
+        }
+        return max;
+    }
+    
+    inline itype get_max_elevation_vertex(Triangle &t)
+    {
+        itype max = t.TV(0);
+        coord_type max_field = filtration[t.TV(0)-1];
+        for(itype v=1; v<t.vertices_num(); v++)
+        {
+            if(filtration[t.TV(v)-1] > max_field)
+            {
+                max = t.TV(v);
+                max_field = filtration[t.TV(v)-1];
+            }
+        }
+        return max;
     }
     
 };

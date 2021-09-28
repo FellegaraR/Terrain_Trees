@@ -338,10 +338,12 @@ class Topo_Sempl
 public:
     Arc* arc;
     coord_type val;
+    int filt_s0,filt_s1;
+    ivect filt_ex;
     int lvl;
 
-    Topo_Sempl() { arc = NULL; val = -1; lvl = -1; }
-    Topo_Sempl(Arc* arc, coord_type val, int lvl){ this->arc = arc; this->val=val; this->lvl=lvl;}
+    Topo_Sempl() { arc = NULL; val = -1; lvl = -1;filt_s0=filt_s1=-1;filt_ex=ivect(); }
+    Topo_Sempl(Arc* arc, coord_type val, int lvl,int filt_s0,int filt_s1,ivect filt_ex){ this->arc = arc; this->val=val; this->lvl=lvl;this->filt_s0=filt_s0;this->filt_s1=filt_s1;this->filt_ex=filt_ex;}
 
     inline friend std::ostream& operator<< (std::ostream &out, Topo_Sempl &q)
     {
@@ -352,8 +354,34 @@ public:
 
 struct sort_arcs_topo{
     bool operator()(Topo_Sempl &s1, Topo_Sempl &s2)
-    {
-        return s1.val > s2.val;
+    {   
+        if(s1.val!=s2.val)
+           return s1.val > s2.val;
+        else if(s1.lvl!=s2.lvl)
+            return s1.lvl>s2.lvl;
+      /*  else if(s1.arc->getNode_i()->get_critical_index()!=s2.arc->getNode_i()->get_critical_index())
+            return s1.arc->getNode_i()->get_critical_index()>s2.arc->getNode_i()->get_critical_index();
+        else
+            return s1.arc->getNode_j()->get_critical_index()>s2.arc->getNode_j()->get_critical_index();
+      */
+        else if(s1.filt_s0!=s2.filt_s0)
+            return s1.filt_s0>s2.filt_s0;
+        else if(s1.filt_s1!=s2.filt_s1)
+        {
+           // cout<<"All the same"<<s1.arc->getLabel()<<" AND "<<s2.arc->getLabel()<<endl;
+            return s1.filt_s1>s2.filt_s1;
+        }
+        else
+        {
+            for (int i=0;i<s1.filt_ex.size();i++)
+            {
+                   if( s1.filt_ex[i]!=s2.filt_ex[i])
+                    return s1.filt_ex[i] > s2.filt_ex[i];
+            }
+            return s1.filt_ex[s1.filt_ex.size()-1] > s2.filt_ex[s1.filt_ex.size()-1];
+        }
+           
+
     }
 };
 

@@ -30,7 +30,7 @@ using namespace utility_functions;
 template<class T> void load_terrain(T& tree, cli_parameters &cli);
 template<class T> void load_tree(T& tree, cli_parameters &cli);
 template<class T> void load_tree_lite(T& tree, cli_parameters &cli);
-template<class T> void morse_features_extraction(T& tree, cli_parameters &cli);
+template<class T> void morse_features_extraction_and_simplification(T& tree, cli_parameters &cli);
 template<class T> void multi_morse_terrain_analysis(T& tree, cli_parameters &cli);
 void multi_morse_terrain_analysis(PMRT_Tree &tree, cli_parameters &cli);
 
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
         //        load_tree(tree,cli);
         if(cli.reindex)
         {
-            // morse_features_extraction(tree,cli);
+             morse_features_extraction_and_simplification(tree,cli);
             //  multi_morse_terrain_analysis(tree,cli);
             //  custom_execution(tree,cli);
             SF_test(tree,cli);
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
         //        load_tree(tree,cli);
         if(cli.reindex)
         {
-            //   morse_features_extraction(tree,cli);
+               morse_features_extraction_and_simplification(tree,cli);
             // multi_morse_terrain_analysis(tree,cli);
             //   custom_execution(tree,cli);
             SF_test(tree,cli);
@@ -259,7 +259,7 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
         cerr<<"[REINDEXING] tree and triangle mesh"<<endl;
 
 
-        if((cli.query_type == MORSE_ANALYSIS )
+        if((cli.query_type == MORSE_ANALYSIS || cli.query_type == LOCAL_MORSE_SIMPLIFICATION || cli.query_type == GLOBAL_MORSE_SIMPLIFICATION)
                 && cli.app_debug == OUTPUT)
             cli.original_vertex_indices.assign(tree.get_mesh().get_vertices_num(),-1);
         if(cli.query_type == MORSE_ANALYSIS && cli.app_debug == OUTPUT)
@@ -283,22 +283,32 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
     }
 }
 
-template<class T> void morse_features_extraction(T& tree, cli_parameters &cli)
+template<class T> void morse_features_extraction_and_simplification(T& tree, cli_parameters &cli)
 {
     /// TO-DO: define a better granularity
-    if(cli.query_type != MORSE_ANALYSIS)
+    if(cli.query_type != MORSE_ANALYSIS && cli.query_type != LOCAL_MORSE_SIMPLIFICATION && cli.query_type != GLOBAL_MORSE_SIMPLIFICATION)
         return;
 
     stringstream out;
     out << get_path_without_file_extension(cli.mesh_path);
     Timer time = Timer();
 
+    
+    load_terrain(tree,cli);
     //CALCOLO IL FORMAN GRADIENT VECTOR
     Forman_Gradient forman_gradient = Forman_Gradient(tree.get_mesh().get_triangles_num());
     //    Forman_Gradient_Computation gradient_computation = Forman_Gradient_Computation(cli.original_vertex_indices);
     Forman_Gradient_Features_Extractor features_extractor;
 
     Forman_Gradient_Computation gradient_computation = Forman_Gradient_Computation();
+
+    time.start();
+    gradient_computation.initial_filtering_IA(tree.get_mesh());
+    time.stop();
+    time.print_elapsed_time("[TIME] Initial filtering ");
+
+    load_tree_lite(tree,cli);
+    gradient_computation.reset_filtering(tree.get_mesh(),cli.original_vertex_indices);
 
     /// ---- FORMAN GRADIENT COMPUTATION --- ///
     cout<<"[NOTA] Compute the gradient field"<<endl;
@@ -448,8 +458,75 @@ template<class T> void morse_features_extraction(T& tree, cli_parameters &cli)
         }
     }
 
-   
-   }
+    /// ---- MORPHOLOGICAL SIMPLIFICATION --- ///
+    if(cli.query_type == LOCAL_MORSE_SIMPLIFICATION || cli.query_type == GLOBAL_MORSE_SIMPLIFICATION)
+    {
+        Forman_Gradient_Simplifier forman_simplifier;
+
+        ///
+        /// firstly we extract the MIG
+        ///
+        cout<<"--- Morse Incidence Graph BEFORE simplification ---"<<endl;
+        forman_simplifier.get_incidence_graph().init(); /// init again the base of the MIG
+        forman_simplifier.extract_incidence_graph(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),OUTPUT,cli.cache_size);
+        /// we force to keep the MIG structure
+
+        if(cli.app_debug == TIME_VERBOSE)
+            Writer_Morse::write_incidence_graph_VTK(out.str(),"mig", cli.v_per_leaf, forman_simplifier.get_incidence_graph(),tree.get_mesh(),
+                                                    cli.original_vertex_indices,cli.original_vertex_fields,cli.rever_to_original); /// and we save it
+
+        forman_simplifier.reset_stats();
+        forman_simplifier.reset_output_structures(tree.get_mesh());
+        ///
+        /// then we execute effectively the topological simplification
+        ///
+        if(cli.query_type == LOCAL_MORSE_SIMPLIFICATION) /// we have chosen a fully local simplification. i.e. the MIG is computed locally
+        {
+            cli.persistence = 0.8;
+            cout<<"[LOCALLY] Simplify the forman gradient vector."<<endl;
+            time.start();
+            forman_simplifier.exec_local_topological_simplification(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),
+                                                                    cli.app_debug,cli.cache_size,cli.persistence);
+            time.stop();
+            time.print_elapsed_time("[TIME] simplify the gradient ");
+        }
+        else if(cli.query_type == GLOBAL_MORSE_SIMPLIFICATION)
+        {
+            cout<<"[GLOBALLY] Simplify the forman gradient vector."<<endl;
+            /// otherwise we simplify the gradient computing first a global MIG and then simplifying it and the gradient
+            /// default behaviour with alltime!
+            forman_simplifier.exec_global_topological_simplification(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),
+                                                                     cli.app_debug,cli.cache_size,cli.persistence);
+        }
+
+        forman_simplifier.print_simplification_stats();
+
+        if(cli.app_debug == TIME_VERBOSE)
+        {
+            forman_simplifier.print_feature_extraction_time();
+            forman_simplifier.reset_timer_variables();
+            cerr<<"--- --- --- --- ---"<<endl;
+            forman_simplifier.print_stats();
+            forman_simplifier.reset_stats();
+        }
+
+        ///
+        /// then we compute again and output the simplified mig
+        ///
+        cout<<"--- Morse Incidence Graph AFTER simplification ---"<<endl;
+        forman_simplifier.reset_output_structures(tree.get_mesh());
+        forman_simplifier.get_incidence_graph().init(); /// init again the MIG structures
+        forman_simplifier.extract_incidence_graph(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),OUTPUT,cli.cache_size);
+        forman_simplifier.reset_stats();
+
+        if(cli.app_debug == TIME_VERBOSE)
+            Writer_Morse::write_incidence_graph_VTK(out.str(),"simplified_mig", cli.v_per_leaf, forman_simplifier.get_incidence_graph(),tree.get_mesh(),
+                                                    cli.original_vertex_indices,cli.original_vertex_fields,cli.rever_to_original);
+
+        forman_simplifier.reset_output_structures(tree.get_mesh());
+        forman_simplifier.reset_timer_variables();
+    }
+}
 
 template<class T> void multi_morse_terrain_analysis (T& tree, cli_parameters &cli)
 {
