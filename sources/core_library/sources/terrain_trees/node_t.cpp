@@ -228,3 +228,48 @@ void Node_T::get_VV_VT(leaf_VV &all_vv, leaf_VT &all_vt, itype v_start, itype v_
         }
     }
 }
+
+void Node_T::get_ET(leaf_ET &ets, itype v_start, itype v_end, Mesh &mesh)
+{
+//    if(!this->indexes_vertices())
+//        return;
+
+    ivect e;
+
+    for(RunIteratorPair itPair = make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+    {
+        RunIterator const& t_id = itPair.first;
+        Triangle& t = mesh.get_triangle(*t_id);
+        for(int v=0; v<t.vertices_num(); v++)
+        {
+            //ET
+            t.TE(v,e);
+
+            // an edge is considered processed only if the current leaf block indexes the extreme with the higher position index
+            // in this way each edge is processed once during each traversal of the tree
+            if(indexes_vertex(v_start,v_end,e[1]))
+            {
+                leaf_ET::iterator it = ets.find(e);
+                if(it != ets.end())
+                {
+                    pair<itype,itype> &inside = it->second;
+                    inside.second = *t_id;
+
+                    /// force the ordering <max,min>
+                    if(inside.first < inside.second)
+                    {
+                        itype tmp = inside.first;
+                        inside.first = inside.second;
+                        inside.second = tmp;
+                    }
+                }
+                else
+                {
+                    /// we add to the local structure only the edges with an internal vertex
+                    pair<itype,itype> new_entry = make_pair(*t_id,-1);
+                    ets.insert(make_pair(e,new_entry));
+                }
+            }
+        }
+    }
+}

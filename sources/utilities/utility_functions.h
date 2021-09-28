@@ -35,7 +35,7 @@
 
 #include "geometry/geometry_wrapper.h"
 #include "io/reader.h"
-#include "io/writer.h"
+#include "io/writer_morse.h"
 #include "queries/spatial_queries.h"
 #include "queries/topological_queries.h"
 #include "statistics/statistics.h"
@@ -56,6 +56,10 @@
 #include "terrain_features/Aspect.h"
 #include "gradient/Gradient.h"
 
+#include "morse/forman_gradient.h"
+#include "morse/forman_gradient_computation.h"
+#include "morse/forman_gradient_features_extractor.h"
+#include "morse/forman_gradient_simplifier.h"
 #include "utilities/cli_parameters.h"
 #include "utilities/usage.h"
 

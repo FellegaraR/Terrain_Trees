@@ -9,7 +9,8 @@
 *.pro
 *.user
 *.user.*
-*Doxyfile*
+Doxyfile
+CMakeDoxyfile.in
 *.directory
 README
 Makefile
