@@ -104,14 +104,16 @@ public:
     {
         TriGradient ga = convert_compressed_to_expand(t);
         ga.setEF(v_pos);
-        forman_gradient[t-1] = convert_expand_to_compressed(ga.getArrow()); //TESTING
+        forman_gradient[t-1] = convert_expand_to_compressed(ga.getArrow());
+
     }
 
     inline void free_ET(int v_pos, itype t)
     {
         TriGradient ga = convert_compressed_to_expand(t);
         ga.clearEF(v_pos);
-        forman_gradient[t-1] = convert_expand_to_compressed(ga.getArrow());//TESTING
+        forman_gradient[t-1] = convert_expand_to_compressed(ga.getArrow());
+
     }
 
     /// for debug only

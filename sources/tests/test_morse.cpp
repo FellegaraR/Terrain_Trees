@@ -112,7 +112,7 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
         //        if((cli.query_type == MORSE_ANALYSIS || cli.query_type == LOCAL_MORSE_SIMPLIFICATION || cli.query_type == GLOBAL_MORSE_SIMPLIFICATION)
         //                && cli.app_debug == OUTPUT)
         cli.original_vertex_indices.assign(tree.get_mesh().get_vertices_num(),-1);
-        if(cli.query_type == MORSE_ANALYSIS && cli.app_debug == OUTPUT)
+        if(cli.app_debug == OUTPUT)
             cli.original_triangle_indices.assign(tree.get_mesh().get_triangles_num(),-1);
 
         time.start();
