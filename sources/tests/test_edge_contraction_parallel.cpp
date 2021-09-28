@@ -103,8 +103,12 @@ void load_tree(PRT_Tree &tree, cli_parameters &cli)
   time.stop();
   time.print_elapsed_time("[TIME] Index and Mesh Reindexing ");
 
-  tree.init_leaves_list(tree.get_root()); // NOTA: enables the parallel OpenMP-based processing of the leaf block
-
+   if(cli.num_of_threads!=1){
+    time.start();
+    tree.init_leaves_list(tree.get_root()); 
+    time.stop();
+    time.print_elapsed_time("[TIME] Initialize leave list: ");
+    }
   Statistics stats;
   stats.get_index_statistics(tree, cli.reindex);
 
@@ -115,14 +119,23 @@ void load_tree(PRT_Tree &tree, cli_parameters &cli)
 
   time.stop();
   time.print_elapsed_time("[TIME] Border Checking ");
-  time.start();
+  
   Contraction_Simplifier simplifier;
+
+  if(cli.num_of_threads==1){
+    time.start();
+    simplifier.simplify(tree,tree.get_mesh(),cli);
+    time.stop();
+    }
+  else{
+  time.start();
   simplifier.preprocess(tree, tree.get_mesh(), cli);
   time.stop();
   time.print_elapsed_time("[TIME] Preporcessing");
   time.start();
   simplifier.simplify_parallel(tree, tree.get_mesh(), cli);
   time.stop();
+  }
   time.print_elapsed_time("[TIME] Complete edge contraction process ");
   cout << "number of remaining triangles: " << tree.get_mesh().get_triangles_num() << endl;
 

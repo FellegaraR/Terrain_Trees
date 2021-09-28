@@ -94,8 +94,9 @@ void Gradient_Aware_Simplifier::gradient_aware_simplify_parallel(PRT_Tree &tree,
     {
         params.parallel_compute();
     }
-    else
-    {
+    else  // Another version for similating sequential simplification with parallel algorithm 
+          // (can also be considered as sequential simplification without global cache)
+    {     // It is not currently used in the test file
         params.sequential_compute();
     }
     Timer time;

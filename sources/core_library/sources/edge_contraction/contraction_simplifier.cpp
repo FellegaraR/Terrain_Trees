@@ -280,13 +280,10 @@ void Contraction_Simplifier::contract_edge(ivect &e, ET &et, VT &vt0, VT &vt1, N
     /// (1) the corresponding vt0 relation (by adding the triangles in vt1-et to vt0)
     /// (2) then the outer_v_block (if e is a cross edge)
     /// (3) and, finally, we add the new edges crossing b to the edge queue
-    if (!params.is_parallel())
-        Contraction_Simplifier::update(e, vt0, vt1, n, outer_v_block, edges, mesh, params, updated_edges);
-    else
-    {
 
-        Contraction_Simplifier::update_parallel(e, vt0, vt1, n, outer_v_block, edges, mesh, params, updated_edges);
-    }
+
+    Contraction_Simplifier::update_parallel(e, vt0, vt1, n, outer_v_block, edges, mesh, params, updated_edges);
+
 
     // we remove v2 and the triangles in et
     Contraction_Simplifier::remove_from_mesh(e[1], et, mesh, params);
@@ -980,7 +977,7 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
     if (cli.contract_all_edges == true)
         params.contract_all_possible_edges();
     params.set_maximum_limit(cli.maximum_limit);
-    omp_set_num_threads(cli.num_of_threads);
+   // omp_set_num_threads(cli.num_of_threads);
     // Set edge selection criteria
     if (cli.QEM_based)
         params.queue_criterion_QEM();
@@ -996,11 +993,11 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
     time.start();
     cout << "Number of threads used in the simplification:" << omp_get_max_threads() << endl;
     //  const int t_num = mesh.get_triangles_num();
-    const int v_num = mesh.get_vertices_num();
+   // const int v_num = mesh.get_vertices_num();
     const int l_num = tree.get_leaves_number();
 
     //  t_locks.resize(t_num);
-    v_locks.resize(v_num);
+  //  v_locks.resize(v_num);
     l_locks.resize(l_num);
 
 // #pragma omp parallel for
@@ -1023,12 +1020,14 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
     if (params.is_QEM())
     {
         time.start();
-        trianglePlane = vector<dvect>(mesh.get_triangles_num(), dvect(4, 0));
+      //  trianglePlane = vector<dvect>(mesh.get_triangles_num(), dvect(4, 0));
         initialQuadric = vector<Matrix>(mesh.get_vertices_num() + 1, Matrix(0.0));
         cout << "=========Calculate triangle plane========" << endl;
-        compute_triangle_plane(mesh, trianglePlane);
+   //     compute_triangle_plane(mesh, trianglePlane);
         cout << "=========Calculate initial QEM========" << endl;
-        compute_initial_QEM_parallel(tree, mesh, trianglePlane);
+    //    compute_initial_QEM_parallel(tree, mesh, trianglePlane);
+        compute_initial_plane_and_QEM_parallel(tree, mesh);
+
         time.stop();
         time.print_elapsed_time("[TIME] Calculating initial QEM: ");
     }
@@ -1055,6 +1054,9 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
         }
         if (simplification_round == params.get_contracted_edges_num())
             break;
+        
+        Contraction_Simplifier::preprocess(tree, mesh, cli);
+
     }
 
     // #pragma omp parallel for
@@ -1073,7 +1075,7 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
 
     ///// Clear all the auxiliary data structures.
     //v_locks.clear();
-    vector<omp_lock_t>().swap(v_locks);
+    //vector<omp_lock_t>().swap(v_locks);
     vector<omp_lock_t>().swap(l_locks);
     vector<int>().swap(v_in_leaf);
     lists_leafs().swap(conflict_leafs);
@@ -1088,7 +1090,11 @@ void Contraction_Simplifier::simplify_parallel(PRT_Tree &tree, Mesh &mesh, cli_p
     //params.print_simplification_partial_timings();
     //params.print_simplification_counters();
     /// finally we have to update/compress the mesh and the tree
+    time.start();
     Contraction_Simplifier::update_mesh_and_tree(tree, mesh, params);
+    time.stop();
+    time.print_elapsed_time("[TIME] Mesh and tree updating: ");
+
     cerr << "[MEMORY] peak for mesh and tree updating: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 }
 
@@ -1650,7 +1656,7 @@ void Contraction_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mesh &
             contract_edge(e, et, *vt0, *vt1, *outer_v_block, edges, n, mesh, params, updated_edges);
             edges_contracted_leaf++;
             // break;
-
+            n_id = v_in_leaf[e[0]];
             // A new step for cross edge case
             // Check possible new conflict nodes by checking the vv_locks
             // vv_locks stores all the vertices in the VV(v0) & VV(v1) that are not contained by n or outer_v_block
@@ -1661,7 +1667,7 @@ void Contraction_Simplifier::simplify_leaf_cross_QEM(Node_V &n, int n_id, Mesh &
         //     omp_unset_lock(&(v_locks[*it - 1]));
         // }
         delete current;
-        delete vt0, vt1, outer_v_block;
+       // delete vt0, vt1, outer_v_block;
     }
 
     // leaf_VV vvs;
