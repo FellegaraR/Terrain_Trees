@@ -4,6 +4,7 @@
 /doc/img/
 /doc/readme/
 /sources/*.directory
+*.sh
 
 *.pro
 *.user
@@ -15,8 +16,8 @@ README
 Makefile
 *.py
 *.cmake
-/CMakeCache.txt
-/CMakeFiles/
+CMakeCache.txt
+CMakeFiles/
 /data/*.tree
 /data/*.vtk
 *.cbp
