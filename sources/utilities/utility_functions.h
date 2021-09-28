@@ -49,8 +49,12 @@
 #include "utilities/timer.h"
 #include "curvature/concentrated_curvature.h"
 #include "curvature/c_curvature.h"
+#include "curvature/border_checker.h"
+#include "roughness/Roughness.h"
 #include "terrain_features/slope_extractor.h"
 #include "terrain_features/critical_points_extractor.h"
+#include "terrain_features/Aspect.h"
+#include "gradient/Gradient.h"
 
 #include "utilities/cli_parameters.h"
 #include "utilities/usage.h"

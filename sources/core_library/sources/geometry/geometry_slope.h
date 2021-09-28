@@ -32,6 +32,8 @@ class Geometry_Slope
 {
 public:
     static coord_type compute_triangle_slope(Triangle &t, Mesh &mesh);
+    
+    static coord_type compute_triangle_slope_song(Triangle &t, Mesh &mesh);
 
     static coord_type compute_edge_slope(ivect &e, Mesh &mesh);
 
