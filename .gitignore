@@ -6,6 +6,8 @@
 /sources/*.directory
 *.sh
 
+.gitignore
+.vscode/
 *.pro
 *.user
 *.user.*
