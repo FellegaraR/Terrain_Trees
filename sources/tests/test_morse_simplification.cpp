@@ -13,7 +13,7 @@ int main(int argc, char** argv )
     cli.mesh_path = argv[2];
     cli.division_type = QUAD;
     cli.crit_type = "pr";
-    cli.v_per_leaf = 20000000;
+    cli.v_per_leaf = 200;
 	cli.app_debug = OUTPUT;
 	cli.persistence = atof(argv[3]);
     if(strcmp(argv[1],"local")==0)
@@ -22,7 +22,7 @@ int main(int argc, char** argv )
         cli.query_type=GLOBAL_MORSE_SIMPLIFICATION;
     else
     {
-        cout<<"Please enter the type of morse simplificaton"<<endl;
+        cout<<"Please enter the type of morse simplification"<<endl;
         return 1;
     }
     

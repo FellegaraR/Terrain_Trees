@@ -153,7 +153,16 @@ int read_arguments(int argc, char** argv, cli_parameters &variables)
             if(tok.size()==1)
             {               
                 /// TERRAIN TOPOLOGICAL FEATURES EXTRACTION
-                if(tok[0]=="morse")
+                if(tok[0]=="batch")
+                    variables.query_type = BATCH;
+                /// CURVATURE EXTRACTION
+                else if(tok[0]=="concurv")
+                    variables.query_type = CONCENTRATED_CURVATURE;
+                else if(tok[0]=="mccurv")
+                    variables.query_type = MEAN_CCURVATURE;
+                else if(tok[0]=="gccurv")
+                    variables.query_type = GAUSS_CCURVATURE;
+                else if(tok[0]=="morse")
                     variables.query_type = MORSE_ANALYSIS;
                 else if(tok[0]=="simpl")
                     variables.query_type = LOCAL_MORSE_SIMPLIFICATION;
@@ -163,6 +172,10 @@ int read_arguments(int argc, char** argv, cli_parameters &variables)
                     variables.query_type = MULTIVARIATE_MORSE_ANALYSIS;
                 else if(tok[0]=="filter")
                     variables.query_type = FILTER;
+                else if(tok[0]=="crit")
+                    variables.query_type = CRITICAL_POINTS;
+                else if(tok[0]=="slopes")
+                    variables.query_type = SLOPES;
                 /// CUSTOM COMMAND --- TEMPORARY COMMAND FOR JOURNAL PAPER
                 else if(tok[0]=="custom")
                     variables.query_type = CUSTOM;
@@ -171,12 +184,24 @@ int read_arguments(int argc, char** argv, cli_parameters &variables)
                 cerr<<"[ERROR] [-q argument] when reading arguments"<<endl;
             else
             {
-                if(tok[0]=="simpl")
+                if(tok[0] == "wvt")
+                    variables.query_type = WINDVT;
+                else if(tok[0] == "wtt")
+                    variables.query_type = WINDTT;
+                else if(tok[0] == "point")
+                    variables.query_type = POINT;
+                else if(tok[0] == "box")
+                    variables.query_type = BOX;
+                else if(tok[0]=="simpl")
                     variables.query_type = LOCAL_MORSE_SIMPLIFICATION;
                 else if(tok[0]=="gsimpl")
                     variables.query_type = GLOBAL_MORSE_SIMPLIFICATION;
 
-                variables.persistence = atof(tok[1].c_str());
+                if(variables.query_type == WINDVT || variables.query_type == WINDTT ||
+                        variables.query_type == POINT || variables.query_type == BOX)
+                    variables.query_path = tok[1];
+                else
+                    variables.persistence = atof(tok[1].c_str());
             }
             i++;
         }        
@@ -219,7 +244,7 @@ void print_help()
     printf("\tTerrain Trees library - Multivariate Morse Analysis\n\n" RESET);
 
     printf(BOLD "  USAGE: \n\n" RESET);
-    printf(BOLD "    ./ttrees_morse {<-v [kv] -t [kt] -c [crit] -d [div] | -f [tree_file]>\n" RESET);
+    printf(BOLD "    ./terrain_trees {<-v [kv] -t [kt] -c [crit] -d [div] | -f [tree_file]>\n" RESET);
     printf(BOLD "                       -q [op-file | app] -s -noR} | {-g [query-ratio-quantity-type]}\n" RESET);
     printf(BOLD "                       -i [mesh_file]\n" RESET);
 
@@ -243,7 +268,13 @@ void print_help()
     print_paragraph("NOTA: you can use -f argument [OR] {-v / -t / -c / -d} accordingly to the chosen criterion.", cols);
 
     printf(BOLD "    -q [app]\n" RESET);
-    print_paragraph("'app' can be: morse - simpl - gsimpl - multiv - filter "
+    print_paragraph("'app' can be: batch - concurv - mccurv - gccurv - slopes - crit - morse - simpl - gsimpl - multiv - filter "
+                    "'batch' extracts VT and TT relations on the whole mesh, "                    
+                    "'concurv' extracts the Concentrated Curvature, "
+                    "'mccurv' extracts the Mean CCurvature, "
+                    "'gccurv' extracts the Gaussian CCurvature, "
+                    "'slopes' extracts the slope values for the triangles and edges of the terrain, "
+                    "'crit' extracts the critical points of the terrain, "                    
                     "'morse' computes the Forman gradient vector, extracts 2/1 descending/ascending manifolds and the Morse indicence graph, "
                     "'simpl' computes the Forman gradient vector and simplify it using a local Morse incidence graph,"
                     "'gsimpl' computes the Forman gradient vector and simplify it using a global Morse incidence graph, "
@@ -252,6 +283,14 @@ void print_help()
                     " the multifield file and a points cloud file compatible with SpatialHadoop.", cols);
     print_paragraph("NOTA: simpl and gsimpl can have an optional persistence parameter, with range from x to y, following the format "
                     "'(g)simpl'-'persistence'.If not set, it is used the default persistence value 0.65.", cols);
+    printf(BOLD "    -g [query-ratio-quantity-type]\n" RESET);
+    print_paragraph("generates a given number of input data for a specific query", cols);
+    print_paragraph("query can be: point - box. "
+                    "'ratio' is a number between 0 and 1, and and represents the percentage of the maximum side of the domain to pick. "
+                    "'quantity' is a positive number that indicate the number of inputs to generate. "
+                    "type can be: near - rand. 'near' stands for a randomly generated point that is near the mesh, "
+                    "while 'rand' stands for a randomly generated point that is inside the domain.", cols);
+    print_paragraph("If 'query' is equal to point 'ratio' must be equal to 0, otherwise 'ratio' must be greater than 0.", cols);
 
     printf(BOLD "    -s\n" RESET);
     print_paragraph("computes the statistics of a tree.", cols);
@@ -268,13 +307,27 @@ void print_help()
     print_paragraph("if the application has this feature, outputs detailed execution timing.", cols);
 
     printf(BOLD "  EXAMPLE[1]: \n" RESET);
-    printf("          ./ttrees_morse -v 20 -c pr -d quad -s -i mesh.off\n");
+    printf("          ./terrain_trees -v 20 -c pr -d quad -s -i mesh.off\n");
     print_paragraph("First it reads the mesh [mesh.off]. Then, builds a PR-T tree with kv=20 and quadtree subdivision, "
                     "on which it is exploited the spatial coherence of the mesh and index. "
                     "Finally, it computes the index statistics (-s).", cols);
 
     printf(BOLD "  EXAMPLE[2]: \n" RESET);
-    printf("          ./ttrees_morse -v 20 -c pr -d quad -q morse -i mesh.soup -output\n");
+    printf("          ./terrain_trees -f tree_file -q wvt-boxfile -i mesh.tri\n");
+    print_paragraph("First it reads the mesh [mesh.tri]. Then, it reads the spatial index from .tree file (gathering the tree "
+                    "parameters direcly from the file name) and exploits the spatial coherence of the mesh and index. "
+                    "Finally, it executes the windowed VT queries, using the boxes into 'boxfile'.", cols);
+
+    printf(BOLD "  EXAMPLE[3]: \n" RESET);
+    printf("          ./terrain_trees -v 20 -c pr -d quad -q crit -i mesh.soup -output\n");
+    print_paragraph("First it reads the soup [mesh.soup].  Then, it builds a PR-T tree index with kv=20 and with quadtree subdivision. "
+                    "As last generation step, it exploits the spatial coherence of the mesh and index. "
+                    "Then, it extracts the indexed mesh representation of the soup and it saves that in a .off file. "
+                    "Finally, it computes the critical points, outputting them in .vtk files for visualization purposes (-output parameter).", cols);
+
+
+    printf(BOLD "  EXAMPLE[4]: \n" RESET);
+    printf("          ./terrain_trees -v 20 -c pr -d quad -q morse -i mesh.soup -output\n");
     print_paragraph("First it reads the soup [mesh.soup].  Then, it builds a PR-T tree index with kv=20 and with quadtree subdivision. "
                     "As last generation step, it exploits the spatial coherence of the mesh and index. "
                     "Then, it extracts the indexed mesh representation of the soup and it saves that in a .off file. "
@@ -282,9 +335,9 @@ void print_help()
                     "outputting them in .vtk files for visualization purposes (-output parameter).", cols);
 
     printf(BOLD "  IMPLEMENTATION:\n" RESET);
-    printf("          Author: Riccardo Fellegara\n");
+    printf("          Author: Riccardo Fellegara, Yunting Song\n");
     printf("          Group: UMD GeoVisualization Group\n");
-    printf("          Man-page Last Update: September 2017\n\n");
+    printf("          Man-page Last Update: September 2021\n\n");
 
     printf(BOLD "  DESCRIPTION: \n" RESET);
     print_paragraph("We propose a new in-core family of spatial indexes for the analysis "

@@ -36,6 +36,7 @@
 #include "geometry/geometry_wrapper.h"
 #include "io/reader.h"
 #include "io/writer_morse.h"
+#include "io/writer.h"
 #include "queries/spatial_queries.h"
 #include "queries/topological_queries.h"
 #include "statistics/statistics.h"
