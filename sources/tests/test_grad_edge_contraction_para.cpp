@@ -154,7 +154,7 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     
 
     load_terrain(tree,cli);
-
+    
     //CALCOLO IL FORMAN GRADIENT VECTOR
     Forman_Gradient forman_gradient = Forman_Gradient(tree.get_mesh().get_triangles_num());
     Forman_Gradient_Computation* gradient_computation = new Forman_Gradient_Computation();
@@ -167,7 +167,7 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
     time.print_elapsed_time("[TIME] Initial filtering ");
 
     load_tree_lite(tree,cli);
-
+    Writer::write_mesh_VTK("orig",tree.get_mesh());     
     /// ---- FORMAN GRADIENT COMPUTATION --- ///
     gradient_computation->reset_filtering(tree.get_mesh(),cli.original_vertex_indices);
     
