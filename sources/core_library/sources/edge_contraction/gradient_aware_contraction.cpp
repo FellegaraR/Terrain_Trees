@@ -730,7 +730,7 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1, int v2, VT 
 
     //   cout<<"v1: "<<v1<<" v1_pair:"<<v1_pair<<endl;
     //  cout<<"v2: "<<v2<<" v2_pair:"<<v2_pair<<endl;
-    if (v1_pair != v2 && v2_pair != v1)
+    if (/*v1_pair != v2 &&*/ v2_pair != v1)
     {
         //     if(debug)
         //    cout<<"edge is not paired with v1 or v2"<<endl;
@@ -738,9 +738,14 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1, int v2, VT 
         //  omp_unset_lock(&(t_locks[t3_adj_sin - 1]));
         return false;
     }
-
+    // if(v1_pair==v2){
+    //     if ((v3_sin_pair != -1 && v3_sin_pair == v2)||(v3_des_pair != -1 && v3_des_pair == v2))
+    //     return false;
+    // }
+           
     if (v3_sin_pair != -1 && v3_sin_pair == v2)
     {
+
         // cout<<"v3_sin is paired with v2"<<endl;
         // cout<<"t3_adj_sin:"<<t3_adj_sin<<endl;
         gradient.update_VE_adj_T(t3_adj_sin, v3_sin, v1, mesh, gradient);
@@ -758,12 +763,12 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1, int v2, VT 
         // cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
         gradient.update_VE_adj_T(t3_sin, v2, v3_sin, mesh, gradient);
     }
-    else if (v1_pair == v2 && v2_pair == v3_sin)
-    {
-        // cout<<"v2 is paired with v3_sin"<<endl;
-        // cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
-        gradient.update_VE_adj_T(t3_adj_sin, v1, v3_sin, mesh, gradient);
-    }
+    // else if (v1_pair == v2 && v2_pair == v3_sin)
+    // {
+    //     // cout<<"v2 is paired with v3_sin"<<endl;
+    //     // cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
+    //     gradient.update_VE_adj_T(t3_adj_sin, v1, v3_sin, mesh, gradient);
+    // }
 
     if (v3_des_pair != -1 && v3_des_pair == v2)
     {
@@ -786,12 +791,12 @@ bool Gradient_Aware_Simplifier::valid_gradient_configuration(int v1, int v2, VT 
         // cout<<"v1:"<<v1<<" v1_pair:"<<v1_pair<<endl;
         gradient.update_VE_adj_T(t3_des, v2, v3_des, mesh, gradient);
     }
-    else if (v1_pair == v2 && v2_pair == v3_des)
-    {
-        // cout<<"v2 is paired with v3_des"<<endl;
-        // cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
-        gradient.update_VE_adj_T(t3_adj_des, v1, v3_des, mesh, gradient);
-    }
+    // else if (v1_pair == v2 && v2_pair == v3_des)
+    // {
+    //     // cout<<"v2 is paired with v3_des"<<endl;
+    //     // cout<<"v2:"<<v2<<" v2_pair:"<<v2_pair<<endl;
+    //     gradient.update_VE_adj_T(t3_adj_des, v1, v3_des, mesh, gradient);
+    // }
 
     //    if(debug)
     // cout<<"valid gradient condition"<<endl;

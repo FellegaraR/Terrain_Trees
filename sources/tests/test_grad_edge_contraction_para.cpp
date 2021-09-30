@@ -231,8 +231,8 @@ void gradient_aware_simplification(PRT_Tree& tree, cli_parameters &cli){
    // count_critical_simplices(tree,cli,forman_gradient);
 
     // cout<<output_name<<endl;
-  //   Writer::write_mesh_VTK("new_mesh",tree.get_mesh()); 
-    // Writer::write_mesh(output_name,"grad",tree.get_mesh(),false); 
+     Writer::write_mesh_VTK("simplified",tree.get_mesh()); 
+     Writer::write_mesh(output_name,"grad",tree.get_mesh(),false); 
 
     //  Forman_Gradient_Features_Extractor features_extractor;   
     // features_extractor.extract_incidence_graph(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),cli.app_debug,cli.cache_size);
