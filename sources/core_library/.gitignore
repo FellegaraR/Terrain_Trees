@@ -13,9 +13,9 @@ Doxyfile
 README
 Makefile
 *.py
-cmake_install.cmake
+*.cmake
+CMakeFiles/
 /CMakeCache.txt
-/CMakeFiles/
 /data/*.tree
 /data/*.vtk
 *.cbp

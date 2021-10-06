@@ -46,8 +46,15 @@ public:
     //storing the values in a global array
     void compute_triangles_slopes(Node_V &n, Mesh &mesh, Spatial_Subdivision &division);
     void compute_triangles_slopes(Node_T &n, Box &dom, int level, Mesh &mesh, Spatial_Subdivision &division);
+    void compute_triangles_slopes_new(Node_V &n, Mesh &mesh, Spatial_Subdivision &division);
+    void compute_triangles_slopes_new(Node_T &n, Box &dom, int level, Mesh &mesh, Spatial_Subdivision &division);
+
+
     // compute for all the triangles the slopes - using a local data structure within each leaf block
     template<class N> void compute_triangles_slopes(N &n, Mesh &mesh, Spatial_Subdivision &division);
+
+        // compute for all the triangles the slopes - using a local data structure within each leaf block
+    template<class N> void compute_triangles_slopes_new(N &n, Mesh &mesh, Spatial_Subdivision &division);
 
     //compute the slope values for all the edges
     void compute_edges_slopes(Node_V &n, Mesh &mesh, Spatial_Subdivision &division/*, bool set_avg_v_slopes*/);
@@ -71,6 +78,9 @@ private:
     void triangle_slopes_leaf(Node_V& n, Mesh& mesh);
     void triangle_slopes_leaf(Node_T& n, Box &dom, Mesh& mesh);
     template<class N> void triangle_slopes_leaf(N& n, Mesh& mesh);
+    void triangle_slopes_leaf_new(Node_V& n, Mesh& mesh);
+    void triangle_slopes_leaf_new(Node_T& n, Box &dom, Mesh& mesh);
+    template<class N> void triangle_slopes_leaf_new(N& n, Mesh& mesh);
 };
 
 template<class N> void Slope_Extractor::compute_triangles_slopes(N &n, Mesh &mesh, Spatial_Subdivision &division)
@@ -91,6 +101,25 @@ template<class N> void Slope_Extractor::compute_triangles_slopes(N &n, Mesh &mes
     }
 }
 
+template<class N> void Slope_Extractor::compute_triangles_slopes_new(N &n, Mesh &mesh, Spatial_Subdivision &division)
+{
+    if (n.is_leaf())
+    {
+        this->triangle_slopes_leaf(n,mesh);
+    }
+    else
+    {
+        for (int i = 0; i < division.son_number(); i++)
+        {
+            if(n.get_son(i)!=NULL)
+            {
+                this->compute_triangles_slopes(*n.get_son(i),mesh,division);
+            }
+        }
+    }
+}
+
+
 template<class N> void Slope_Extractor::triangle_slopes_leaf(N& n, Mesh& mesh)
 {
     dvect slopes;
@@ -106,4 +135,18 @@ template<class N> void Slope_Extractor::triangle_slopes_leaf(N& n, Mesh& mesh)
     }
 }
 
+template<class N> void Slope_Extractor::triangle_slopes_leaf_new(N& n, Mesh& mesh)
+{
+    dvect slopes;
+    slopes.assign(n.get_real_t_array_size(),0);
+    int t_counter = 0;
+
+    for(RunIteratorPair itPair = n.make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
+    {
+        RunIterator const& t_id = itPair.first;
+        Triangle& t = mesh.get_triangle(*t_id);
+        slopes[t_counter] = Geometry_Slope::compute_triangle_slope(t,mesh);
+        t_counter++;
+    }
+}
 #endif // SLOPE_EXTRACTOR_H

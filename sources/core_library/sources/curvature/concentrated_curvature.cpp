@@ -30,10 +30,10 @@ void Concentrated_Curvature::curvature_leaf(Node_V &n, Mesh &mesh)
     if(!n.indexes_vertices())
         return;
 
-    leaf_VT vts(n.get_v_end()-n.get_v_start(),ivect());
+    //leaf_VT vts(n.get_v_end()-n.get_v_start(),ivect());
     boost::dynamic_bitset<> is_v_border(n.get_v_end()-n.get_v_start());
     dvect local_curvatures(n.get_v_end()-n.get_v_start(),0.0);
-
+    vts.assign(n.get_v_end()-n.get_v_start(),ivect());
     for(RunIteratorPair itPair = n.make_t_array_iterator_pair(); itPair.first != itPair.second; ++itPair.first)
     {
         RunIterator const& t_id = itPair.first;
@@ -53,6 +53,7 @@ void Concentrated_Curvature::curvature_leaf(Node_V &n, Mesh &mesh)
     }
 
     this->finalize_local_curvatures(n.get_v_start(),vts,is_v_border,local_curvatures,mesh);
+    vts.clear();
 }
 
 void Concentrated_Curvature::curvature_leaf(Node_T &n, Box &n_dom, Mesh &mesh)
@@ -65,7 +66,7 @@ void Concentrated_Curvature::curvature_leaf(Node_T &n, Box &n_dom, Mesh &mesh)
     if(v_start == v_end) //no internal vertices..
         return;
 
-    leaf_VT vts(v_end-v_start,ivect());
+     vts.assign(v_end-v_start,ivect());
     boost::dynamic_bitset<> is_v_border(v_end-v_start);
     dvect local_curvatures(v_end-v_start,0.0);
 
@@ -88,6 +89,8 @@ void Concentrated_Curvature::curvature_leaf(Node_T &n, Box &n_dom, Mesh &mesh)
     }
 
     this->finalize_local_curvatures(v_start,vts,is_v_border,local_curvatures,mesh);
+
+    vts.clear();
 }
 
 void Concentrated_Curvature::update_local_curvature(itype v_id, itype local_v_id, Triangle &t, itype v_pos,

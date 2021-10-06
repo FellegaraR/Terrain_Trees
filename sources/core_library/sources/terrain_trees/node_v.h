@@ -68,6 +68,7 @@ public:
     {
         return (indexes_vertices() && v_id >= get_v_start() && v_id < get_v_end());
     }
+    inline bool indexes_vertex(itype v_start, itype v_end, itype v_id) { return (v_id >= v_start && v_id < v_end); }
 
     /**
      * @brief A public method that checks if a triangle is indexed by the node
@@ -201,6 +202,9 @@ public:
      * @param mesh a Mesh& variable representing the triangle mesh
      */
     void get_VV(leaf_VV &all_vv, Mesh& mesh);
+    
+    void get_VV_vector(leaf_VV_vec &all_vv, Mesh& mesh);
+    
     /**
      * @brief A public method that extracts the Vertex-Triangle (VT) and Vertex-Vertex (VV) relations for the vertices indexed in the current block
      * @param all_vv a leaf_VV variable, that encodes the VV relations

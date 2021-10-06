@@ -43,7 +43,7 @@ public:
 private:
     //flag if we want to divide by area of the neighborhood or not
     ConcentratedType type;
-
+    leaf_VT vts;
     /**
      * @brief curvature_leaf
      * @param n

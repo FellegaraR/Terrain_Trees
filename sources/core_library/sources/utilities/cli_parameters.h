@@ -42,6 +42,7 @@ enum QueryType { POINT, BOX, WINDVT, WINDTT, BATCH,
                  MORSE_ANALYSIS, LOCAL_MORSE_SIMPLIFICATION, GLOBAL_MORSE_SIMPLIFICATION, MULTIVARIATE_MORSE_ANALYSIS,
                  FILTER,
                  SLOPES/*, ESLOPE, TSLOPE*/, CRITICAL_POINTS,
+                 CUSTOM,
                  NULL_QUERY };
 enum SpatialDecType {KD = 2, QUAD = 4, UNSET = -1};
 #define BOLD  "\033[1m\033[33m" //for dark background shell

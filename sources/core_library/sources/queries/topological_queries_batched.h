@@ -15,7 +15,8 @@ template<class N> void Topological_Queries::batched_VT(N &n, Box &dom, Mesh &mes
         this->batched_VT_no_reindex(n,dom,0,mesh,division,false,max_entities);
     time.stop();
     time.print_elapsed_time("[TIME] extracting bactched VT: ");
-
+    double VT_time=time.get_elapsed_time_in_sec();
+    cout<<"Extracting VT time: "<<VT_time<<endl;
     if(reindex)
         this->batched_VT_visit(n,dom,0,mesh,division,true,max_entities);
     else

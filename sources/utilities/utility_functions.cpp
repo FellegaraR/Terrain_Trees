@@ -151,8 +151,8 @@ int read_arguments(int argc, char** argv, cli_parameters &variables)
             vector<string> tok;
             tokenize(trash,tok,"-");
             if(tok.size()==1)
-            {
-                /// BATCHED TOPOLOGICAL RELATIONS EXTRACTION
+            {               
+                /// TERRAIN TOPOLOGICAL FEATURES EXTRACTION
                 if(tok[0]=="batch")
                     variables.query_type = BATCH;
                 /// CURVATURE EXTRACTION
@@ -162,7 +162,6 @@ int read_arguments(int argc, char** argv, cli_parameters &variables)
                     variables.query_type = MEAN_CCURVATURE;
                 else if(tok[0]=="gccurv")
                     variables.query_type = GAUSS_CCURVATURE;
-                /// TERRAIN TOPOLOGICAL FEATURES EXTRACTION
                 else if(tok[0]=="morse")
                     variables.query_type = MORSE_ANALYSIS;
                 else if(tok[0]=="simpl")
@@ -173,11 +172,13 @@ int read_arguments(int argc, char** argv, cli_parameters &variables)
                     variables.query_type = MULTIVARIATE_MORSE_ANALYSIS;
                 else if(tok[0]=="filter")
                     variables.query_type = FILTER;
-                /// TERRAIN GEOMETRIC FEATURES EXTRACTION
                 else if(tok[0]=="crit")
                     variables.query_type = CRITICAL_POINTS;
                 else if(tok[0]=="slopes")
                     variables.query_type = SLOPES;
+                /// CUSTOM COMMAND --- TEMPORARY COMMAND FOR JOURNAL PAPER
+                else if(tok[0]=="custom")
+                    variables.query_type = CUSTOM;
             }
             else if(tok.size()<2)
                 cerr<<"[ERROR] [-q argument] when reading arguments"<<endl;
@@ -203,28 +204,7 @@ int read_arguments(int argc, char** argv, cli_parameters &variables)
                     variables.persistence = atof(tok[1].c_str());
             }
             i++;
-        }
-        else if(strcmp(tag, "-g") == 0)
-        {
-            trash = argv[i+1];
-            vector<string> tok;
-            tokenize(trash,tok,"-");
-            if(tok.size()<4)
-                cerr<<"[ERROR] [-g argument] when reading arguments"<<endl;
-            else
-            {
-                if(tok.at(0) == "point")
-                    variables.query_type = POINT;
-                else if(tok.at(0) == "box")
-                    variables.query_type = BOX;
-
-                variables.ratio = atof(tok[1].c_str());
-                variables.num_input_entries = atoi(tok[2].c_str());
-                variables.input_gen_type = tok[3];
-                variables.is_getInput = true;
-            }
-            i++;
-        }
+        }        
         else if(strcmp(tag, "-output") == 0)
         {
             variables.app_debug = OUTPUT;
@@ -261,7 +241,7 @@ void print_help()
     }
 
     printf(BOLD "\n  NAME:\n\n" RESET);
-    printf("\tTerrain Trees library\n\n" RESET);
+    printf("\tTerrain Trees library - Multivariate Morse Analysis\n\n" RESET);
 
     printf(BOLD "  USAGE: \n\n" RESET);
     printf(BOLD "    ./terrain_trees {<-v [kv] -t [kt] -c [crit] -d [div] | -f [tree_file]>\n" RESET);
@@ -287,22 +267,22 @@ void print_help()
 
     print_paragraph("NOTA: you can use -f argument [OR] {-v / -t / -c / -d} accordingly to the chosen criterion.", cols);
 
-    printf(BOLD "    -q [op-file | app]\n" RESET);
-    print_paragraph("executes a spatialquery 'op'', reading from 'file' the point/box inputs", cols);
-    print_paragraph("'op' can be: point - box - wvt - wtt "
-                    "'point' stands for point location, 'box' for box query, "
-                    "'wvt' for windowed VT query and 'wtt' for windowed TT query."
-                    "'file' represent the path of the file that contains the inputs for the queries.", cols);
-    print_paragraph("'app' can be: batch - concurv - mccurv - gccurv - slopes - crit - filter "
+    printf(BOLD "    -q [app]\n" RESET);
+    print_paragraph("'app' can be: batch - concurv - mccurv - gccurv - slopes - crit - morse - simpl - gsimpl - multiv - filter "
                     "'batch' extracts VT and TT relations on the whole mesh, "                    
                     "'concurv' extracts the Concentrated Curvature, "
                     "'mccurv' extracts the Mean CCurvature, "
                     "'gccurv' extracts the Gaussian CCurvature, "
                     "'slopes' extracts the slope values for the triangles and edges of the terrain, "
                     "'crit' extracts the critical points of the terrain, "                    
+                    "'morse' computes the Forman gradient vector, extracts 2/1 descending/ascending manifolds and the Morse indicence graph, "
+                    "'simpl' computes the Forman gradient vector and simplify it using a local Morse incidence graph,"
+                    "'gsimpl' computes the Forman gradient vector and simplify it using a global Morse incidence graph, "
+                    "'multiv' computes the Multivariate Morse analysis by generating the Multivariate gradient and extracting the Critical Clusters, "
                     "'filter' reads a points cloud generates a PR tree, extracts the multifield of each 2D point and finally outputs both"
-                    " the multifield file and a points cloud file compatible with SpatialHadoop.", cols);    
-
+                    " the multifield file and a points cloud file compatible with SpatialHadoop.", cols);
+    print_paragraph("NOTA: simpl and gsimpl can have an optional persistence parameter, with range from x to y, following the format "
+                    "'(g)simpl'-'persistence'.If not set, it is used the default persistence value 0.65.", cols);
     printf(BOLD "    -g [query-ratio-quantity-type]\n" RESET);
     print_paragraph("generates a given number of input data for a specific query", cols);
     print_paragraph("query can be: point - box. "
@@ -345,16 +325,35 @@ void print_help()
                     "Then, it extracts the indexed mesh representation of the soup and it saves that in a .off file. "
                     "Finally, it computes the critical points, outputting them in .vtk files for visualization purposes (-output parameter).", cols);
 
+
+    printf(BOLD "  EXAMPLE[4]: \n" RESET);
+    printf("          ./terrain_trees -v 20 -c pr -d quad -q morse -i mesh.soup -output\n");
+    print_paragraph("First it reads the soup [mesh.soup].  Then, it builds a PR-T tree index with kv=20 and with quadtree subdivision. "
+                    "As last generation step, it exploits the spatial coherence of the mesh and index. "
+                    "Then, it extracts the indexed mesh representation of the soup and it saves that in a .off file. "
+                    "Finally, it computes the Forman gradient and extracts the morphological features, "
+                    "outputting them in .vtk files for visualization purposes (-output parameter).", cols);
+
     printf(BOLD "  IMPLEMENTATION:\n" RESET);
-    printf("          Author: Riccardo Fellegara\n");
+    printf("          Author: Riccardo Fellegara, Yunting Song\n");
     printf("          Group: UMD GeoVisualization Group\n");
-    printf("          Man-page Last Update: September 2017\n\n");
+    printf("          Man-page Last Update: September 2021\n\n");
 
     printf(BOLD "  DESCRIPTION: \n" RESET);
-    print_paragraph("Terrain trees are a new in-core family of spatial indexes for the representation and analysis of Triangulated Irregular Networks (TINs). "
-                    "Terrain trees combine a minimal encoding of the connectivity of the underlying triangle mesh with a hierarchical spatial index, implicitly "
-                    "representing the topological relations among vertices, edges and triangles. Topological relations are extracted locally within each leaf "
-                    "block of the hierarchal index at runtime, based on specific application needs.", cols);
+    print_paragraph("We propose a new in-core family of spatial indexes for the analysis "
+                    "of Triangulated Irregular Networks (TINs). We call such indexes "
+                    "Terrain trees. A Terrain tree combines a minimal encoding of the "
+                    " connectivity of the underlying triangle mesh with a hierarchical spatial "
+                    "index implicitly encoding the other topological relations among "
+                    "the mesh elements. Topological relations are extracted locally within "
+                    "each leaf block of the hierarchy at runtime, based on specific application needs. "
+                    "We introduce a new tool for the multivariate analysis of the surface by combining different scalar "
+                    "fields (i.e., the elevation and the curvature values). By computing a "
+                    "combinatorial discrete vector field we are able to study the mutual "
+                    "relationships between the different fields providing new insight on "
+                    "the terrain morphology. Moreover, we have developed other state-of-the-art estimators, "
+                    "such as slope estimation, curvature computation, "
+                    "and the extraction of the terrain critical points on the Terrain trees.", cols);
 }
 
 void print_paragraph(string stringa, int cols){
