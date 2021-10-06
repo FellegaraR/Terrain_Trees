@@ -21,6 +21,10 @@ Riccardo Fellegara, Federico Iuricich, and Leila De Floriani.
 In Proceedings of SIGSPATIAL’17, Los Angeles Area, CA, USA, November 7–10, 2017, 4 pages.
 [doi](https://dl.acm.org/citation.cfm?id=3139958.3140050)
 
+Federico Iuricich, and Leila De Floriani. *A combined geometrical and topological simplification hierarchy for terrain analysis*. In Proceedings of the 22nd ACM SIGSPATIAL, pp. 493-496. 2014. [doi](https://dl.acm.org/doi/10.1145/2666310.2666487)
+
+Suthambhara Nagaraj, Vijay Natarajan, and Ravi S. Nanjundiah. *A gradient‐based comparison measure for visual analysis of multifield data.* Computer Graphics Forum. 2011 Jun (Vol. 30, No. 3, pp. 1101-1110). [doi](https://onlinelibrary.wiley.com/doi/10.1111/j.1467-8659.2011.01959.x)
+
 ### Features ###
 
 + Three spatial indexes based on
