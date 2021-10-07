@@ -16,14 +16,14 @@ Terrain trees against a state-of-the-art compact data structures.
 
 ### Reference Paper ###
 
+Riccardo Fellegara, Yunting Song, Federico Iuricich, and Leila De Floriani.
+*Terrain trees: a framework for representing, analyzing and visualizing triangulated terrains*.
+Submitted for review, 2021.
+
 Riccardo Fellegara, Federico Iuricich, and Leila De Floriani. 
 *Efficient representation and analysis of triangulated terrains*.
 In Proceedings of SIGSPATIAL’17, Los Angeles Area, CA, USA, November 7–10, 2017, 4 pages.
 [doi](https://dl.acm.org/citation.cfm?id=3139958.3140050)
-
-Federico Iuricich, and Leila De Floriani. *A combined geometrical and topological simplification hierarchy for terrain analysis*. In Proceedings of the 22nd ACM SIGSPATIAL, pp. 493-496. 2014. [doi](https://dl.acm.org/doi/10.1145/2666310.2666487)
-
-Suthambhara Nagaraj, Vijay Natarajan, and Ravi S. Nanjundiah. *A gradient‐based comparison measure for visual analysis of multifield data.* Computer Graphics Forum. 2011 Jun (Vol. 30, No. 3, pp. 1101-1110). [doi](https://onlinelibrary.wiley.com/doi/10.1111/j.1467-8659.2011.01959.x)
 
 ### Features ###
 
@@ -41,12 +41,17 @@ Suthambhara Nagaraj, Vijay Natarajan, and Ravi S. Nanjundiah. *A gradient‐base
 + Terrain Features
     * Triangle/Edges slope computation
     * Critical Points extraction
-+ Curvature computation ([reference1](http://dl.acm.org/citation.cfm?id=1463498)and [reference2](http://www.umiacs.umd.edu/~deflo/papers/2010grapp/2010grapp.pdf))
++ Curvature computation ([reference1](http://dl.acm.org/citation.cfm?id=1463498) and [reference2](http://www.umiacs.umd.edu/~deflo/papers/2010grapp/2010grapp.pdf))
     * Concentrated curvature
     * Mean and Gaussian CCurvature 
 + Soup to indexed mesh conversion
 + Points cloud indexing
-    * multifield extraction
+    * multifield extraction ([reference paper](https://onlinelibrary.wiley.com/doi/10.1111/j.1467-8659.2011.01959.x))
++ Topology Data Analytics ([reference1](https://doi.org/10.1111/cgf.12123) and [reference2](https://doi.org/10.1145/2666310.2666412))
+    * Gradient computation
+    * Critical points extraction
+    * Data segmentation / Critical net extraction
+    * Topological simplification
 
 ### How to compile ###
 
