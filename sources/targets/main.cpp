@@ -45,8 +45,8 @@ void generate_query_inputs(cli_parameters &cli);
 template<class T> void custom_execution(T& tree, cli_parameters &cli);
 void custom_execution(PMRT_Tree& tree, cli_parameters &cli);
 
-template<class T> void SF_test(T& tree, cli_parameters &cli);
-void SF_test(PMRT_Tree& tree, cli_parameters &cli);
+template<class T> void morse_analysis(T& tree, cli_parameters &cli);
+void morse_analysis(PMRT_Tree& tree, cli_parameters &cli);
 int main(int argc, char** argv)
 {
     if(argc == 1)
@@ -82,10 +82,11 @@ int main(int argc, char** argv)
          { 
              if(cli.reindex)
             {
-              //  morse_features_extraction_and_simplification(tree,cli);
+                morse_features_extraction_and_simplification(tree,cli);
+                morse_analysis(tree,cli);
                 //  multi_morse_terrain_analysis(tree,cli);
                 //  custom_execution(tree,cli);
-                SF_test(tree,cli);
+                //SF_test(tree,cli);
             }
         }
         else{
@@ -106,10 +107,11 @@ int main(int argc, char** argv)
          { 
              if(cli.reindex)
             {
-            //    morse_features_extraction_and_simplification(tree,cli);
+               // morse_features_extraction_and_simplification(tree,cli);
+               morse_analysis(tree,cli);
                 //  multi_morse_terrain_analysis(tree,cli);
                 //  custom_execution(tree,cli);
-                SF_test(tree,cli);
+                //SF_test(tree,cli);
             }
         }
         else{
@@ -131,9 +133,9 @@ int main(int argc, char** argv)
         {        if(cli.reindex)
          {
             //   multi_morse_terrain_analysis(tree,cli);
-
+            morse_analysis(tree,cli);
             //    custom_execution(tree,cli);
-            SF_test(tree,cli);
+           //SF_test(tree,cli);
         }}
          else{
          load_tree(tree,cli);
@@ -320,7 +322,7 @@ template<class T> void load_tree(T& tree, cli_parameters &cli)
 template<class T> void morse_features_extraction_and_simplification(T& tree, cli_parameters &cli)
 {
     /// TO-DO: define a better granularity
-    if(cli.query_type != MORSE_ANALYSIS && cli.query_type != LOCAL_MORSE_SIMPLIFICATION && cli.query_type != GLOBAL_MORSE_SIMPLIFICATION)
+    if(/*cli.query_type != MORSE_ANALYSIS && */cli.query_type != LOCAL_MORSE_SIMPLIFICATION && cli.query_type != GLOBAL_MORSE_SIMPLIFICATION)
         return;
 
     stringstream out;
@@ -357,7 +359,7 @@ template<class T> void morse_features_extraction_and_simplification(T& tree, cli
 //    cout<<"IS THE TARGET EDGE CRITICAL? "<<forman_gradient.is_edge_critical(edge,et,tree.get_mesh())<<endl;
 
     /// ---- EXTRACT MORPHOLOGICAL FEATURES ---- ///
-    if(cli.query_type == MORSE_ANALYSIS)
+    /*if(cli.query_type == MORSE_ANALYSIS)
     {
         /// ---- DESCENDING 2 MANIFOLD EXTRACTION --- ///
         cout<<"[NOTA] Extract the descending 2 manifolds."<<endl;
@@ -490,12 +492,13 @@ template<class T> void morse_features_extraction_and_simplification(T& tree, cli
                 features_extractor.reset_timer_variables();
             }
         }
-    }
+    }*/
 
     /// ---- MORPHOLOGICAL SIMPLIFICATION --- ///
     if(cli.query_type == LOCAL_MORSE_SIMPLIFICATION || cli.query_type == GLOBAL_MORSE_SIMPLIFICATION)
     {
         Forman_Gradient_Simplifier forman_simplifier;
+        forman_simplifier.set_filtration_vec(gradient_computation.get_filtration());
 
         ///
         /// firstly we extract the MIG
@@ -516,7 +519,7 @@ template<class T> void morse_features_extraction_and_simplification(T& tree, cli
         ///
         if(cli.query_type == LOCAL_MORSE_SIMPLIFICATION) /// we have chosen a fully local simplification. i.e. the MIG is computed locally
         {
-            cli.persistence = 0.8;
+            //cli.persistence = 0.8;
             cout<<"[LOCALLY] Simplify the forman gradient vector."<<endl;
             time.start();
             forman_simplifier.exec_local_topological_simplification(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),
@@ -856,7 +859,9 @@ template<class T> void load_tree_lite(T& tree, cli_parameters &cli)
     }
 }
 
-template<class T> void SF_test(T& tree, cli_parameters &cli){
+template<class T> void morse_analysis(T& tree, cli_parameters &cli){
+    if(cli.query_type != MORSE_ANALYSIS)
+        return; 
     Timer time = Timer();
     cli.app_debug=OUTPUT;
     //    Topological_Queries tq;
@@ -892,15 +897,132 @@ template<class T> void SF_test(T& tree, cli_parameters &cli){
     /// ---- MORSE INCIDENCE GRAPH COMPUTATION --- ///
     features_extractor.set_filtration_vec(gradient_computation.get_filtration());
 
-    cout<<"[NOTA] Extracting the Critical Net."<<endl;
-    time.start();
-    features_extractor.extract_incidence_graph(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),cli.app_debug,cli.cache_size);
-    time.stop();
-    time.print_elapsed_time("[TIME] computing critical net ");
-    cerr << "[MEMORY] peak for computing the critical net: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+    // cout<<"[NOTA] Extracting the Critical Net."<<endl;
+    // time.start();
+    // features_extractor.extract_incidence_graph(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),cli.app_debug,cli.cache_size);
+    // time.stop();
+    // time.print_elapsed_time("[TIME] computing critical net ");
+    // cerr << "[MEMORY] peak for computing the critical net: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
     // FOR DEBUG ONLY
-    features_extractor.get_incidence_graph().print_stats(true);
+    //features_extractor.get_incidence_graph().print_stats(true);
+
+
+    
+        /// ---- DESCENDING 2 MANIFOLD EXTRACTION --- ///
+        cout<<"[NOTA] Extract the descending 2 manifolds."<<endl;
+        if(cli.app_debug == OUTPUT)
+            features_extractor.init_segmentation_vector(tree.get_mesh());
+        time.start();
+        features_extractor.extract_descending_2cells(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),tree.get_root(),
+                                                     cli.app_debug,cli.cache_size);
+        time.stop();
+
+        if(cli.app_debug == OUTPUT) //get statistics
+        {
+            features_extractor.print_stats();
+            features_extractor.reset_stats();
+            Writer_Morse::write_desc2cells_VTK(out.str(),"desc2cells", cli.v_per_leaf,
+                                               features_extractor.get_segmentation_vector(),tree.get_mesh(),cli.original_triangle_indices,
+                                               cli.original_vertex_indices,cli.original_vertex_fields,cli.rever_to_original);
+            features_extractor.reset_output_structures(tree.get_mesh());
+        }
+        else //get timings
+        {
+            time.print_elapsed_time("[TIME] extract descending 2-cells ");
+            if(cli.app_debug == TIME_VERBOSE)
+            {
+                features_extractor.print_feature_extraction_time();
+                features_extractor.reset_timer_variables();
+            }
+        }
+
+        /// ---- DESCENDING 1 MANIFOLD EXTRACTION --- ///
+        cout<<"[NOTA] Extract the descending 1 manifolds."<<endl;
+        time.start();
+        features_extractor.extract_descending_1cells(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),tree.get_root(),
+                                                     cli.app_debug,cli.cache_size);
+        time.stop();
+
+        if(cli.app_debug == OUTPUT)
+        {
+            features_extractor.print_stats();
+            features_extractor.reset_stats();
+            Writer_Morse::write_desc1cells_VTK(out.str(),"desc1cells", cli.v_per_leaf,
+                                               features_extractor.get_extracted_cells(EDGE), tree.get_mesh(), cli.original_vertex_indices,
+                                               cli.original_vertex_fields,cli.rever_to_original);
+            features_extractor.reset_output_structures(tree.get_mesh());
+        }
+        else //get timings
+        {
+            time.print_elapsed_time("[TIME] extract descending 1-cells ");
+            if(cli.app_debug == TIME_VERBOSE)
+            {
+                features_extractor.print_feature_extraction_time();
+                features_extractor.reset_timer_variables();
+            }
+        }
+
+        /// ---- ASCENDING 2 MANIFOLD EXTRACTION --- ///
+        cout<<"[NOTA] Extract the ascending 2 manifolds."<<endl;
+        if(cli.app_debug == OUTPUT)
+            features_extractor.init_ascending_segmentation_vector(tree.get_mesh());
+        time.start();
+        features_extractor.extract_ascending_2cells(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),tree.get_root(),
+                                                    cli.app_debug,cli.cache_size);
+        time.stop();
+
+        if(cli.app_debug == OUTPUT)
+        {
+            features_extractor.print_stats();
+            features_extractor.reset_stats();
+            Writer_Morse::write_asc2cells_VTK(out.str(),"asc2cells", cli.v_per_leaf,
+                                              features_extractor.get_ascending_segmentation(), tree.get_mesh(), cli.original_vertex_indices,
+                                              cli.original_vertex_fields,cli.rever_to_original);
+            features_extractor.reset_output_structures(tree.get_mesh());
+        }
+        else //get timings
+        {
+            time.print_elapsed_time("[TIME] extract ascending 2-cells ");
+            if(cli.app_debug == TIME_VERBOSE)
+            {
+                features_extractor.print_feature_extraction_time();
+                features_extractor.reset_timer_variables();
+            }
+        }
+
+        /// ---- ASCENDING 1 MANIFOLD EXTRACTION --- ///
+        cout<<"[NOTA] Extract the ascending 1 manifolds."<<endl;
+        time.start();
+        features_extractor.extract_ascending_1cells(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),tree.get_root(),
+                                                    cli.app_debug,cli.cache_size);
+        time.stop();
+
+        if(cli.app_debug == OUTPUT)
+        {
+            features_extractor.print_stats();
+            features_extractor.reset_stats();
+            Writer_Morse::write_asc1cells_VTK(out.str(),"asc1cells", cli.v_per_leaf,
+                                              features_extractor.get_extracted_cells(TRIANGLE), tree.get_mesh(), cli.original_triangle_indices,
+                                              cli.original_vertex_indices,cli.original_vertex_fields,cli.rever_to_original);
+            features_extractor.reset_output_structures(tree.get_mesh());
+        }
+        else //get timings
+        {
+            time.print_elapsed_time("[TIME] extract ascending 1-cells ");
+            if(cli.app_debug == TIME_VERBOSE)
+            {
+                features_extractor.print_feature_extraction_time();
+                features_extractor.reset_timer_variables();
+            }
+        }
+
+        /// ---- MORSE INCIDENCE GRAPH COMPUTATION --- ///
+        cout<<"[NOTA] Extract the Morse Incidence Graph."<<endl;
+        time.start();
+        features_extractor.extract_incidence_graph(tree.get_root(),tree.get_mesh(),forman_gradient,tree.get_subdivision(),cli.app_debug,cli.cache_size);
+        time.stop();
+
 
     if(cli.app_debug == TIME_VERBOSE)
     {
@@ -919,8 +1041,9 @@ template<class T> void SF_test(T& tree, cli_parameters &cli){
 }
 
 
-void SF_test(PMRT_Tree& tree, cli_parameters &cli){
-
+void morse_analysis(PMRT_Tree& tree, cli_parameters &cli){
+    if(cli.query_type != MORSE_ANALYSIS)
+        return; 
     Timer time = Timer();
     cli.app_debug=OUTPUT;
     //    Topological_Queries tq;
@@ -1190,6 +1313,53 @@ template<class T> void compute_terrain_features(T& tree, cli_parameters &cli)
         cpe.print_stats();
         cerr << "[MEMORY] peak for computing the critical points: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
     }
+    if(cli.query_type==ROUGHNESS)
+    {
+        cout<<"[NOTA]Border checking"<<endl;
+        Border_Checker border_checker=Border_Checker();
+        time.start();
+        border_checker.compute_borders(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
+        time.stop();
+        time.print_elapsed_time("[TIME] Border Checking time:");
+
+        cout<<"[NOTA] compute roughness"<<endl;
+
+        Roughness roughness = Roughness(tree.get_mesh());
+        time.start();
+        roughness.compute(tree.get_root(),tree.get_mesh(),tree.get_subdivision());
+        time.stop();
+        time.print_elapsed_time("[TIME] roughness computation: ");
+        cerr << "[MEMORY] peak for computing Roughness: " <<
+        to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+        roughness.store_result(tree.get_mesh());
+        roughness.print_roughness_stats(tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
+    }
+    if(cli.query_type==MULTIFIELD)
+    {
+        stringstream out;
+        out << get_path_without_file_extension(cli.mesh_path);
+        cout<<"[NOTA] compute multifield-based value"<<endl;
+        Timer time;
+
+    //   Built-in parameters
+        int factor=100;
+
+        Gradient gradient(tree.get_mesh().get_vertex(1).get_fields_num());
+    //   
+        time.start();
+        gradient.compute_field_stats(tree.get_mesh(),factor);
+        gradient.multi_field(tree.get_root(),tree.get_mesh(),tree.get_subdivision());
+        time.stop();
+        time.print_elapsed_time("[TIME] multi-field computation: ");
+
+        cerr << "[MEMORY] peak for computing Multi field measure: " <<
+        to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+
+        gradient.print_multifield_stats(tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
+
+   }
+
+
 }
 
 void compute_terrain_features(PMRT_Tree& tree, cli_parameters &cli)
@@ -1225,4 +1395,49 @@ void compute_terrain_features(PMRT_Tree& tree, cli_parameters &cli)
         cpe.print_stats();
         cerr << "[MEMORY] peak for computing the critical points: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
     }
+    if(cli.query_type==ROUGHNESS)
+    {
+
+    Timer time;
+     cout<<"[NOTA]Border checking"<<endl;
+    Border_Checker border_checker=Border_Checker();
+    time.start();
+    border_checker.compute_borders(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
+    time.stop();
+    time.print_elapsed_time("[TIME] Border Checking time:");
+    cout<<"[NOTA] compute roughness"<<endl;
+    Roughness roughness = Roughness(tree.get_mesh());
+    time.start();
+    roughness.compute(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
+    time.stop();
+    time.print_elapsed_time("[TIME] roughness computation: ");
+         cerr << "[MEMORY] peak for computing Roughness: " <<
+        to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+               roughness.store_result(tree.get_mesh());
+    roughness.print_roughness_stats(tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
+    
+    }
+     if(cli.query_type==MULTIFIELD)
+     {
+
+    Timer time;
+    time.start();
+     //   Built-in parameters
+
+    int factor=100;
+
+    Gradient gradient(tree.get_mesh().get_vertex(1).get_fields_num());
+
+    gradient.compute_field_stats(tree.get_mesh(),factor);
+    cout<<"[NOTA] compute multifield-based value"<<endl;
+    gradient.multi_field(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
+    time.stop();
+    time.print_elapsed_time("[TIME] multi-field computation: ");
+
+    cerr << "[MEMORY] peak for computing Multi field measure: " <<
+    to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+    gradient.print_multifield_stats(tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
+
+     }
+
 }

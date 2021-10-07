@@ -69,6 +69,11 @@ public:
            
         }
     };
+    Gradient(int num){
+        for(int i=0;i<num;i++){
+            fields.push_back(i);
+        }
+    }
     virtual ~Gradient();
     
 

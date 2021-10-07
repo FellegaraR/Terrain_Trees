@@ -167,7 +167,7 @@ int read_arguments(int argc, char** argv, cli_parameters &variables)
                 else if(tok[0]=="simpl")
                     variables.query_type = LOCAL_MORSE_SIMPLIFICATION;
                 else if(tok[0]=="gsimpl")
-                    variables.query_type = GLOBAL_MORSE_SIMPLIFICATION;
+                     variables.query_type = GLOBAL_MORSE_SIMPLIFICATION;
                 else if(tok[0]=="multiv")
                     variables.query_type = MULTIVARIATE_MORSE_ANALYSIS;
                 else if(tok[0]=="filter")
@@ -176,6 +176,10 @@ int read_arguments(int argc, char** argv, cli_parameters &variables)
                     variables.query_type = CRITICAL_POINTS;
                 else if(tok[0]=="slopes")
                     variables.query_type = SLOPES;
+                else if(tok[0]=="rough")
+                    variables.query_type = ROUGHNESS;
+                else if(tok[0]=="multifield")
+                    variables.query_type = MULTIFIELD;
                 /// CUSTOM COMMAND --- TEMPORARY COMMAND FOR JOURNAL PAPER
                 else if(tok[0]=="custom")
                     variables.query_type = CUSTOM;
@@ -274,9 +278,11 @@ void print_help()
                     "'mccurv' extracts the Mean CCurvature, "
                     "'gccurv' extracts the Gaussian CCurvature, "
                     "'slopes' extracts the slope values for the triangles and edges of the terrain, "
+                    "'rough' extracts the roughness values for the vertices of the terrain, "
+                    "'multifield' extracts the multifield measure for the vertices of the terrain (Note that the input data should have more than one field), "
                     "'crit' extracts the critical points of the terrain, "                    
                     "'morse' computes the Forman gradient vector, extracts 2/1 descending/ascending manifolds and the Morse indicence graph, "
-                    "'simpl' computes the Forman gradient vector and simplify it using a local Morse incidence graph,"
+                    "'simpl' computes the Forman gradient vector and simplify it using a local Morse incidence graph, [Developing]"
                     "'gsimpl' computes the Forman gradient vector and simplify it using a global Morse incidence graph, "
                     "'multiv' computes the Multivariate Morse analysis by generating the Multivariate gradient and extracting the Critical Clusters, "
                     "'filter' reads a points cloud generates a PR tree, extracts the multifield of each 2D point and finally outputs both"

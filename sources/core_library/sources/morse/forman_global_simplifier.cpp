@@ -160,7 +160,7 @@ void Forman_Gradient_Simplifier::global_topological_simplification_leaf(Node_V &
 //    cout<<n<<endl;
     priority_arcs_queue queue;
     this->build_persistence_queue(queue,local_rels.get_ETs(),mesh,gradient,persistence); /// add a subset of the arcs of the local MIG
-    cout<<"======FINISHED BUILD QUEUE====="<<endl;
+   // cout<<"======FINISHED BUILD QUEUE====="<<endl;
     if(max_priority_queue_size < (int)queue.size())
         max_priority_queue_size = queue.size();
 
@@ -284,7 +284,7 @@ void Forman_Gradient_Simplifier::contraction(nNode *extrema, iNode *saddle, prio
     // cout<<"DEBUG:"<<filtration[676950]<<"; "<<filtration[676951]<<"; "<<filtration[678751]<<";"<<filtration[677851]<<endl;
 
     // }
-    cout<<"[CONTRACTION]Filtration value: "<<filtration[saddle->get_critical_index()-1]<<endl;
+    //cout<<"[CONTRACTION]Filtration value: "<<filtration[saddle->get_critical_index()-1]<<endl;
    // cout<<"[CONTRACTION]Minimum Filtration value: "<<filtration[extrema->get_critical_index()-1]<<endl;
     forman_ig.remove_saddle(saddle->get_edge_id(),saddle);
     forman_ig.remove_minimum(extrema->get_critical_index(),extrema);
@@ -328,7 +328,7 @@ void Forman_Gradient_Simplifier::removal(nNode *extrema, iNode *saddle, priority
     remove_saddle_arcs(saddle,false,forman_ig);
     /// remove the saddle and the maximum
    //cout<<"REMOVAL SADDLE: "<<*saddle<<endl;
-    cout<<"[REMOVAL]Filtration value: "<<filtration[saddle->get_critical_index()-1]<<endl;
+   // cout<<"[REMOVAL]Filtration value: "<<filtration[saddle->get_critical_index()-1]<<endl;
     //cout<<"[REMOVAL]Maximum Filtration value: "<<filtration[get_max_elevation_vertex(mesh.get_triangle(extrema->get_critical_index()))-1]<<endl;
     forman_ig.remove_saddle(saddle->get_edge_id(),saddle);
     forman_ig.remove_maximum(extrema->get_critical_index(),extrema);

@@ -43,7 +43,7 @@ enum QueryType { POINT, BOX, WINDVT, WINDTT, BATCH,
                  FILTER,
                  SLOPES/*, ESLOPE, TSLOPE*/, CRITICAL_POINTS,
                  CUSTOM,
-                 NULL_QUERY };
+                 NULL_QUERY,ROUGHNESS,MULTIFIELD };
 enum SpatialDecType {KD = 2, QUAD = 4, UNSET = -1};
 #define BOLD  "\033[1m\033[33m" //for dark background shell
 //#define BOLD "\033[1m\033[31m"  //for white background shell

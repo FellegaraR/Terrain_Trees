@@ -41,6 +41,7 @@ In Proceedings of SIGSPATIAL’17, Los Angeles Area, CA, USA, November 7–10, 2
 + Terrain Features
     * Triangle/Edges slope computation
     * Critical Points extraction
+    * Roughness computation
 + Curvature computation ([reference1](http://dl.acm.org/citation.cfm?id=1463498) and [reference2](http://www.umiacs.umd.edu/~deflo/papers/2010grapp/2010grapp.pdf))
     * Concentrated curvature
     * Mean and Gaussian CCurvature 
@@ -51,7 +52,7 @@ In Proceedings of SIGSPATIAL’17, Los Angeles Area, CA, USA, November 7–10, 2
     * Gradient computation
     * Critical points extraction
     * Data segmentation / Critical net extraction
-    * Topological simplification
+    * Topological simplification (PR-T tree only)
 
 ### How to compile ###
 
