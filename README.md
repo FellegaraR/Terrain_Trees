@@ -41,7 +41,7 @@ In Proceedings of SIGSPATIAL’17, Los Angeles Area, CA, USA, November 7–10, 2
 + Terrain Features
     * Triangle/Edges slope computation
     * Critical Points extraction
-    * Roughness computation
+    * Roughness computation ([reference paper](https://doi.org/10.1029/2000JE001429))
 + Curvature computation ([reference1](http://dl.acm.org/citation.cfm?id=1463498) and [reference2](http://www.umiacs.umd.edu/~deflo/papers/2010grapp/2010grapp.pdf))
     * Concentrated curvature
     * Mean and Gaussian CCurvature 
