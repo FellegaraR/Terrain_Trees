@@ -511,7 +511,7 @@ void Writer::write_multifield_points_cloud(string mesh_name, vertex_multifield &
     output.close();
 }
 
-void Writer::write_critical_points(string mesh_name, map<short,set<ivect> > &critical_simplices, Mesh &mesh)
+void Writer::write_critical_points_morse(string mesh_name, map<short,set<ivect> > &critical_simplices, Mesh &mesh)
 {
     stringstream stream, stream2;
     stream<<mesh_name<<"_critical_points.vtk";
@@ -571,6 +571,54 @@ void Writer::write_critical_points(string mesh_name, map<short,set<ivect> > &cri
     output.close();
 }
 
+void Writer::write_critical_points(string mesh_name, vector<short> &critical_points, Mesh &mesh)
+{
+    stringstream stream, stream2;
+    stream<<mesh_name<<"_critical_points.vtk";
+    stream2<<mesh_name<<"_critical_points.txt";
+    ofstream output2(stream2.str().c_str());
+    output2.unsetf( std::ios::floatfield ); // floatfield not set
+    output2.precision(15);
+
+    vector<itype> crit;
+    for(itype d=0; d<critical_points.size(); d++)
+    {
+
+            Vertex v = mesh.get_vertex(d+1);
+
+            output2<<v.get_x()<<" "<<v.get_y()<<" "<<v.get_z()<<" "<<critical_points[d];
+            output2<<endl;
+            if(critical_points[d]!=0)
+              crit.push_back(d+1);
+    }
+    output2.close();
+
+    ofstream output(stream.str().c_str());
+    output.unsetf( std::ios::floatfield ); // floatfield not set
+    output.precision(15);
+    output<< "# vtk DataFile Version 2.0"<<endl<<endl;
+    output<< "ASCII "<<endl;
+    output<< "DATASET UNSTRUCTURED_GRID"<<endl<<endl;;
+    output<< "POINTS "<<crit.size()<<" float"<<endl;
+
+    for(int vid:crit){
+        Vertex v=mesh.get_vertex(vid);
+        output<<v.get_x()<<" "<<v.get_y()<<" "<<v.get_z()<<endl;
+        }
+    output<<endl<<endl;
+
+    output<< "POINT_DATA "<<crit.size()<<endl;
+    output<< "FIELD FieldData 1"<<endl;
+    output<< "cp_type 1 "<<crit.size()<<" float"<<endl;
+
+    for(itype d=0; d<crit.size(); d++)
+    {
+            output<<critical_points[crit[d]-1]<<" ";
+    }
+    output<<endl;
+    output.close();
+}
+
 void Writer::write_field_csv(string mesh_name, Mesh& mesh){
 
    stringstream stream;
@@ -594,6 +642,56 @@ void Writer::write_field_csv(string mesh_name, Mesh& mesh){
         output<<endl;
        
     }
+
+    output.close();
+}
+
+void Writer::write_tri_slope_VTK(string mesh_name, Mesh &mesh,map<itype,coord_type> slopes)
+{
+  stringstream stream;
+    stream<<mesh_name<<"_slope_.vtk";
+    ofstream output(stream.str().c_str());
+    output.unsetf( std::ios::floatfield ); // floatfield not set
+    output.precision(15);
+
+    output<<"# vtk DataFile Version 2.0" << endl << endl
+         << "ASCII" << endl << "DATASET UNSTRUCTURED_GRID " <<  endl << endl;
+
+    output<< "POINTS " << mesh.get_vertices_num() << " float" << endl;
+
+    for(itype v=1; v<=mesh.get_vertices_num(); v++)
+    {
+        Vertex& vert = mesh.get_vertex(v);
+        output<<vert.get_x()<<" "<<vert.get_y()<<" "<<"0"<<endl;
+    }
+
+    output<<endl << "CELLS " << mesh.get_triangles_num() << " " << (mesh.get_triangles_num()*4) << endl;
+
+    for(itype t=1; t<=mesh.get_triangles_num(); t++)
+    {
+        output<<"3 ";
+        for(int i=0; i< mesh.get_triangle(t).vertices_num(); i++)
+            output<<mesh.get_triangle(t).TV(i)-1<<" ";
+        output<<endl;
+    }
+
+    output<< endl << "CELL_TYPES " << mesh.get_triangles_num() << endl;
+    for (itype i = 0; i < mesh.get_triangles_num(); ++i)
+        output<< "6 ";
+    output<< endl;
+
+
+    output<< "CELL_DATA " << mesh.get_triangles_num() << endl;
+    output<< "FIELD FieldData 1" << endl << endl;
+    output<< "slope 1 " << mesh.get_triangles_num() << " float" << endl;
+
+    for(itype i=0; i<mesh.get_triangles_num(); i++)
+    {
+            output<< slopes[i] << " ";
+
+    }
+
+    output<<endl;
 
     output.close();
 }

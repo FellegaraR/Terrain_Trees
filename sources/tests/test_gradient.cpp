@@ -160,7 +160,6 @@ template<class T> void compute_roughness(T& tree, cli_parameters &cli)
     time.print_elapsed_time("[TIME] roughness computation: ");
      cerr << "[MEMORY] peak for computing Roughness: " <<
         to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
-           roughness.store_result(tree.get_mesh());
     roughness.print_roughness_stats(tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
  
   // Writer::write_mesh_roughness_VTK(out.str(),tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
@@ -187,7 +186,6 @@ void compute_roughness(PMRT_Tree& tree, cli_parameters &cli)
     time.print_elapsed_time("[TIME] roughness computation: ");
          cerr << "[MEMORY] peak for computing Roughness: " <<
         to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
-               roughness.store_result(tree.get_mesh());
     roughness.print_roughness_stats(tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
     }
 

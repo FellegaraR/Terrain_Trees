@@ -22,7 +22,7 @@ class Roughness
 {
 public:
     Roughness() {}
-    Roughness(Mesh &mesh){roughness.assign(mesh.get_vertices_num()+1,0);time_in_leaves=0;}
+    Roughness(Mesh &mesh){}
     virtual ~Roughness(){}
   void compute(Node_V &n, Mesh &mesh, Spatial_Subdivision &division);
 
@@ -43,20 +43,20 @@ public:
         cerr<<"[STATS] roughness min: "<<min<<" avg: "<<avg/(coord_type)mesh.get_vertices_num()<<" max: "<<max<<endl;
     }
   
-void store_result(Mesh &mesh){
+// void store_result(Mesh &mesh){
 
-    for(itype v=1;v<=mesh.get_vertices_num();v++)
-    {
-        mesh.get_vertex(v).add_field(roughness[v]);
+//     for(itype v=1;v<=mesh.get_vertices_num();v++)
+//     {
+//         mesh.get_vertex(v).add_field(roughness[v]);
        
-    }
+//     }
 
-};
-  void print_time(){cout<<"Overall time in leaves"<<time_in_leaves<<endl;};
+// };
+//  void print_time(){cout<<"Overall time in leaves"<<time_in_leaves<<endl;};
 private:
  
-    dvect roughness;
-    coord_type time_in_leaves;
+ //   dvect roughness;
+   
        leaf_VV_vec  vvs;
    void roughness_leaf(Node_V& n, Mesh& mesh);
    void roughness_leaf(Node_T &n, Box &n_dom, Mesh &mesh);

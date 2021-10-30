@@ -118,7 +118,7 @@ public:
     static void write_mesh_roughness_VTK(string mesh_name, Mesh &mesh, int c_pos);
     static void write_mesh_gradient_VTK(string mesh_name, Mesh &mesh, int c_pos);
     static void write_mesh_multifield_VTK(string mesh_name, Mesh &mesh, int c_pos,string mode);
-    
+    static void write_tri_slope_VTK(string mesh_name, Mesh &mesh,map<itype,coord_type> slopes);
     
     static void write_filtered_points_cloud(string mesh_name, Mesh &mesh); /// SpatialHadoop format
     static void write_filtered_points_cloud_with_id(string mesh_name, Mesh &mesh); /// SpatialHadoop format with vertex index
@@ -126,7 +126,11 @@ public:
 
     
     static void write_field_csv(string mesh_name, Mesh &mesh);
-    static void write_critical_points(string mesh_name, map<short, set<ivect> > &critical_simplices, Mesh &mesh);    
+    // Write critical points representing critical simplices
+    static void write_critical_points_morse(string mesh_name, map<short, set<ivect> > &critical_simplices, Mesh &mesh);    
+    
+    // Write critical points based on elevation
+    static void write_critical_points(string mesh_name, vector<short> &critical_simplices, Mesh &mesh);    
 
 protected:
     ///A constructor method

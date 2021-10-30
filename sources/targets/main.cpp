@@ -1045,7 +1045,7 @@ void morse_analysis(PMRT_Tree& tree, cli_parameters &cli){
     if(cli.query_type != MORSE_ANALYSIS)
         return; 
     Timer time = Timer();
-    cli.app_debug=OUTPUT;
+    //cli.app_debug=OUTPUT;
     //    Topological_Queries tq;
     //    tq.batched_VT(tree.get_root(),tree.get_mesh().get_domain(),tree.get_mesh(),tree.get_subdivision(),cli.reindex);
 
@@ -1283,6 +1283,8 @@ void generate_query_inputs(cli_parameters &cli)
 template<class T> void compute_terrain_features(T& tree, cli_parameters &cli)
 {
     Timer time;
+    stringstream out;
+    out << get_path_without_file_extension(cli.mesh_path);
     if(cli.query_type == SLOPES)
     {
         Slope_Extractor se;
@@ -1293,7 +1295,10 @@ template<class T> void compute_terrain_features(T& tree, cli_parameters &cli)
         se.print_slopes_stats(tree.get_mesh().get_triangles_num());
         se.reset_stats();
         cerr << "[MEMORY] peak for computing the triangle-slopes: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
-
+        if(cli.app_debug==OUTPUT){
+          map<itype,coord_type> slopes = se.get_tri_slopes();
+        Writer::write_tri_slope_VTK(out.str(),tree.get_mesh(),slopes);
+        }
         time.start();
         se.compute_edges_slopes(tree.get_root(),tree.get_mesh(),tree.get_subdivision());
         time.stop();
@@ -1312,6 +1317,11 @@ template<class T> void compute_terrain_features(T& tree, cli_parameters &cli)
         time.print_elapsed_time("[TIME] critical points extraction: ");
         cpe.print_stats();
         cerr << "[MEMORY] peak for computing the critical points: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+        if(cli.app_debug==OUTPUT){
+          vector<short> crit_points= cpe.get_critical_points();
+          Writer::write_critical_points(out.str(),crit_points,tree.get_mesh());
+        }
+        
     }
     if(cli.query_type==ROUGHNESS)
     {
@@ -1331,8 +1341,10 @@ template<class T> void compute_terrain_features(T& tree, cli_parameters &cli)
         time.print_elapsed_time("[TIME] roughness computation: ");
         cerr << "[MEMORY] peak for computing Roughness: " <<
         to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
-        roughness.store_result(tree.get_mesh());
         roughness.print_roughness_stats(tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
+
+        if(cli.app_debug==OUTPUT)
+        Writer::write_mesh_roughness_VTK(out.str(),tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
     }
     if(cli.query_type==MULTIFIELD)
     {
@@ -1356,6 +1368,8 @@ template<class T> void compute_terrain_features(T& tree, cli_parameters &cli)
         to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
         gradient.print_multifield_stats(tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
+         if(cli.app_debug==OUTPUT)
+        Writer::write_mesh_multifield_VTK(out.str(),tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1,"all");
 
    }
 
@@ -1365,6 +1379,8 @@ template<class T> void compute_terrain_features(T& tree, cli_parameters &cli)
 void compute_terrain_features(PMRT_Tree& tree, cli_parameters &cli)
 {
     Timer time;
+    stringstream out;
+    out << get_path_without_file_extension(cli.mesh_path);
     if(cli.query_type == SLOPES)
     {
         Slope_Extractor se;
@@ -1374,6 +1390,10 @@ void compute_terrain_features(PMRT_Tree& tree, cli_parameters &cli)
         time.print_elapsed_time("[TIME] triangle-slopes computation: ");
         se.print_slopes_stats(tree.get_mesh().get_triangles_num());
         se.reset_stats();
+        if(cli.app_debug==OUTPUT){
+          map<itype,coord_type> slopes = se.get_tri_slopes();
+        Writer::write_tri_slope_VTK(out.str(),tree.get_mesh(),slopes);
+        }
         cerr << "[MEMORY] peak for computing the triangle-slopes: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
 
         time.start();
@@ -1394,6 +1414,10 @@ void compute_terrain_features(PMRT_Tree& tree, cli_parameters &cli)
         time.print_elapsed_time("[TIME] critical points extraction: ");
         cpe.print_stats();
         cerr << "[MEMORY] peak for computing the critical points: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
+        if(cli.app_debug==OUTPUT){
+          vector<short> crit_points= cpe.get_critical_points();
+          Writer::write_critical_points(out.str(),crit_points,tree.get_mesh());
+        }
     }
     if(cli.query_type==ROUGHNESS)
     {
@@ -1411,10 +1435,12 @@ void compute_terrain_features(PMRT_Tree& tree, cli_parameters &cli)
     roughness.compute(tree.get_root(),tree.get_mesh().get_domain(),0,tree.get_mesh(),tree.get_subdivision());
     time.stop();
     time.print_elapsed_time("[TIME] roughness computation: ");
-         cerr << "[MEMORY] peak for computing Roughness: " <<
-        to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
-               roughness.store_result(tree.get_mesh());
+    cerr << "[MEMORY] peak for computing Roughness: " <<
+    to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
     roughness.print_roughness_stats(tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
+
+    if(cli.app_debug==OUTPUT)
+    Writer::write_mesh_roughness_VTK(out.str(),tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
     
     }
      if(cli.query_type==MULTIFIELD)
@@ -1437,7 +1463,8 @@ void compute_terrain_features(PMRT_Tree& tree, cli_parameters &cli)
     cerr << "[MEMORY] peak for computing Multi field measure: " <<
     to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
     gradient.print_multifield_stats(tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1);
-
+    if(cli.app_debug==OUTPUT)
+    Writer::write_mesh_multifield_VTK(out.str(),tree.get_mesh(),tree.get_mesh().get_vertex(1).get_fields_num()-1,"all");
      }
 
 }

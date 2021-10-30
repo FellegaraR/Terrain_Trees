@@ -93,6 +93,8 @@ void Roughness::roughness_leaf(Node_V& n, Mesh& mesh)
         VV_vec &vv = vvs[i];
         coord_type zDistSum = 0;
         coord_type zSum=0;
+        Vertex &v = mesh.get_vertex(real_v_id);
+        zSum+=v.get_z();
            for(auto vid:vv)
         { 
             Vertex &v2=mesh.get_vertex(vid);
@@ -100,7 +102,7 @@ void Roughness::roughness_leaf(Node_V& n, Mesh& mesh)
            
         }
         coord_type zAVG=zSum/vv.size();
-
+        zDistSum += (v.get_z()-zAVG) * (v.get_z()-zAVG);
         for(auto vid:vv)
         {
             Vertex &v2=mesh.get_vertex(vid);
@@ -108,8 +110,9 @@ void Roughness::roughness_leaf(Node_V& n, Mesh& mesh)
                     
         }
         
-        roughness[real_v_id]=sqrt(zDistSum/vv.size());
-        
+        //roughness[real_v_id]
+        coord_type roughness=sqrt(zDistSum/vv.size());
+        mesh.get_vertex(i+v_start).add_field(roughness);
     }
     vvs.clear();
 
@@ -139,7 +142,8 @@ void Roughness::roughness_leaf(Node_T &n, Box &n_dom, Mesh &mesh)
         VV_vec &vv = vvs[i];
         coord_type zDistSum = 0.0;
         coord_type zSum=0.0;
-        
+        Vertex &v = mesh.get_vertex(real_v_id);
+        zSum+=v.get_z();
         for(auto vid:vv)
         {
             Vertex &v2=mesh.get_vertex(vid);
@@ -147,13 +151,15 @@ void Roughness::roughness_leaf(Node_T &n, Box &n_dom, Mesh &mesh)
         
         }
         coord_type zAVG=zSum/vv.size();
+        zDistSum += (v.get_z()-zAVG) * (v.get_z()-zAVG);
         for(auto vid:vv)
         {
             Vertex &v2=mesh.get_vertex(vid);
             zDistSum+= (v2.get_z()-zAVG)*(v2.get_z()-zAVG);
                     
         }
-    roughness[real_v_id]=sqrt(zDistSum/vv.size()); 
+        coord_type roughness=sqrt(zDistSum/vv.size());
+        mesh.get_vertex(i+v_start).add_field(roughness);
     }
 
     vvs.clear();
