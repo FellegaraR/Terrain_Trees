@@ -514,8 +514,8 @@ void Writer::write_multifield_points_cloud(string mesh_name, vertex_multifield &
 void Writer::write_critical_points_morse(string mesh_name, map<short,set<ivect> > &critical_simplices, Mesh &mesh)
 {
     stringstream stream, stream2;
-    stream<<mesh_name<<"_critical_points.vtk";
-    stream2<<mesh_name<<"_critical_points.txt";
+    stream<<mesh_name<<"_critical_points_morse.vtk";
+    stream2<<mesh_name<<"_critical_points_morse.txt";
 
     ofstream output2(stream2.str().c_str());
     output2.unsetf( std::ios::floatfield ); // floatfield not set

@@ -629,6 +629,9 @@ void multi_morse_terrain_analysis(PMRT_Tree &tree, cli_parameters &cli)
 
     cout<<"[NOTA] Compute the gradient field"<<endl;
     time.start();
+    if(cli.app_debug == OUTPUT)
+    gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh().get_domain(),tree.get_mesh(),tree.get_subdivision(),true);
+    else
     gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh().get_domain(),tree.get_mesh(),tree.get_subdivision());
     time.stop();
     time.print_elapsed_time("[TIME] computing gradient vector field ");
@@ -668,7 +671,10 @@ template<class T> void custom_execution(T& tree, cli_parameters &cli)
     time.stop();
     time.print_elapsed_time("[TIME] Initial filtering");
     time.start();
-    gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh(),tree.get_subdivision());
+    if(cli.app_debug == OUTPUT)
+        gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh(),tree.get_subdivision(),true);
+    else
+        gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh(),tree.get_subdivision());
     time.stop();
     time.print_elapsed_time("[TIME] computing gradient vector field ");
     cerr << "[MEMORY] peak for computing the Forman Gradient: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;
@@ -885,6 +891,9 @@ template<class T> void morse_analysis(T& tree, cli_parameters &cli){
 
     cout<<"[NOTA] Computing the gradient field"<<endl;
     time.start();
+    if(cli.app_debug == OUTPUT)
+        gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh(),tree.get_subdivision(),true);
+    else
     gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh(),tree.get_subdivision());
     time.stop();
     time.print_elapsed_time("[TIME] computing gradient vector field ");
@@ -892,6 +901,14 @@ template<class T> void morse_analysis(T& tree, cli_parameters &cli){
 
     stringstream out;
     out << get_path_without_file_extension(cli.mesh_path);
+
+        /// Extract critical points
+    if(cli.app_debug == OUTPUT)
+        {
+            Writer::write_critical_points_morse(out.str(),gradient_computation.get_critical_simplices(),tree.get_mesh());
+        }
+    
+
 
     Forman_Gradient_Features_Extractor features_extractor;
     /// ---- MORSE INCIDENCE GRAPH COMPUTATION --- ///
@@ -908,7 +925,6 @@ template<class T> void morse_analysis(T& tree, cli_parameters &cli){
     //features_extractor.get_incidence_graph().print_stats(true);
 
 
-    
         /// ---- DESCENDING 2 MANIFOLD EXTRACTION --- ///
         cout<<"[NOTA] Extract the descending 2 manifolds."<<endl;
         if(cli.app_debug == OUTPUT)
@@ -1066,7 +1082,10 @@ void morse_analysis(PMRT_Tree& tree, cli_parameters &cli){
     gradient_computation.reset_filtering(tree.get_mesh(),cli.original_vertex_indices);
 
     time.start();
-    gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh().get_domain(),tree.get_mesh(),tree.get_subdivision());
+    if(cli.app_debug == OUTPUT)
+        gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh().get_domain(),tree.get_mesh(),tree.get_subdivision(),true);
+    else
+        gradient_computation.compute_gradient_vector(forman_gradient,tree.get_root(),tree.get_mesh().get_domain(),tree.get_mesh(),tree.get_subdivision());
     time.stop();
     time.print_elapsed_time("[TIME] computing gradient vector field ");
     cerr << "[MEMORY] peak for computing the Forman Gradient: " << to_string(MemoryUsage().get_Virtual_Memory_in_MB()) << " MBs" << std::endl;

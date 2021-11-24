@@ -24,12 +24,15 @@
 
 #include "forman_gradient_computation.h"
 #include "utilities/container_utilities.h"
-
-void Forman_Gradient_Computation::compute_gradient_vector(Forman_Gradient &gradient, Node_V &n, Mesh &mesh,
-                                                                       Spatial_Subdivision &division)
+void Forman_Gradient_Computation::compute_gradient_vector(Forman_Gradient &gradient, Node_V &n, Mesh &mesh,Spatial_Subdivision &division, bool output)
 {
    // this->initial_filerting(mesh);
-        _min=saddle=_max=0;
+   this->output = output;
+   if(output){
+    for(int d=0; d<3; d++)
+        critical_simplices[d]=ivect_set();// Initialization 
+   }
+    _min=saddle=_max=0;
     this->compute_local_gradient_vector(gradient,n,mesh,division);
     cerr <<"minima("<< this->_min
         << ") saddles(" << this->saddle
@@ -37,11 +40,21 @@ void Forman_Gradient_Computation::compute_gradient_vector(Forman_Gradient &gradi
     
    
 }
+void Forman_Gradient_Computation::compute_gradient_vector(Forman_Gradient &gradient, Node_V &n, Mesh &mesh,Spatial_Subdivision &division)
+{
 
-void Forman_Gradient_Computation::compute_gradient_vector(Forman_Gradient &gradient, Node_T &n, Box &n_dom, Mesh &mesh,
-                                                                       Spatial_Subdivision &division)
+    compute_gradient_vector(gradient,n,mesh,division,false);
+   
+}
+
+void Forman_Gradient_Computation::compute_gradient_vector(Forman_Gradient &gradient, Node_T &n, Box &n_dom, Mesh &mesh,Spatial_Subdivision &division, bool output)
 {
    // this->initial_filerting(mesh);
+   this->output = output;
+    if(output){
+    for(int d=0; d<3; d++)
+        critical_simplices[d]=ivect_set();// Initialization 
+   }
     _min=saddle=_max=0;
     this->compute_local_gradient_vector(gradient,n,n_dom,0,mesh,division);
     cerr <<"minima("<< this->_min
@@ -49,7 +62,11 @@ void Forman_Gradient_Computation::compute_gradient_vector(Forman_Gradient &gradi
         << ") maxima(" << this->_max<< ")" << endl;
      
 }
+void Forman_Gradient_Computation::compute_gradient_vector(Forman_Gradient &gradient, Node_T &n, Box &n_dom, Mesh &mesh,Spatial_Subdivision &division)
+{
 
+     compute_gradient_vector(gradient,n,n_dom,mesh,division,false);
+}
 void Forman_Gradient_Computation::compute_local_gradient_vector(Forman_Gradient &gradient, Node_V &n, Mesh &mesh,
                                                                              Spatial_Subdivision &division)
 {
@@ -154,6 +171,8 @@ void Forman_Gradient_Computation::compute_gradient(Forman_Gradient &fg, itype v_
           if(lower_stars[i].size() == 0)
         {
             _min++;
+            if(this->output)
+                this->critical_simplices[0].insert(v);
         }
         else{
             //          cout<<"step1"<<endl;
@@ -312,6 +331,12 @@ void Forman_Gradient_Computation::compute_gradient_in_a_vertex(ivect &v, lower_s
                 critical_points[critico] = critico.front();
 //                cout<<"ONESADDLE: "<<critico.front()-1<<endl;
                 saddle++;
+                if(this->output){
+                    ivect edge=critico;
+                    sort(edge.begin(),edge.end());
+                    this->critical_simplices[1].insert(edge);    
+                }
+                
             }
             if(critico.size() == 3)
             {
@@ -319,6 +344,11 @@ void Forman_Gradient_Computation::compute_gradient_in_a_vertex(ivect &v, lower_s
 //                cout<<"MAXIMUM: "<<critico.front()-1<<endl;
 //                cout<<critico[0]-1<<" "<<critico[1]-1<<" "<<critico[2]-1<<endl;
                 _max++;
+                if(this->output){
+                    ivect triangle=critico;
+                    sort(triangle.begin(),triangle.end());
+                    this->critical_simplices[2].insert(triangle);    
+                }
             }
 
             //add all simplices of the co-boundary in pq_one
@@ -363,7 +393,7 @@ void Forman_Gradient_Computation::initial_filtering(Mesh &mesh)
         }
        
 
-    cout<<filtration[100]<<"; "<<filtration[59]<<endl;
+   // cout<<filtration[100]<<"; "<<filtration[59]<<endl;
 }
 
 void Forman_Gradient_Computation::initial_filtering_IA(Mesh &mesh)
@@ -389,7 +419,7 @@ void Forman_Gradient_Computation::initial_filtering_IA(Mesh &mesh)
     
 
 
-    cout<<filtration[100]<<"; "<<filtration[59]<<endl;
+    //cout<<filtration[100]<<"; "<<filtration[59]<<endl;
 }
 
 void Forman_Gradient_Computation::reset_filtering(Mesh &mesh,ivect& original_vertex_indices){
@@ -907,3 +937,4 @@ void Forman_Gradient_Computation::sort_simplex(vector<int> &simplex, Mesh &mesh)
         simplex.assign(ordered.begin(), ordered.end());
    
 }
+

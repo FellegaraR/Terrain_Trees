@@ -38,22 +38,28 @@ public:
 
     void compute_gradient_vector(Forman_Gradient &gradient, Node_V &n, Mesh &mesh, Spatial_Subdivision &division);
     void compute_gradient_vector(Forman_Gradient &gradient, Node_T &n, Box &n_dom, Mesh &mesh, Spatial_Subdivision &division);
-    
+    void compute_gradient_vector(Forman_Gradient &gradient, Node_V &n, Mesh &mesh, Spatial_Subdivision &division, bool output);
+    void compute_gradient_vector(Forman_Gradient &gradient, Node_T &n, Box &n_dom, Mesh &mesh, Spatial_Subdivision &division, bool output);
 
     
     void initial_filtering(Mesh &mesh);
     void initial_filtering_IA(Mesh &mesh);
     inline uvect get_filtration(){return this->filtration;}
     void reset_filtering(Mesh &mesh,ivect& original_vertex_indices);
-    inline map<short,ivect_set>& get_critical_simplices() { return this->critical_simplices; }
+    inline map<short,ivect_set>& get_critical_simplices(){
+        
+    cout<<"Min: "<<critical_simplices[0].size()<<"; ";
+    cout<<"Saddle: "<<critical_simplices[1].size()<<"; ";
+    cout<<"Max: "<<critical_simplices[2].size()<<endl;
+        return this->critical_simplices;}; 
 protected:
-     uvect filtration; //for each vertex its filtration value
+    uvect filtration; //for each vertex its filtration value
 
-           itype extract_missing_id(ivect &smaller, ivect &bigger);
+    itype extract_missing_id(ivect &smaller, ivect &bigger);
 
     bool cmp_filtered_simplices(const ivect& lhs, const ivect& rhs);
     utype simplex_filtration(const ivect &simpl);
-        map<short,ivect_set> critical_simplices;
+    map<short,ivect_set> critical_simplices;
     void push_in_coboundary(simplex *sface, simplex *co_sface);
     
 
@@ -62,6 +68,7 @@ protected:
 
 private:
     int saddle, _max, _min;
+    bool output;
     leaf_VT vts;
     inline bool filtration_cmp(const pair<coord_type,itype>& v1, const pair<coord_type,itype>& v2) const
     {
